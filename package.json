@@ -1,5 +1,5 @@
 {
-  "name": "nuxt-tauri-boilerplate",
+  "name": "modhammer-manager",
   "type": "module",
   "private": true,
   "scripts": {

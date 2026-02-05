@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "app",
+  "productName": "modhammer-manager",
   "version": "0.1.0",
-  "identifier": "com.something.app",
+  "identifier": "com.tpkee.modhammer_manager",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:3000",
@@ -12,9 +12,9 @@
   "app": {
     "windows": [
       {
-        "title": "app",
-        "width": 800,
-        "height": 600,
+        "title": "modhammer-manager",
+        "width": 1080,
+        "height": 864,
         "resizable": true,
         "fullscreen": false
       }
