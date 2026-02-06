@@ -5,7 +5,9 @@
   "windows": [
     "main"
   ],
+  "platforms": ["linux", "windows"],
   "permissions": [
-    "core:default"
-  ]
+    "core:default",
+    "store:default"
+    ]
 }

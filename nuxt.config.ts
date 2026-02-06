@@ -14,6 +14,7 @@ export default defineNuxtConfig({
       standalone: false,
     },
   },
+  ssr: false,
   css: ['./src/assets/css/main.css'],
   vite: {
     // Better support for Tauri CLI output
@@ -37,7 +38,7 @@ export default defineNuxtConfig({
     defaultLocale: 'en',
     locales: [
       { code: 'en', name: 'English', file: 'en.json' },
-    ]
+    ],
   },
   // Avoids error [unhandledRejection] EMFILE: too many open files, watch
   ignore: ['**/src-tauri/**'],
