@@ -6,7 +6,6 @@ use tauri_plugin_store::{resolve_store_path, StoreExt};
 use crate::state::get_default_state;
 
 pub mod state;
-pub mod utils;
 
 #[tauri::command]
 fn set_game_folder(state: state::AppState, path: &str) -> String {
