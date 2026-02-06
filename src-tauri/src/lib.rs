@@ -1,9 +1,7 @@
 use std::sync::Mutex;
 
 use tauri::Manager;
-use tauri_plugin_store::{resolve_store_path, StoreExt};
-
-use crate::state::get_default_state;
+use tauri_plugin_store::StoreExt;
 
 pub mod state;
 
@@ -33,7 +31,7 @@ fn set_workshop_folder(app: tauri::AppHandle, state: state::AppState, path: &str
     folder_watcher.watch(|event| {
         println!("Workshop folder event: {:?}", event);
     });
-    state.game_workshop_folder = Some(folder_watcher);
+    state.steam_workshop_folder = Some(folder_watcher);
 
     format!("Workshop folder set to: {}", path)
 }
@@ -43,9 +41,10 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::default().build())
-        .manage(Mutex::new(get_default_state()))
+        .manage(Mutex::new(state::State::default()))
         .setup(move |app| {
-            let defaults = get_default_state().to_hashmap();
+            let state: tauri::State<'_, Mutex<state::State>> = app.state::<Mutex<state::State>>();
+            let mut locked_state = state.lock().unwrap();
             let path = app
                 .path()
                 .config_dir()
@@ -53,16 +52,20 @@ pub fn run() {
                 .join("modhammer-manager/settings.json");
 
             let store = tauri_plugin_store::StoreBuilder::new(app, path.as_path())
-                .defaults(defaults.clone())
+                .defaults(
+                    locked_state
+                        .user_settings
+                        .iter()
+                        .map(|(k, v)| (k.get(), v.clone()))
+                        .collect(),
+                ) // the user_settings here should be the default one since locked_state is just created... hopefully.
                 .auto_save(std::time::Duration::from_millis(500))
                 .build()
                 .unwrap();
 
             println!("Store path: {:?}", path.as_path());
 
-            let state = app.state::<Mutex<state::State>>();
-            let mut locked_state = state.lock().unwrap();
-            *locked_state = state::State::from_store(store.entries());
+            locked_state.set_settings_from_store(store.entries());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
