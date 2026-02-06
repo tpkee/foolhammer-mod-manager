@@ -1,3 +1,4 @@
+use crate::defaults::games::{DefaultGameInfo, DEFAULT_GAMES_DATA, DEFAULT_GAME_ID};
 use notify::{Event, RecursiveMode, Watcher};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -130,13 +131,26 @@ impl Default for State {
 }
 
 fn default_user_settings() -> UserSettings {
+    let default_game = DEFAULT_GAMES_DATA
+        .iter()
+        .find(|game| game.game_id == DEFAULT_GAME_ID)
+        .unwrap_or(&DefaultGameInfo {
+            game_id: "",
+            game_path: "",
+            executable_name: "",
+            workshop_path: None,
+        });
+
     [
         (
             SettingKey::GameId,
-            serde_json::Value::String("1142710".to_string()), // Warhammer 3 on Steam
+            serde_json::Value::String(default_game.game_id.to_string()), // Warhammer 3 on Steam
         ),
-        (SettingKey::GamePath, serde_json::Value::Null),
-        (SettingKey::SteamWorkshopPath, serde_json::Value::Null),
+        (SettingKey::GamePath, default_game.game_path.into()),
+        (
+            SettingKey::SteamWorkshopPath,
+            default_game.workshop_path.into(),
+        ),
     ]
     .into_iter()
     .collect()

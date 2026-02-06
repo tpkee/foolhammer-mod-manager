@@ -3,6 +3,7 @@ use std::sync::Mutex;
 use tauri::Manager;
 use tauri_plugin_store::StoreExt;
 
+pub mod defaults;
 pub mod state;
 
 #[tauri::command]
