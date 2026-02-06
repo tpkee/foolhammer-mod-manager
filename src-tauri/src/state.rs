@@ -138,7 +138,7 @@ fn default_user_settings() -> UserSettings {
             game_id: "",
             game_path: "",
             executable_name: "",
-            workshop_path: None,
+            steam_workshop_path: None,
         });
 
     [
@@ -149,7 +149,7 @@ fn default_user_settings() -> UserSettings {
         (SettingKey::GamePath, default_game.game_path.into()),
         (
             SettingKey::SteamWorkshopPath,
-            default_game.workshop_path.into(),
+            default_game.steam_workshop_path.into(),
         ),
     ]
     .into_iter()
