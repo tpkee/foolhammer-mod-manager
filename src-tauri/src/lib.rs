@@ -17,8 +17,9 @@ fn set_game_folder(state: state::AppState, path: &str) -> String {
 }
 
 #[tauri::command]
-fn get_state(state: state::AppState) -> serde_json::Map<std::string::String, serde_json::Value> {
-    return state.lock().unwrap().to_json();
+fn get_state(state: state::AppState) -> serde_json::Value {
+    let state = state.lock().unwrap();
+    serde_json::json!(&state.user_settings)
 }
 
 #[tauri::command]

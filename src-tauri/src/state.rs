@@ -1,4 +1,5 @@
 use notify::{Event, RecursiveMode, Watcher};
+use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     path::Path,
@@ -8,7 +9,8 @@ use std::{
 pub type AppState<'a> = tauri::State<'a, Mutex<State>>;
 pub type UserSettings = HashMap<SettingKey, serde_json::Value>;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub enum SettingKey {
     GameId,
     GamePath,
@@ -34,12 +36,10 @@ impl SettingKey {
     }
 }
 
-#[derive(serde::Serialize, Debug)]
+#[derive(Debug)]
 pub struct FolderWatcher {
     pub path: String,
-    #[serde(skip)]
     watcher: notify::RecommendedWatcher,
-    #[serde(skip)]
     rx: mpsc::Receiver<notify::Result<Event>>,
 }
 
@@ -78,9 +78,11 @@ impl FolderWatcher {
     }
 }
 
-#[derive(serde::Serialize, Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct State {
+    #[serde(skip)]
     pub game_folder: Option<FolderWatcher>,
+    #[serde(skip)]
     pub steam_workshop_folder: Option<FolderWatcher>,
     pub user_settings: UserSettings,
 }
@@ -114,14 +116,6 @@ impl State {
         }
 
         self.user_settings = user_settings;
-    }
-
-    pub fn to_json(&self) -> serde_json::Map<String, serde_json::Value> {
-        serde_json::to_value(self)
-            .unwrap()
-            .as_object()
-            .unwrap()
-            .clone()
     }
 }
 
