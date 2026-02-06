@@ -22,4 +22,12 @@ export default withNuxt(
     ignores: ['**/src-tauri'],
     stylistic: true,
   }),
+  {
+    rules: {
+      'no-console': 'off',
+      'vue/block-order': ['error', {
+        order: ['template', 'script', 'style'],
+      }],
+    },
+  },
 )
