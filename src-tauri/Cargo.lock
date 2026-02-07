@@ -2006,6 +2006,8 @@ dependencies = [
 name = "modhammer_manager"
 version = "0.1.0"
 dependencies = [
+ "dirs",
+ "lazy_static",
  "notify",
  "serde",
  "serde_json",
