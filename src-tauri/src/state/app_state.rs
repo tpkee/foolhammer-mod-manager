@@ -1,6 +1,6 @@
 use crate::{
     defaults::{games, system},
-    resolve_existing_path,
+    join_path, resolve_existing_path,
 };
 use notify::{Event, RecursiveMode, Watcher};
 use serde::Serialize;
@@ -92,7 +92,7 @@ fn default_user_settings() -> user_settings::UserSettings {
             saves_path: "",
         });
 
-    let data_dir = dirs::data_dir().expect("Failed to get data directory");
+    let saves_data_dir = retrieve_saves_data_dir(default_game.game_id);
 
     HashMap::from([
         (
@@ -118,7 +118,11 @@ fn default_user_settings() -> user_settings::UserSettings {
         ),
         (
             user_settings::SettingKey::SavesPath,
-            pathbuf_to_string(resolve_existing_path!(&data_dir, default_game.saves_path,)).into(),
+            pathbuf_to_string(resolve_existing_path!(
+                &saves_data_dir,
+                default_game.saves_path,
+            ))
+            .into(),
         ),
         (
             user_settings::SettingKey::ModsPath,
@@ -134,6 +138,23 @@ fn default_user_settings() -> user_settings::UserSettings {
 
 fn pathbuf_to_string(path: Option<PathBuf>) -> Option<String> {
     path.and_then(|p| Some(p.to_string_lossy().into_owned()))
+}
+
+fn retrieve_saves_data_dir(game_id: &str) -> PathBuf {
+    // The default saves path needs to be handled differently because on Linux we have to access the wine pfx
+    let data_dir = dirs::data_dir().expect("Failed to get data directory");
+
+    match std::env::consts::OS {
+        "windows" => data_dir,
+        _ => {
+            let wine_pfx = format!(
+                "/Steam/steamapps/compatdata/{}/pfx/drive_c/users/steamuser/AppData/Roaming",
+                game_id
+            );
+
+            join_path!(&data_dir, &wine_pfx)
+        }
+    }
 }
 
 fn watcher_sentry(event: Result<Event, notify::Error>) {
