@@ -16,7 +16,7 @@ macro_rules! resolve_existing_path {
             let mut p = std::path::Path::new($seg);
 
             if i > 0 {
-                p = match p.strip_prefix("/") {
+                p = match p.strip_prefix(std::path::MAIN_SEPARATOR.to_string()) {
                     Ok(stripped) => stripped,
                     Err(_) => p,
                 };
