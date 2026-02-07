@@ -3,7 +3,7 @@ name = "modhammer_manager"
 version = "0.1.0"
 description = "A mod manager for total war warhammer 3"
 authors = ["tpkee"]
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
