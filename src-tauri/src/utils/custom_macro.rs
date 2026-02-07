@@ -2,17 +2,17 @@
 macro_rules! join_path {
   ($($seg:expr),+ $(,)?) => {{
         let mut path = std::path::PathBuf::new();
-        let mut first_iteration = true;
+        let mut _first_iteration = true; // the underscore is to avoid the unused variable warning which triggers for noreason whatsoever
         $(
             let mut p = std::path::Path::new($seg);
 
-            if !first_iteration {
+            if !_first_iteration {
                 p = match p.strip_prefix(std::path::MAIN_SEPARATOR.to_string()) {
                     Ok(stripped) => stripped,
                     Err(_) => p,
                 };
             } else {
-                first_iteration = false;
+                _first_iteration = false;
             }
 
             path.push(p);
