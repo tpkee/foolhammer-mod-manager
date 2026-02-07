@@ -7,8 +7,10 @@ pub mod defaults;
 pub mod state;
 pub mod utils;
 
+type AppState<'a> = tauri::State<'a, Mutex<state::app_state::State>>;
+
 #[tauri::command]
-fn set_game_folder(state: state::AppState, path: &str) -> String {
+fn set_game_folder(state: AppState, path: &str) -> String {
     // let mut state = state.lock().unwrap();
     // let mut folder_watcher = state::FolderWatcher::new(path);
 
@@ -19,14 +21,14 @@ fn set_game_folder(state: state::AppState, path: &str) -> String {
 }
 
 #[tauri::command]
-fn get_state(state: state::AppState) -> serde_json::Value {
+fn get_state(state: AppState) -> serde_json::Value {
     let state = state.lock().unwrap();
     println!("Getting state: {:?}", state);
     serde_json::json!(&state.user_settings)
 }
 
 #[tauri::command]
-fn set_workshop_folder(app: tauri::AppHandle, state: state::AppState, path: &str) -> String {
+fn set_workshop_folder(app: tauri::AppHandle, state: AppState, path: &str) -> String {
     // tauri::path::PathResolver::app_data_dir(app.path());
     // app.path().app_data_dir();
     // app.store("settings.json");
@@ -45,10 +47,12 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::default().build())
-        .manage(Mutex::new(state::State::default()))
+        .manage(Mutex::new(state::app_state::State::default()))
         .setup(move |app| {
-            let state: tauri::State<'_, Mutex<state::State>> = app.state::<Mutex<state::State>>();
-            let mut locked_state: std::sync::MutexGuard<'_, state::State> = state.lock().unwrap();
+            let state: tauri::State<'_, Mutex<state::app_state::State>> =
+                app.state::<Mutex<state::app_state::State>>();
+            let mut locked_state: std::sync::MutexGuard<'_, state::app_state::State> =
+                state.lock().unwrap();
             let path = app // TODO: use the crate variable extractor instead of this
                 .path()
                 .config_dir()
