@@ -5,14 +5,15 @@ use tauri_plugin_store::StoreExt;
 
 pub mod defaults;
 pub mod state;
+pub mod utils;
 
 #[tauri::command]
 fn set_game_folder(state: state::AppState, path: &str) -> String {
-    let mut state = state.lock().unwrap();
-    let mut folder_watcher = state::FolderWatcher::new(path);
+    // let mut state = state.lock().unwrap();
+    // let mut folder_watcher = state::FolderWatcher::new(path);
 
-    // folder_watcher.watch();
-    state.game_folder = Some(folder_watcher);
+    // // folder_watcher.watch();
+    // state.game_folder = Some(folder_watcher);
 
     format!("Game folder set to: {}", path)
 }
@@ -20,20 +21,21 @@ fn set_game_folder(state: state::AppState, path: &str) -> String {
 #[tauri::command]
 fn get_state(state: state::AppState) -> serde_json::Value {
     let state = state.lock().unwrap();
+    println!("Getting state: {:?}", state);
     serde_json::json!(&state.user_settings)
 }
 
 #[tauri::command]
 fn set_workshop_folder(app: tauri::AppHandle, state: state::AppState, path: &str) -> String {
-    tauri::path::PathResolver::app_data_dir(app.path());
-    app.path().app_data_dir();
-    app.store("settings.json");
-    let mut state = state.lock().unwrap();
-    let mut folder_watcher = state::FolderWatcher::new(path);
-    folder_watcher.watch(|event| {
-        println!("Workshop folder event: {:?}", event);
-    });
-    state.steam_workshop_folder = Some(folder_watcher);
+    // tauri::path::PathResolver::app_data_dir(app.path());
+    // app.path().app_data_dir();
+    // app.store("settings.json");
+    // let mut state = state.lock().unwrap();
+    // let mut folder_watcher = state::FolderWatcher::new(path);
+    // folder_watcher.watch(|event| {
+    //     println!("Workshop folder event: {:?}", event);
+    // });
+    // state.steam_workshop_folder = Some(folder_watcher);
 
     format!("Workshop folder set to: {}", path)
 }
@@ -46,11 +48,11 @@ pub fn run() {
         .manage(Mutex::new(state::State::default()))
         .setup(move |app| {
             let state: tauri::State<'_, Mutex<state::State>> = app.state::<Mutex<state::State>>();
-            let mut locked_state = state.lock().unwrap();
-            let path = app
+            let mut locked_state: std::sync::MutexGuard<'_, state::State> = state.lock().unwrap();
+            let path = app // TODO: use the crate variable extractor instead of this
                 .path()
                 .config_dir()
-                .unwrap()
+                .expect("Failed to get config directory")
                 .join("modhammer-manager/settings.json");
 
             let store = tauri_plugin_store::StoreBuilder::new(app, path.as_path())
@@ -63,9 +65,13 @@ pub fn run() {
                 ) // the user_settings here should be the default one since locked_state is just created... hopefully.
                 .auto_save(std::time::Duration::from_millis(500))
                 .build()
-                .unwrap();
+                .expect("Failed to build store");
 
-            println!("Store path: {:?}", path.as_path());
+            println!("User settings path: {:?}", path.as_path());
+
+            // store.save();
+
+            println!("User settings loaded from store: {:?}", store.entries());
 
             locked_state.set_settings_from_store(store.entries());
             Ok(())

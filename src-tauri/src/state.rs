@@ -1,12 +1,14 @@
-use crate::defaults::games::{DefaultGameInfo, DEFAULT_GAMES_DATA, DEFAULT_GAME_ID};
+use crate::{
+    defaults::{games, system},
+    join_path, resolve_existing_path,
+};
 use notify::{Event, RecursiveMode, Watcher};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
-    path::Path,
+    path::PathBuf,
     sync::{mpsc, Mutex},
 };
-
 pub type AppState<'a> = tauri::State<'a, Mutex<State>>;
 pub type UserSettings = HashMap<SettingKey, serde_json::Value>;
 
@@ -39,43 +41,27 @@ impl SettingKey {
 
 #[derive(Debug)]
 pub struct FolderWatcher {
-    pub path: String,
+    // drop to unwatch
+    pub path: PathBuf,
     watcher: notify::RecommendedWatcher,
-    rx: mpsc::Receiver<notify::Result<Event>>,
+    //rx: mpsc::Receiver<notify::Result<Event>>,
 }
 
 impl FolderWatcher {
-    pub fn new(path: &str) -> Self {
-        let (tx, rx) = mpsc::channel::<notify::Result<Event>>();
+    pub fn new(path: PathBuf, callback: fn(event: Result<Event, notify::Error>)) -> Self {
+        // let (tx, rx) = mpsc::channel();
+        let mut watcher = notify::recommended_watcher(callback).expect(&format!(
+            "Failed to create watcher forrecommended_watcher folder {:?}",
+            path
+        ));
+        let config = notify::Config::default();
+        watcher.configure(config);
 
-        let watcher = notify::recommended_watcher(tx).unwrap();
+        watcher
+            .watch(&path, RecursiveMode::Recursive)
+            .expect(&format!("Failed to watch folder {:?}", path));
 
-        FolderWatcher {
-            path: path.to_string(),
-            watcher,
-            rx,
-        }
-    }
-
-    pub fn watch(&mut self, callback: fn(event: Event)) {
-        self.watcher
-            .watch(Path::new(&self.path), RecursiveMode::Recursive)
-            .unwrap(); // TODO: Handle errors properly instead of unwrapping everywhere
-
-        for res in &self.rx {
-            match res {
-                Ok(event) => callback(event),
-                Err(e) => println!("watch error: {:?}", e), // we should cleanup or dunno
-            }
-        }
-    }
-
-    pub fn unwatch(mut self) {
-        self.watcher.unwatch(Path::new(&self.path)).unwrap();
-    }
-
-    pub fn check_path(&self, path: &str) -> bool {
-        self.path == path
+        FolderWatcher { path, watcher }
     }
 }
 
@@ -93,7 +79,9 @@ impl State {
         let mut user_settings: UserSettings = HashMap::new();
         let set_folder_watcher = |ptr: &mut Option<FolderWatcher>, path: &serde_json::Value| {
             if let Some(path_str) = path.as_str() {
-                *ptr = Some(initialize_watcher(path_str));
+                *ptr = Some(FolderWatcher::new(PathBuf::from(path_str), |event| {
+                    println!("Folder event: {:?}", event);
+                }));
             }
         };
 
@@ -116,12 +104,18 @@ impl State {
             user_settings.insert(setting_key, v);
         }
 
+        println!("User settings loaded from store: {:?}", user_settings);
+
         self.user_settings = user_settings;
     }
 }
 
 impl Default for State {
     fn default() -> Self {
+        println!(
+            "System program files path: {:?}",
+            &*system::PROGRAM_FILES_PATH,
+        );
         Self {
             game_folder: None,
             steam_workshop_folder: None,
@@ -131,35 +125,42 @@ impl Default for State {
 }
 
 fn default_user_settings() -> UserSettings {
-    let default_game = DEFAULT_GAMES_DATA
+    let default_game = games::DEFAULT_GAMES_DATA
         .iter()
-        .find(|game| game.game_id == DEFAULT_GAME_ID)
-        .unwrap_or(&DefaultGameInfo {
+        .find(|game| game.game_id == games::DEFAULT_GAME_ID)
+        .unwrap_or(&games::DefaultGameInfo {
             game_id: "",
             game_path: "",
             executable_name: "",
             steam_workshop_path: None,
         });
 
-    [
+    HashMap::from([
         (
             SettingKey::GameId,
             serde_json::Value::String(default_game.game_id.to_string()), // Warhammer 3 on Steam
         ),
-        (SettingKey::GamePath, default_game.game_path.into()),
+        (
+            SettingKey::GamePath,
+            pathbuf_to_string(resolve_existing_path!(
+                &*system::PROGRAM_FILES_PATH,
+                default_game.game_path,
+                default_game.executable_name
+            ))
+            .into(),
+        ),
         (
             SettingKey::SteamWorkshopPath,
-            default_game.steam_workshop_path.into(),
+            pathbuf_to_string(resolve_existing_path!(
+                &*system::PROGRAM_FILES_PATH,
+                default_game.steam_workshop_path.unwrap_or(""),
+                default_game.game_id
+            ))
+            .into(),
         ),
-    ]
-    .into_iter()
-    .collect()
+    ])
 }
 
-fn initialize_watcher(path: &str) -> FolderWatcher {
-    let mut folder_watcher = FolderWatcher::new(path);
-    folder_watcher.watch(|event| {
-        println!("Folder event: {:?}", event); // TODO: emit an event? idk
-    });
-    folder_watcher
+fn pathbuf_to_string(path: Option<PathBuf>) -> Option<String> {
+    path.and_then(|p| Some(p.to_string_lossy().into_owned()))
 }
