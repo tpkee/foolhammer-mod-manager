@@ -1,5 +1,5 @@
 use crate::{
-    defaults::{games, system},
+    defaults::{games, system::STEAMDIR_INSTANCE},
     join_path, resolve_existing_path,
 };
 use notify::{Event, RecursiveMode, Watcher};
@@ -80,41 +80,55 @@ impl Default for State {
 }
 
 fn default_user_settings() -> user_settings::UserSettings {
-    let default_game = games::DEFAULT_GAMES_DATA
+    let default_game = games::SUPPORTED_GAMES
         .iter()
         .find(|game| game.game_id == games::DEFAULT_GAME_ID)
         .unwrap_or(&games::DefaultGameInfo {
             game_id: "",
-            game_path: "",
             executable_name: "",
-            steam_workshop_path: None,
             mods_path: "data",
             saves_path: "",
         });
 
+    let game_path = default_game.get_game_path();
+
+    println!("Default game path: {:?}", game_path);
+
     let saves_data_dir = retrieve_saves_data_dir(default_game.game_id);
+
+    let workshop_folder: serde_json::Value = match &*STEAMDIR_INSTANCE {
+        Some(steam_dir) => {
+            match resolve_existing_path!(
+                steam_dir.path(),
+                "steamapps",
+                "workshop",
+                "content",
+                default_game.game_id,
+            ) {
+                Some(p) => p.to_string_lossy().into_owned().into(),
+                None => serde_json::Value::Null,
+            }
+        }
+        _ => serde_json::Value::Null,
+    };
+
+    let mods_path = match game_path {
+        Some(str) => pathbuf_to_string(resolve_existing_path!(&str, default_game.mods_path)),
+        _ => None,
+    };
 
     HashMap::from([
         (
             user_settings::SettingKey::GameId,
-            serde_json::Value::String(default_game.game_id.to_string()), // Warhammer 3 on Steam
+            default_game.game_id.to_string().into(),
         ),
         (
             user_settings::SettingKey::GamePath,
-            pathbuf_to_string(resolve_existing_path!(
-                &*system::PROGRAM_FILES_PATH,
-                default_game.game_path,
-            ))
-            .into(),
+            serde_json::json!(default_game.get_game_path().clone()),
         ),
         (
             user_settings::SettingKey::SteamWorkshopPath,
-            pathbuf_to_string(resolve_existing_path!(
-                &*system::PROGRAM_FILES_PATH,
-                default_game.steam_workshop_path.unwrap_or(""),
-                default_game.game_id,
-            ))
-            .into(),
+            workshop_folder,
         ),
         (
             user_settings::SettingKey::SavesPath,
@@ -126,12 +140,7 @@ fn default_user_settings() -> user_settings::UserSettings {
         ),
         (
             user_settings::SettingKey::ModsPath,
-            pathbuf_to_string(resolve_existing_path!(
-                &*system::PROGRAM_FILES_PATH,
-                default_game.game_path,
-                default_game.mods_path,
-            ))
-            .into(),
+            serde_json::json!(mods_path),
         ),
     ])
 }
