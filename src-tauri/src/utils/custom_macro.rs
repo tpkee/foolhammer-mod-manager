@@ -1,15 +1,6 @@
 #[macro_export]
 macro_rules! join_path {
-    ($($seg:expr),+ $(,)?) => {{
-        let mut path = std::path::PathBuf::new();
-        $(path.push($seg);)+
-        path.to_string_lossy().into_owned()
-    }};
-}
-
-#[macro_export]
-macro_rules! resolve_existing_path {
-    ($($seg:expr),+ $(,)?) => {{
+  ($($seg:expr),+ $(,)?) => {{
         let mut path = std::path::PathBuf::new();
         let mut first_iteration = true;
         $(
@@ -26,6 +17,14 @@ macro_rules! resolve_existing_path {
 
             path.push(p);
         )+
-        path.exists().then_some(path)
+        path
+    }};
+}
+
+#[macro_export]
+macro_rules! resolve_existing_path {
+    ($($seg:expr),+ $(,)?) => {{
+        let joined_path = join_path!($($seg),+);
+        joined_path.exists().then_some(joined_path)
     }};
 }
