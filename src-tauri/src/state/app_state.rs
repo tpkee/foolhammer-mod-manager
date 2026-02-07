@@ -69,7 +69,7 @@ impl State {
 impl Default for State {
     fn default() -> Self {
         let user_settings = default_user_settings();
-        let watcher = notify::recommended_watcher(folders_event_governor)
+        let watcher = notify::recommended_watcher(watcher_sentry)
             .expect("Failed to create watcher for State default");
 
         Self {
@@ -136,13 +136,14 @@ fn pathbuf_to_string(path: Option<PathBuf>) -> Option<String> {
     path.and_then(|p| Some(p.to_string_lossy().into_owned()))
 }
 
-fn folders_event_governor(event: Result<Event, notify::Error>) {
+fn watcher_sentry(event: Result<Event, notify::Error>) {
+    // call the governor if the event was an edit
     match event {
         Ok(e) => match e.kind {
             notify::EventKind::Create(_)
             | notify::EventKind::Modify(_)
             | notify::EventKind::Remove(_) => {
-                println!("Folder change detected: {:?}", e);
+                folders_governor(e);
             }
             _ => {}
         },
@@ -150,4 +151,9 @@ fn folders_event_governor(event: Result<Event, notify::Error>) {
             eprintln!("Error watching folder: {:?}", e); // TODO: uhm, find what to do when this happens...? Stop the watcher or dunno
         }
     }
+}
+
+fn folders_governor(event: Event) {
+    // TODO: should rescan and do things based on the folder path
+    println!("Folder event detected: {:?}", event);
 }
