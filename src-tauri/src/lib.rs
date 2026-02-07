@@ -1,7 +1,6 @@
 use std::sync::Mutex;
 
 use tauri::Manager;
-use tauri_plugin_store::StoreExt;
 
 pub mod defaults;
 pub mod state;
@@ -10,7 +9,7 @@ pub mod utils;
 type AppState<'a> = tauri::State<'a, Mutex<state::app_state::State>>;
 
 #[tauri::command]
-fn set_game_folder(state: AppState, path: &str) -> String {
+fn set_game_folder(_state: AppState, path: &str) -> String {
     // let mut state = state.lock().unwrap();
     // let mut folder_watcher = state::FolderWatcher::new(path);
 
@@ -28,7 +27,7 @@ fn get_state(state: AppState) -> serde_json::Value {
 }
 
 #[tauri::command]
-fn set_workshop_folder(app: tauri::AppHandle, state: AppState, path: &str) -> String {
+fn set_workshop_folder(_app: tauri::AppHandle, _state: AppState, path: &str) -> String {
     // tauri::path::PathResolver::app_data_dir(app.path());
     // app.path().app_data_dir();
     // app.store("settings.json");
