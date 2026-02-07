@@ -69,10 +69,6 @@ pub fn run() {
 
             println!("User settings path: {:?}", path.as_path());
 
-            // store.save();
-
-            println!("User settings loaded from store: {:?}", store.entries());
-
             locked_state.set_settings_from_store(store.entries());
             Ok(())
         })

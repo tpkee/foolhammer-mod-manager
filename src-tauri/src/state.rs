@@ -6,8 +6,8 @@ use notify::{Event, RecursiveMode, Watcher};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
-    path::PathBuf,
-    sync::{mpsc, Mutex},
+    path::{self, Path, PathBuf},
+    sync::Mutex,
 };
 pub type AppState<'a> = tauri::State<'a, Mutex<State>>;
 pub type UserSettings = HashMap<SettingKey, serde_json::Value>;
@@ -18,6 +18,8 @@ pub enum SettingKey {
     GameId,
     GamePath,
     SteamWorkshopPath,
+    SavesPath,
+    ModsPath,
 }
 
 impl SettingKey {
@@ -26,6 +28,8 @@ impl SettingKey {
             Self::GameId => "game_id".to_string(),
             Self::GamePath => "game_path".to_string(),
             Self::SteamWorkshopPath => "steam_workshop_path".to_string(),
+            Self::SavesPath => "saves_path".to_string(),
+            Self::ModsPath => "mods_path".to_string(),
         }
     }
 
@@ -34,56 +38,32 @@ impl SettingKey {
             "game_path" => Ok(Self::GamePath),
             "steam_workshop_path" => Ok(Self::SteamWorkshopPath),
             "game_id" => Ok(Self::GameId),
+            "saves_path" => Ok(Self::SavesPath),
+            "mods_path" => Ok(Self::ModsPath),
             _ => Err("Invalid SettingKey"),
         }
     }
-}
 
-#[derive(Debug)]
-pub struct FolderWatcher {
-    // drop to unwatch
-    pub path: PathBuf,
-    watcher: notify::RecommendedWatcher,
-    //rx: mpsc::Receiver<notify::Result<Event>>,
-}
-
-impl FolderWatcher {
-    pub fn new(path: PathBuf, callback: fn(event: Result<Event, notify::Error>)) -> Self {
-        // let (tx, rx) = mpsc::channel();
-        let mut watcher = notify::recommended_watcher(callback).expect(&format!(
-            "Failed to create watcher forrecommended_watcher folder {:?}",
-            path
-        ));
-        let config = notify::Config::default();
-        watcher.configure(config);
-
-        watcher
-            .watch(&path, RecursiveMode::Recursive)
-            .expect(&format!("Failed to watch folder {:?}", path));
-
-        FolderWatcher { path, watcher }
+    pub fn is_path_setting(&self) -> bool {
+        matches!(
+            self,
+            Self::GamePath | Self::ModsPath | Self::SavesPath | Self::SteamWorkshopPath
+        )
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 pub struct State {
-    #[serde(skip)]
-    pub game_folder: Option<FolderWatcher>,
-    #[serde(skip)]
-    pub steam_workshop_folder: Option<FolderWatcher>,
     pub user_settings: UserSettings,
+    #[serde(skip)]
+    watcher: notify::RecommendedWatcher,
 }
 
 impl State {
     pub fn set_settings_from_store(&mut self, entries: Vec<(String, serde_json::Value)>) {
+        let mut watcher_paths = self.watcher.paths_mut();
         let mut user_settings: UserSettings = HashMap::new();
-        let set_folder_watcher = |ptr: &mut Option<FolderWatcher>, path: &serde_json::Value| {
-            if let Some(path_str) = path.as_str() {
-                *ptr = Some(FolderWatcher::new(PathBuf::from(path_str), |event| {
-                    println!("Folder event: {:?}", event);
-                }));
-            }
-        };
+        let mut folders_to_watch: Vec<String> = vec![];
 
         for (k, v) in entries {
             let Ok(setting_key) = SettingKey::from_str(&k) else {
@@ -91,35 +71,51 @@ impl State {
                 continue;
             };
 
-            match setting_key {
-                SettingKey::GamePath => {
-                    set_folder_watcher(&mut self.game_folder, &v);
-                }
-                SettingKey::SteamWorkshopPath => {
-                    set_folder_watcher(&mut self.steam_workshop_folder, &v);
-                }
-                _ => {}
+            if setting_key.is_path_setting()
+                && setting_key != SettingKey::GamePath
+                && let Some(path_str) = v.as_str()
+            {
+                // no need to watch the gamepath since we don't care if the exe will be changed
+                folders_to_watch.push(path_str.to_string());
             }
 
             user_settings.insert(setting_key, v);
         }
 
-        println!("User settings loaded from store: {:?}", user_settings);
+        for folder in &folders_to_watch {
+            let p = Path::new(folder);
+            if !p.exists() {
+                continue;
+            }
 
-        self.user_settings = user_settings;
+            watcher_paths
+                .add(p, RecursiveMode::Recursive)
+                .expect("Failed to watch folder from State::set_settings_from_store");
+        }
+
+        watcher_paths
+            .commit()
+            .is_ok()
+            .then(|| println!("Watching folders: {:?}", folders_to_watch));
+
+        self.update_user_setting(user_settings);
+    }
+
+    pub fn update_user_setting(&mut self, settings: UserSettings) {
+        self.user_settings = settings;
+        // TODO: emit an event or idk do something
     }
 }
 
 impl Default for State {
     fn default() -> Self {
-        println!(
-            "System program files path: {:?}",
-            &*system::PROGRAM_FILES_PATH,
-        );
+        let user_settings = default_user_settings();
+        let watcher = notify::recommended_watcher(folders_event_governor)
+            .expect("Failed to create watcher for State default");
+
         Self {
-            game_folder: None,
-            steam_workshop_folder: None,
-            user_settings: default_user_settings(),
+            watcher,
+            user_settings,
         }
     }
 }
@@ -133,7 +129,11 @@ fn default_user_settings() -> UserSettings {
             game_path: "",
             executable_name: "",
             steam_workshop_path: None,
+            mods_path: "data",
+            saves_path: "",
         });
+
+    let data_dir = dirs::data_dir().expect("Failed to get data directory");
 
     HashMap::from([
         (
@@ -145,7 +145,6 @@ fn default_user_settings() -> UserSettings {
             pathbuf_to_string(resolve_existing_path!(
                 &*system::PROGRAM_FILES_PATH,
                 default_game.game_path,
-                default_game.executable_name
             ))
             .into(),
         ),
@@ -154,7 +153,20 @@ fn default_user_settings() -> UserSettings {
             pathbuf_to_string(resolve_existing_path!(
                 &*system::PROGRAM_FILES_PATH,
                 default_game.steam_workshop_path.unwrap_or(""),
-                default_game.game_id
+                default_game.game_id,
+            ))
+            .into(),
+        ),
+        (
+            SettingKey::SavesPath,
+            pathbuf_to_string(resolve_existing_path!(&data_dir, default_game.saves_path,)).into(),
+        ),
+        (
+            SettingKey::ModsPath,
+            pathbuf_to_string(resolve_existing_path!(
+                &*system::PROGRAM_FILES_PATH,
+                default_game.game_path,
+                default_game.mods_path,
             ))
             .into(),
         ),
@@ -163,4 +175,20 @@ fn default_user_settings() -> UserSettings {
 
 fn pathbuf_to_string(path: Option<PathBuf>) -> Option<String> {
     path.and_then(|p| Some(p.to_string_lossy().into_owned()))
+}
+
+fn folders_event_governor(event: Result<Event, notify::Error>) {
+    match event {
+        Ok(e) => match e.kind {
+            notify::EventKind::Create(_)
+            | notify::EventKind::Modify(_)
+            | notify::EventKind::Remove(_) => {
+                println!("Folder change detected: {:?}", e);
+            }
+            _ => {}
+        },
+        Err(e) => {
+            eprintln!("Error watching folder: {:?}", e); // TODO: uhm, find what to do when this happens...? Stop the watcher or dunno
+        }
+    }
 }
