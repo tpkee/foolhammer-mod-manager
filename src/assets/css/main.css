@@ -1,1 +1,12 @@
 @import 'tailwindcss';
+
+@theme {
+  --color-ghost-white: #f8f8ff;
+}
+
+body {
+  background-color: #0d1117;
+  color: var(--color-ghost-white);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+}

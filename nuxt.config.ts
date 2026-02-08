@@ -40,6 +40,11 @@ export default defineNuxtConfig({
       { code: 'en', name: 'English', file: 'en.json' },
     ],
   },
+  icon: {
+    componentName: 'NuxtIcon',
+    mode: 'css',
+    cssLayer: 'base',
+  },
   // Avoids error [unhandledRejection] EMFILE: too many open files, watch
   ignore: ['**/src-tauri/**'],
   devtools: { enabled: true },
