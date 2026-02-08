@@ -5,5 +5,6 @@ interface ModMeta {
   isEnabled: boolean
   canEnable: boolean
   lastUpdated: number | string | Date
+  isSteamWorkshop: boolean
   image: Nullable<string>
 }
