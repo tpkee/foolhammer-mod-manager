@@ -48,6 +48,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         .manage(Mutex::new(state::app_state::State::default()))
         .setup(move |app| {
+            let app_handle = app.handle();
             let state: tauri::State<'_, Mutex<state::app_state::State>> =
                 app.state::<Mutex<state::app_state::State>>();
             let mut locked_state: std::sync::MutexGuard<'_, state::app_state::State> =
@@ -72,11 +73,11 @@ pub fn run() {
 
             println!("User settings path: {:?}", path.as_path());
 
-            let app_handle = app.handle();
-            let mut global_app_handle = defaults::system::TAURI_APP_HANDLE.lock().unwrap();
-            *global_app_handle = Some(app_handle.clone());
+            // let app_handle = app.handle();
+            // let mut global_app_handle = defaults::system::TAURI_APP_HANDLE.lock().unwrap();
+            // *global_app_handle = Some(app_handle.clone());
 
-            locked_state.set_settings_from_store(store.entries());
+            locked_state.set_settings_from_store(app_handle, store.entries());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

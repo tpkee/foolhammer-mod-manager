@@ -1,5 +1,5 @@
 use crate::{
-    defaults::{games, system::STEAMDIR_INSTANCE, system::TAURI_APP_HANDLE},
+    defaults::{games, system::STEAMDIR_INSTANCE},
     join_path, resolve_existing_path,
 };
 use notify::{Event, RecursiveMode, Watcher};
@@ -20,7 +20,11 @@ pub struct State {
 }
 
 impl State {
-    pub fn set_settings_from_store(&mut self, entries: Vec<(String, serde_json::Value)>) {
+    pub fn set_settings_from_store(
+        &mut self,
+        app_handle: &tauri::AppHandle,
+        entries: Vec<(String, serde_json::Value)>,
+    ) {
         let mut watcher_paths = self.watcher.paths_mut();
         let mut user_settings: user_settings::UserSettings = HashMap::new();
         let mut folders_to_watch: Vec<String> = vec![];
@@ -58,23 +62,19 @@ impl State {
             .is_ok()
             .then(|| println!("Watching folders: {:?}", folders_to_watch));
 
-        self.update_user_setting(user_settings);
+        self.update_user_setting(app_handle, user_settings);
     }
 
-    pub fn update_user_setting(&mut self, settings: user_settings::UserSettings) {
+    pub fn update_user_setting(
+        &mut self,
+        app_handle: &tauri::AppHandle,
+        settings: user_settings::UserSettings,
+    ) {
         self.user_settings = settings;
 
-        let app_handle = TAURI_APP_HANDLE.lock().unwrap();
-
-        match &*app_handle {
-            Some(handle) => {
-                let _ = handle.emit(
-                    "update/settings",
-                    serde_json::to_value(&self.user_settings).unwrap(),
-                );
-            }
-            None => eprintln!("App handle not available to emit update/settings event"),
-        }
+        app_handle
+            .emit("update/user-settings", &self.user_settings)
+            .expect("Failed to emit update/user-settings event");
     }
 }
 
