@@ -1,5 +1,5 @@
 use crate::{
-    defaults::{games, system::STEAMDIR_INSTANCE},
+    defaults::{games, system::STEAMDIR_INSTANCE, system::TAURI_APP_HANDLE},
     join_path, resolve_existing_path,
 };
 use notify::{Event, RecursiveMode, Watcher};
@@ -8,6 +8,7 @@ use std::{
     collections::HashMap,
     path::{Path, PathBuf},
 };
+use tauri::Emitter;
 
 use crate::state::user_settings;
 
@@ -62,7 +63,18 @@ impl State {
 
     pub fn update_user_setting(&mut self, settings: user_settings::UserSettings) {
         self.user_settings = settings;
-        // TODO: emit an event or idk do something
+
+        let app_handle = TAURI_APP_HANDLE.lock().unwrap();
+
+        match &*app_handle {
+            Some(handle) => {
+                let _ = handle.emit(
+                    "update/settings",
+                    serde_json::to_value(&self.user_settings).unwrap(),
+                );
+            }
+            None => eprintln!("App handle not available to emit update/settings event"),
+        }
     }
 }
 
