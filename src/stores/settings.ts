@@ -1,7 +1,4 @@
-import { defineStore } from 'pinia'
-
-export const useSettingsStore = defineStore({
-  id: 'useSettingsStore',
-  state: () => (null),
+export const useSettingsStore = defineStore('settingsStore', {
+  state: () => ({ }),
   actions: {},
 })
