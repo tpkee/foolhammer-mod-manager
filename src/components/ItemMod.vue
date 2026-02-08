@@ -18,7 +18,7 @@
             {{ name }}
           </p>
         </template>
-        <p class="truncate">
+        <p class="truncate" :title="pack">
           {{ pack }}
         </p>
       </app-tooltip>
