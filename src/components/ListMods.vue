@@ -7,8 +7,8 @@
       </div>
     </div>
 
-    <div class="border overflow-hidden rounded border-gray-700">
-      <div class="grid grid-cols-12 p-2.5 border border-gray-800 items-center gap-2.5 text-left [&>p]:whitespace-nowrap bg-gray-800">
+    <div class="border overflow-hidden rounded border-gray-700 overflow-x-auto md:overflow-x-hidden">
+      <div class="grid grid-cols-12 p-2.5 border border-gray-800 items-center gap-2.5 text-left [&>p]:whitespace-nowrap bg-gray-800 w-[400%] sm:w-[125%] md:w-full">
         <div class="flex items-center gap-2.5 col-span-2">
           <p class="ml-9">
             Order
@@ -27,7 +27,7 @@
       <div
         v-for="i in 3"
         :key="i"
-        class="group"
+        class="group w-[400%] sm:w-[125%] md:w-full"
       >
         <item-mod
           :order="2"
