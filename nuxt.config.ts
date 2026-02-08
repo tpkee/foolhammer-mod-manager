@@ -14,6 +14,9 @@ export default defineNuxtConfig({
       standalone: false,
     },
   },
+  imports: {
+    dirs: ['stores', 'composables/**/**'],
+  },
   ssr: false,
   css: ['./src/assets/css/main.css'],
   vite: {
