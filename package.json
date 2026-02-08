@@ -3,13 +3,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build:web": "nuxt build",
-    "dev:web": "nuxt dev",
-    "dev:tauri": "tauri dev",
-    "build:tauri": "tauri build",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
+    "dev": "tauri dev",
+    "build": "tauri build",
     "lint:web": "eslint . --fix"
   },
   "dependencies": {
