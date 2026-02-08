@@ -1,5 +1,5 @@
 [package]
-name = "modhammer_manager"
+name = "foolhamer-mod-manager"
 version = "0.1.0"
 description = "A mod manager for total war warhammer 3"
 authors = ["tpkee"]
@@ -25,3 +25,4 @@ dirs = "6.0"
 lazy_static = "1.5.0"
 steamworks = "0.12.2"
 steamlocate = "2.0.1"
+rpfm_lib = "4.7.4"

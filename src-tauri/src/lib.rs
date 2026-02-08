@@ -58,7 +58,7 @@ pub fn run() {
                 .path()
                 .config_dir()
                 .expect("Failed to get config directory")
-                .join("modhammer-manager/settings.json");
+                .join("foolhamer-mod-manager/settings.json");
 
             let store = tauri_plugin_store::StoreBuilder::new(app, path.as_path())
                 .defaults(
