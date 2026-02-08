@@ -81,6 +81,7 @@ pub fn run() {
             set_game_folder,
             set_workshop_folder,
             get_state,
+            commands::get_mods,
             commands::check_path_exists
         ])
         .run(tauri::generate_context!())
