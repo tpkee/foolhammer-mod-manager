@@ -1,6 +1,6 @@
 <template>
-  <div class="group relative inline-block">
-    <div v-if="isEnabled" class="absolute bottom-6 hidden group-focus:block group-hover:block w-fit p-2 bg-gray-800 rounded z-50">
+  <div class="group/tooltip relative inline-block">
+    <div v-if="isEnabled" class="absolute bottom-6 hidden group-hover/tooltip:block group-focus/tooltip:block w-fit p-2 bg-gray-800 rounded z-50 border border-gray-700 shadow">
       <slot name="content" />
     </div>
 
