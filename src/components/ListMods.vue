@@ -25,16 +25,17 @@
         </p>
       </div>
       <div
-        v-for="i in 3"
-        :key="i"
+        v-for="(item, index) in list"
+        :key="index"
         class="group w-[400%] sm:w-[125%] md:w-full"
       >
         <item-mod
           :order="2"
           enabled
-          name="Example Mod"
-          pack="Example Pack"
-          last-update="2024-06-01"
+          :name="item.name"
+          :pack="item.name"
+          :last-update="item.lastUpdate"
+          :image="item.image"
         />
         <hr class="h-px mx-2.5 border-gray-800 group-last:border-none">
       </div>
@@ -43,6 +44,11 @@
 </template>
 
 <script lang="ts" setup>
+defineProps<{
+  list: unknown[]
+  loading: boolean
+}>()
+
 // Reactive state
 const filters = ref({
   search: '',

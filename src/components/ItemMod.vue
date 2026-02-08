@@ -9,7 +9,7 @@
     <app-checkbox v-model="isEnabled" label="Is enabled?" sr-only-label />
     <div class="flex items-center gap-2.5 col-span-3">
       <div class="size-9 rounded">
-        <img v-if="image" :src="image" alt="" class="size-[inherit] rounded-[inherit] object-cover">
+        <img v-if="getImage" :src="getImage" alt="" class="size-10 rounded-[inherit] object-contain">
         <div v-else class="size-[inherit] rounded-[inherit] bg-gray-700" />
       </div>
       <app-tooltip class="relative">
@@ -32,6 +32,8 @@
 </template>
 
 <script lang="ts" setup>
+import { convertFileSrc } from '@tauri-apps/api/core'
+
 // Props
 const props = defineProps<{
   name: string
@@ -48,6 +50,9 @@ const order = defineModel('order', { type: Number, required: true })
 const getLastUpdate = computed(() => {
   const date = new Date(props.lastUpdate)
   return date.toLocaleDateString()
+})
+const getImage = computed(() => {
+  return props.image ? convertFileSrc(props.image) : null
 })
 const getOptions = computed(() => {
   return [
