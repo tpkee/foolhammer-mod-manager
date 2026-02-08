@@ -94,7 +94,12 @@ fn default_user_settings() -> user_settings::UserSettings {
 
     println!("Default game path: {:?}", game_path);
 
-    let saves_data_dir = retrieve_saves_data_dir(default_game.game_id);
+    let saves_data_dir = match retrieve_saves_absolute_path(default_game.game_id) {
+        Some(dir) => {
+            pathbuf_to_string(resolve_existing_path!(&dir, default_game.saves_path,)).into()
+        }
+        None => serde_json::Value::Null,
+    };
 
     let workshop_folder: serde_json::Value = match &*STEAMDIR_INSTANCE {
         Some(steam_dir) => {
@@ -130,14 +135,7 @@ fn default_user_settings() -> user_settings::UserSettings {
             user_settings::SettingKey::SteamWorkshopPath,
             workshop_folder,
         ),
-        (
-            user_settings::SettingKey::SavesPath,
-            pathbuf_to_string(resolve_existing_path!(
-                &saves_data_dir,
-                default_game.saves_path,
-            ))
-            .into(),
-        ),
+        (user_settings::SettingKey::SavesPath, saves_data_dir),
         (
             user_settings::SettingKey::ModsPath,
             serde_json::json!(mods_path),
@@ -149,19 +147,29 @@ fn pathbuf_to_string(path: Option<PathBuf>) -> Option<String> {
     path.and_then(|p| Some(p.to_string_lossy().into_owned()))
 }
 
-fn retrieve_saves_data_dir(game_id: &str) -> PathBuf {
+fn retrieve_saves_absolute_path(game_id: &str) -> Option<PathBuf> {
     // The default saves path needs to be handled differently because on Linux we have to access the wine pfx
     let data_dir = dirs::data_dir().expect("Failed to get data directory");
 
     match std::env::consts::OS {
-        "windows" => data_dir,
+        "windows" => Some(data_dir),
         _ => {
-            let wine_pfx = format!(
-                "/Steam/steamapps/compatdata/{}/pfx/drive_c/users/steamuser/AppData/Roaming",
-                game_id
-            );
+            if let Some(steam_dir) = &*STEAMDIR_INSTANCE {
+                return Some(PathBuf::from(join_path!(
+                    steam_dir.path(),
+                    "steamapps",
+                    "compatdata",
+                    game_id,
+                    "pfx",
+                    "drive_c",
+                    "users",
+                    "steamuser",
+                    "AppData",
+                    "Roaming"
+                )));
+            }
 
-            join_path!(&data_dir, &wine_pfx)
+            None
         }
     }
 }
