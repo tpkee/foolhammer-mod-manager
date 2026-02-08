@@ -3,7 +3,7 @@ import tailwindcss from '@tailwindcss/vite'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2026-02-05',
-  modules: ['@nuxt/a11y', '@nuxt/eslint', '@nuxt/hints', '@nuxt/icon', '@nuxtjs/i18n'],
+  modules: ['@nuxt/a11y', '@nuxt/eslint', '@nuxt/hints', '@nuxt/icon', '@nuxtjs/i18n', '@pinia/nuxt'],
   srcDir: 'src/',
   // Enables the development server to be discoverable by other devices when running on iOS physical devices
   devServer: {
@@ -15,7 +15,10 @@ export default defineNuxtConfig({
     },
   },
   imports: {
-    dirs: ['stores', 'composables/**/**'],
+    dirs: ['~/composables/**'],
+  },
+  pinia: {
+    storesDirs: ['~/stores/**'],
   },
   ssr: false,
   css: ['./src/assets/css/main.css'],
