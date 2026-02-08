@@ -11,7 +11,6 @@
       <option v-for="option in options" :key="option.value" :value="option.value" :disabled="option.disabled">
         {{ option.label }}
       </option>
-      <nuxt-icon name="mi:arrow-drop-down" class="size-5 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500" />
     </select>
   </label>
 </template>
