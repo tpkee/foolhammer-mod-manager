@@ -72,6 +72,10 @@ pub fn run() {
 
             println!("User settings path: {:?}", path.as_path());
 
+            let app_handle = app.handle();
+            let mut global_app_handle = defaults::system::TAURI_APP_HANDLE.lock().unwrap();
+            *global_app_handle = Some(app_handle.clone());
+
             locked_state.set_settings_from_store(store.entries());
             Ok(())
         })

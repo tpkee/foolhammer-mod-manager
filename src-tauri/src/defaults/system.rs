@@ -1,5 +1,5 @@
 use lazy_static::lazy_static;
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Mutex};
 use steamlocate::SteamDir;
 lazy_static! {
     pub static ref PROGRAM_FILES_PATH: PathBuf = match std::env::consts::OS { // this is pointless now, keeping it just in case
@@ -25,5 +25,5 @@ lazy_static! {
         }
     };
 
-
+    pub static ref TAURI_APP_HANDLE: Mutex<Option<tauri::AppHandle>> = Mutex::new(None);
 }
