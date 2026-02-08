@@ -9,11 +9,13 @@
 import { useSettingsStore } from './stores/settings'
 
 const settingsStore = useSettingsStore()
-useTauriListener('update/user-settings', (event) => {
+const unlistenUserSettings = useTauriListener('update/user-settings', (event) => {
   console.log('Received app state update:', event.payload)
 })
 
 // Functions
 function updateUserSettings(newSettings: UserSettings) {
 }
+
+onUnmounted(unlistenUserSettings)
 </script>

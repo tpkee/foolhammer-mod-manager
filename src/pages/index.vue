@@ -15,10 +15,8 @@
 // When using the Tauri API npm package:
 const { t } = useI18n()
 
-const invoke = useTauriInvoke()
-
 function getState() {
-  invoke('get_state').then((state) => {
+  useTauriInvoke('get_state').then((state) => {
     console.log(state)
   })
 }
