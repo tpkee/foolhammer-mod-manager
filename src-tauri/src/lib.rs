@@ -2,6 +2,7 @@ use std::sync::Mutex;
 
 use tauri::Manager;
 
+pub mod commands;
 pub mod defaults;
 pub mod state;
 pub mod utils;
@@ -73,17 +74,14 @@ pub fn run() {
 
             println!("User settings path: {:?}", path.as_path());
 
-            // let app_handle = app.handle();
-            // let mut global_app_handle = defaults::system::TAURI_APP_HANDLE.lock().unwrap();
-            // *global_app_handle = Some(app_handle.clone());
-
             locked_state.set_settings_from_store(app_handle, store.entries());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             set_game_folder,
             set_workshop_folder,
-            get_state
+            get_state,
+            commands::check_path_exists
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
