@@ -2,8 +2,7 @@ use lazy_static::lazy_static;
 use std::path::PathBuf;
 use steamlocate::SteamDir;
 lazy_static! {
-    /// This is an example for using doc comment attributes
-    pub static ref PROGRAM_FILES_PATH: PathBuf = match std::env::consts::OS { // TODO: this is pointless now, remove asap
+    pub static ref PROGRAM_FILES_PATH: PathBuf = match std::env::consts::OS { // this is pointless now, keeping it just in case
         "windows" => std::env::var("FOLDERID_ProgramFiles")
             .expect("Failed to get ProgramFiles environment variable")
             .into(),
@@ -25,4 +24,6 @@ lazy_static! {
             None
         }
     };
+
+
 }
