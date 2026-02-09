@@ -1,4 +1,4 @@
-use crate::{AppState, state::user_settings::SettingKey, utils::mods};
+use crate::{AppState, mods, state::user_settings::SettingKey};
 
 #[tauri::command]
 pub fn check_path_exists(path: &str) -> bool {

@@ -57,7 +57,7 @@ pub fn retrieve_mods(game_mods_path: &PathBuf) -> Result<Vec<Pack>, rpfm_lib::er
 
 fn path_to_pack(path: &PathBuf, image: Option<&PathBuf>) -> Pack {
     let name = path.file_stem().unwrap().to_string_lossy().to_string();
-    let metadata: std::fs::Metadata = std::fs::metadata(&path).unwrap(); // we are sure it exists since we just got it 
+    let metadata: std::fs::Metadata = std::fs::metadata(&path).unwrap(); // we are sure it exists since we just got it
     let last_updated: Option<String> = metadata
         .modified()
         .ok()
