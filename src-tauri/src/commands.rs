@@ -21,7 +21,7 @@ pub fn get_mods(state: AppState) -> serde_json::Value {
         .get(&SettingKey::ModsPath)
         .and_then(|game_path| {
             let game_mods_path = std::path::PathBuf::from(game_path.as_str().unwrap());
-            mods::retrieve_mods(&game_mods_path).ok()
+            mods::helpers::retrieve_mods(&game_mods_path).ok()
         });
 
     let workshop_mods = &state
@@ -29,7 +29,7 @@ pub fn get_mods(state: AppState) -> serde_json::Value {
         .get(&SettingKey::SteamWorkshopPath)
         .and_then(|workshop_path| {
             let workshop_pathbuf = std::path::PathBuf::from(workshop_path.as_str().unwrap());
-            mods::retrieve_workshop_mods(&workshop_pathbuf, &game_id).ok()
+            mods::helpers::retrieve_workshop_mods(&workshop_pathbuf, &game_id).ok()
         });
 
     let mut mods = vec![];
