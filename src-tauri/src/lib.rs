@@ -4,6 +4,7 @@ use tauri::Manager;
 
 pub mod commands;
 pub mod defaults;
+pub mod dto;
 pub mod mods;
 pub mod state;
 pub mod utils;
