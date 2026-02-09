@@ -1281,6 +1281,7 @@ dependencies = [
  "rpfm_lib",
  "serde",
  "serde_json",
+ "serde_with",
  "steamlocate",
  "steamworks",
  "tauri",
