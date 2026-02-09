@@ -1,8 +1,72 @@
-use crate::{AppState, mods, state::user_settings::SettingKey};
+use tauri::Manager;
+
+use crate::{
+    dto,
+    stores::{self, games::Profile},
+};
+
+use crate::{AppState, mods, state::user_settings::SettingKey, utils};
 
 #[tauri::command]
 pub fn check_path_exists(path: &str) -> bool {
     std::path::Path::new(path).exists()
+}
+
+#[tauri::command]
+pub fn create_profile(
+    app_handle: tauri::AppHandle,
+    payload: dto::profiles::ProfileRequestDto,
+) -> Result<serde_json::Value, u16> {
+    let default_game = stores::games::GameStore::new(&payload.game_id)
+        .ok_or(404)
+        .unwrap()
+        .to_hashmap()
+        .or(Err(500))
+        .unwrap();
+
+    let game_conf_path =
+        utils::generate_store_path(&app_handle, format!("{}.json", payload.game_id).as_str());
+
+    let store = tauri_plugin_store::StoreBuilder::new(&app_handle, game_conf_path)
+        .defaults(default_game)
+        .build()
+        .or(Err(500))
+        .unwrap();
+
+    // if the store is new should we start the watcher? not sure, probs better to handle this logic separately
+
+    let mut profiles = store
+        .get("profiles")
+        .ok_or(500)
+        .unwrap()
+        .as_array()
+        .ok_or(500)
+        .unwrap()
+        .to_vec();
+
+    if profiles
+        .iter()
+        .find(|&p| p.get("name") == Some(&payload.name.clone().into()))
+        .is_some()
+    {
+        return Err(409);
+    }
+
+    let profile = serde_json::json!(Profile::from_dto(payload));
+
+    profiles.push(profile.clone());
+
+    store.set("profiles", serde_json::Value::Array(profiles.to_vec()));
+
+    match store.save() {
+        Err(e) => {
+            eprintln!("Failed to save profile: {:?}", e);
+            return Err(500);
+        }
+        Ok(_) => {}
+    }
+
+    Ok(profile)
 }
 
 #[tauri::command]

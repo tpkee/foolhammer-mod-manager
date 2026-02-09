@@ -6,6 +6,7 @@ pub type UserSettings = HashMap<SettingKey, serde_json::Value>;
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum SettingKey {
+    DefaultProfile,
     GameId,
     GamePath,
     SteamWorkshopPath,
@@ -16,6 +17,7 @@ pub enum SettingKey {
 impl SettingKey {
     pub fn get(&self) -> String {
         match self {
+            Self::DefaultProfile => "default_profile".to_string(),
             Self::GameId => "game_id".to_string(),
             Self::GamePath => "game_path".to_string(),
             Self::SteamWorkshopPath => "steam_workshop_path".to_string(),
@@ -26,6 +28,7 @@ impl SettingKey {
 
     pub fn from_str(s: &str) -> Result<Self, &'static str> {
         match s {
+            "default_profile" => Ok(Self::DefaultProfile),
             "game_path" => Ok(Self::GamePath),
             "steam_workshop_path" => Ok(Self::SteamWorkshopPath),
             "game_id" => Ok(Self::GameId),

@@ -24,7 +24,15 @@ macro_rules! join_path {
 #[macro_export]
 macro_rules! resolve_existing_path {
     ($($seg:expr),+ $(,)?) => {{
-        let joined_path = join_path!($($seg),+);
+        let joined_path = $crate::join_path!($($seg),+);
         joined_path.exists().then_some(joined_path)
     }};
+}
+
+#[macro_export]
+macro_rules! pathbuf_to_string {
+    ($pathbuf:expr) => {
+        std::option::Option::<PathBuf>::from($pathbuf)
+            .and_then(|p| Some((p as std::path::PathBuf).to_string_lossy().into_owned()))
+    };
 }
