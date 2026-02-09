@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::PathBuf, vec};
+use std::{collections::HashMap, path::PathBuf};
 
 use rpfm_lib::{games::manifest, utils::files_from_subdir};
 use std::collections::HashSet;
