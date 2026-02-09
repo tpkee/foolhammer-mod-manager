@@ -70,27 +70,36 @@ const filters = ref({
 const getList = computed(() => {
   const arr = Array.isArray(props.list) ? props.list : []
 
-  return arr.filter((item) => {
-    const search = filters.value.search.toLowerCase()
-    return item.name?.toLowerCase().includes(search) || item.pack?.toLowerCase().includes(search)
-  }).sort((a, b) => {
-    switch (filters.value.sortBy) {
-      case 'order':
-        return a.order - b.order
-      case 'name':
-        if (!a.name && !b.name)
+  if (arr.length === 0) {
+    return []
+  }
+
+  const search = filters.value.search.toLowerCase()
+
+  const checkTransformed = (x: string | undefined) => !x || x.toLowerCase().includes(search.replace(/ /g, '_'))
+  const checkNormal = (x: string | undefined) => !x || x.toLowerCase().includes(search)
+  const check = (x: string | undefined) => checkTransformed(x) || checkNormal(x)
+
+  return arr
+    .filter(item => check(item?.name))
+    .sort((a, b) => {
+      switch (filters.value.sortBy) {
+        case 'order':
+          return a.order - b.order
+        case 'name':
+          if (!a.name && !b.name)
+            return 0
+          return a.name.localeCompare(b.name)
+        case 'pack':
+          if (!a.pack && !b.pack)
+            return 0
+          return a.pack.localeCompare(b.pack)
+        case 'lastUpdate':
+          return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
+        default:
           return 0
-        return a.name.localeCompare(b.name)
-      case 'pack':
-        if (!a.pack && !b.pack)
-          return 0
-        return a.pack.localeCompare(b.pack)
-      case 'lastUpdate':
-        return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
-      default:
-        return 0
-    }
-  })
+      }
+    })
 })
 const sortOptions = computed(() => [
   { value: '', label: 'Sort by', disabled: true },
