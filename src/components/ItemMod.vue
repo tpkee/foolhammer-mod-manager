@@ -12,16 +12,9 @@
         <img v-if="getImage" :src="getImage" alt="" class="size-10 rounded-[inherit] object-contain">
         <div v-else class="size-[inherit] rounded-[inherit] bg-gray-700" />
       </div>
-      <app-tooltip class="relative">
-        <template #content>
-          <p class="whitespace-nowrap">
-            {{ name }}
-          </p>
-        </template>
-        <p class="truncate" :title="pack">
-          {{ pack }}
-        </p>
-      </app-tooltip>
+      <p class="truncate" :title="pack">
+        {{ pack }}
+      </p>
     </div>
     <time :datetime="getLastUpdate" class="text-xs text-gray-500 col-span-3">
       {{ getLastUpdate }}
