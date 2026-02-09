@@ -1,31 +1,26 @@
 <template>
   <div>
     <h1 class="text-3xl font-bold underline">
-      {{ t('hello_world') }}
+      {{ t('hello_world') }} {{ userSettings?.gameId }}
     </h1>
-    <button @click="getState">
-      Get State
-    </button>
-    <list-mods :list="data" :loading="pending" />
+    <list-mods :list="listFetchedMods" :loading="pending" />
   </div>
 </template>
 
 <script setup lang="ts">
 const { t } = useI18n()
-const selectedGame = ref('')
 
-function getState() {
-  useTauriInvoke('get_state').then((state) => {
-    // @ts-expect-error type this, someday
-    selectedGame.value = state.gameId ?? null
-  })
-}
-
-const getId = computed(() => {
-  return `${selectedGame.value}-mods`
+// Fetching
+const { data: userSettings } = await useAsyncData('user-settings', () => useTauriInvoke('get_state')) // todo: rework
+const { data: listFetchedMods, pending, refresh } = await useAsyncData(`${userSettings.value!.gameId}-mods`, () => useTauriInvoke('get_mods'), {
+  immediate: false,
+  default: () => [],
 })
 
-const { data, pending } = useAsyncData(getId, () => {
-  return useTauriInvoke('get_mods')
-})
+// Watchers
+watch(userSettings, (newVal, oldVal) => {
+  if (newVal?.gameId !== oldVal?.gameId) {
+    refresh()
+  }
+}, { immediate: true })
 </script>

@@ -7,7 +7,7 @@
       <app-input v-model.number="order" label="Order number" sr-only-label type="number" :min="1" class="w-20" />
     </div>
     <app-checkbox v-model="isEnabled" label="Is enabled?" sr-only-label />
-    <div class="flex items-center gap-2.5 col-span-3">
+    <div class="flex items-center gap-2.5 col-span-5">
       <div class="size-9 rounded">
         <img v-if="getImage" :src="getImage" alt="" class="size-10 rounded-[inherit] object-contain">
         <div v-else class="size-[inherit] rounded-[inherit] bg-gray-700" />
@@ -23,7 +23,7 @@
         </p>
       </app-tooltip>
     </div>
-    <time :datetime="getLastUpdate" class="text-xs text-gray-500 col-span-5">
+    <time :datetime="getLastUpdate" class="text-xs text-gray-500 col-span-3">
       {{ getLastUpdate }}
     </time>
 
@@ -39,7 +39,7 @@ const props = defineProps<{
   name: string
   image?: string
   pack: string
-  lastUpdate: string | Date | number
+  lastUpdated: string
 }>()
 
 // Model
@@ -48,7 +48,7 @@ const order = defineModel('order', { type: Number, required: true })
 
 // Computed
 const getLastUpdate = computed(() => {
-  const date = new Date(props.lastUpdate)
+  const date = new Date(props.lastUpdated)
   return date.toLocaleDateString()
 })
 const getImage = computed(() => {

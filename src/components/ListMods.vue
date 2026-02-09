@@ -17,37 +17,48 @@
         <p>
           Enabled?
         </p>
-        <p class="col-span-3 ml-11">
+        <p class="col-span-5 ml-11">
           Pack
         </p>
-        <p>
+        <p class="col-span-3">
           Last update
         </p>
       </div>
-      <div
-        v-for="(item, index) in list"
-        :key="index"
-        class="group w-[400%] sm:w-[125%] md:w-full"
-      >
-        <item-mod
-          :order="2"
-          enabled
-          :name="item.name"
-          :pack="item.name"
-          :last-update="item.lastUpdate"
-          :image="item.image"
-        />
-        <hr class="h-px mx-2.5 border-gray-800 group-last:border-none">
+      <div>
+        <div v-bind="containerProps" class="relative max-h-150">
+          <div v-bind="wrapperProps">
+            <div
+              v-for="({ data }, index) of virtualisedList"
+              :key="index"
+              class="group w-[400%] sm:w-[125%] md:w-full"
+              :style="{ height: `${ITEM_HEIGHT}px` }"
+            >
+              <item-mod
+                :order="2"
+                enabled
+                :name="data.name"
+                :pack="data.name"
+                :last-updated="data.lastUpdated"
+                :image="data.image"
+              />
+              <hr class="h-px mx-2.5 border-gray-800 group-last:border-none">
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-defineProps<{
+// Props
+const props = defineProps<{
   list: unknown[]
   loading: boolean
 }>()
+
+// Non reactive state
+const ITEM_HEIGHT = 57 // px
 
 // Reactive state
 const filters = ref({
@@ -56,6 +67,7 @@ const filters = ref({
 })
 
 // Computed
+const getList = computed(() => Array.isArray(props.list) ? props.list : [])
 const sortOptions = computed(() => [
   { value: '', label: 'Sort by', disabled: true },
   { value: 'order', label: 'Order' },
@@ -63,4 +75,14 @@ const sortOptions = computed(() => [
   { value: 'pack', label: 'Pack' },
   { value: 'lastUpdate', label: 'Last update' },
 ])
+
+// Composables
+const { list: virtualisedList, containerProps, wrapperProps } = useVirtualList(
+  getList,
+  {
+    itemHeight: ITEM_HEIGHT,
+    overscan: 10,
+
+  },
+)
 </script>
