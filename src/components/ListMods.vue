@@ -41,7 +41,7 @@
                 :last-updated="data.lastUpdated"
                 :image="data.image"
               />
-              <hr class="h-px mx-2.5 border-gray-800 group-last:border-none">
+              <hr class="h-px mx-2.5 border-gray-800 group-last:border-none select-none" aria-hidden="true">
             </div>
           </div>
         </div>

@@ -7,7 +7,7 @@
         <div
           v-if="isOpen"
           ref="dropdownRef"
-          class="fixed z-50 bg-gray-800 rounded shadow-lg"
+          class="fixed z-50 bg-gray-800 rounded shadow-lg border-gray-700 border"
           :style="floatingStyles"
         >
           <slot :close="close" />

@@ -1,21 +1,47 @@
 <template>
-  <main class="p-2.5">
+  <main>
     <NuxtRouteAnnouncer />
-    <NuxtPage />
+    <div class="flex">
+      <div class="p-2.5 grow">
+        <NuxtPage />
+      </div>
+
+      <app-sidebar class="relative overflow-hidden" :games="listSupportedGames" :current-game="currentGame" />
+    </div>
   </main>
 </template>
 
 <script setup lang="ts">
-import { useSettingsStore } from './stores/settings'
-
 const settingsStore = useSettingsStore()
-const unlistenUserSettings = useTauriListener('update/user-settings', (event) => {
-  console.log('Received app state update:', event.payload)
-})
+const currentGame = ref<Nullable<string>>(null)
 
-// Functions
-function updateUserSettings(newSettings: UserSettings) {
-}
+const { data: userSettings, refresh: refreshUserSettings } = await useAsyncData<UserSettings>('user-settings', () => useTauriInvoke('get_state'))
+const { data: listSupportedGames } = await useAsyncData<string[]>(`supported-games`, () => useTauriInvoke('get_supported_games'), {
+  default: () => [],
+})
+const unlistenUserSettings = useTauriListener('update/user-settings', _e => refreshUserSettings())
+
+watch(userSettings, (newSettings) => {
+  if (newSettings) {
+    settingsStore.setSettings(newSettings)
+    if (!currentGame.value) {
+      currentGame.value = newSettings.gameId ?? newSettings.currentGame
+    }
+  }
+}, { immediate: true })
+
+watch(listSupportedGames, (games) => {
+  if (!Array.isArray(games) || games.length === 0) {
+    currentGame.value = null
+    return
+  }
+
+  if (!currentGame.value) {
+    currentGame.value = games[0]!
+  }
+}, { immediate: true })
+
+provide('currentGame', currentGame)
 
 onUnmounted(unlistenUserSettings)
 </script>

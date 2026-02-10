@@ -12,14 +12,13 @@
 
     <template #default="{ close }">
       <div class="w-48">
-        <button
+        <item-option
           v-for="(option, index) in options" :key="index"
-          class="p-2 text-sm hover:bg-gray-700 flex items-center gap-2 w-full text-left cursor-pointer"
+          class="p-2 text-sm"
+          :icon="option.icon"
+          :label="option.label"
           @click="handleOption(option.callback, close)"
-        >
-          <nuxt-icon v-if="option.icon" :name="option.icon" class="size-4" />
-          {{ option.label }}
-        </button>
+        />
       </div>
     </template>
   </app-dropdown>
