@@ -15,10 +15,10 @@ export default defineNuxtConfig({
     },
   },
   imports: {
-    dirs: ['~/composables/**'],
+    dirs: ['~/composables/**', '~/stores/**'],
   },
   pinia: {
-    storesDirs: ['~/stores/**'],
+    storesDirs: ['~/src/stores/**'],
   },
   ssr: false,
   css: ['./src/assets/css/main.css'],
