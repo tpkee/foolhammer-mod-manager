@@ -28,3 +28,4 @@ steamlocate = "2.0.1"
 rpfm_lib = "4.7.4"
 chrono = "0.4.43"
 serde_with = {  version = "3.16.1", features = ["alloc"] }
+tauri-plugin-dialog = "2"

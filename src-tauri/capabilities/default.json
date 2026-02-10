@@ -5,9 +5,13 @@
   "windows": [
     "main"
   ],
-  "platforms": ["linux", "windows"],
+  "platforms": [
+    "linux",
+    "windows"
+  ],
   "permissions": [
     "core:default",
-    "store:default"
-    ]
+    "store:default",
+    "dialog:default"
+  ]
 }
