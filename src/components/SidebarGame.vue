@@ -22,13 +22,19 @@
       <template #default="{ close }">
         <item-option
           class="px-4 py-2"
-          @click="emit('change', id); close()"
+          @click="openGameSettings(); close()"
         >
           Open game settings
         </item-option>
       </template>
     </app-dropdown>
   </app-tooltip>
+
+  <modal-game
+    ref="gameSettingsModal"
+    :game-id="id"
+    @save="handleGameSettingsSave"
+  />
 </template>
 
 <script lang="ts" setup>
@@ -36,11 +42,9 @@ const props = defineProps<{
   id: string
   currentGame: Nullable<string>
 }>()
-const emit = defineEmits<{
-  change: [string]
-}>()
 const { t } = useI18n()
 const currentGame = inject<Ref<Nullable<string>>>('currentGame')
+const gameSettingsModal = ref()
 
 function switchGame() {
   if (!currentGame) {
@@ -48,5 +52,14 @@ function switchGame() {
   }
 
   currentGame.value = props.id
+}
+
+function openGameSettings() {
+  gameSettingsModal.value?.open()
+}
+
+function handleGameSettingsSave(settings: { gamePath: string, steamWorkshopPath?: string, gameSavesPath?: string }) {
+  console.log('Game settings saved:', settings)
+  // TODO: Persist game settings
 }
 </script>

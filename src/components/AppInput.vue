@@ -4,7 +4,7 @@
       <span
         v-if="label" :class="{
           'sr-only': srOnlyLabel }"
-        class="block"
+        class="block mb-0.5"
       >
         {{ label }}
       </span>
