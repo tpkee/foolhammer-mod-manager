@@ -1,5 +1,3 @@
-use tauri::Manager;
-
 use crate::{
     dto,
     stores::{self, games::Profile},
@@ -10,6 +8,13 @@ use crate::{AppState, mods, state::user_settings::SettingKey, utils};
 #[tauri::command]
 pub fn check_path_exists(path: &str) -> bool {
     std::path::Path::new(path).exists()
+}
+
+#[tauri::command]
+pub fn get_supported_games() -> serde_json::Value {
+    crate::defaults::games::SUPPORTED_GAMES
+        .map(|game| game.game_id)
+        .into()
 }
 
 #[tauri::command]

@@ -29,7 +29,6 @@ pub const DEFAULT_GAME_ID: &str = "1142710";
 
 pub const SUPPORTED_GAMES: [DefaultGameInfo; 1] = [DefaultGameInfo {
     game_id: "1142710",
-    // steam_workshop_path: Some("/Steam/steamapps/workshop/content/"), // the game ID will be appended to this path to get the full workshop path.
     executable_name: "Warhammer3.exe",
     mods_path: "data/",
     saves_path: "/The Creative Assembly/save_games/",

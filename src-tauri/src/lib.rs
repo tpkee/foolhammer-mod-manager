@@ -54,7 +54,8 @@ pub fn run() {
             get_state,
             commands::get_mods,
             commands::check_path_exists,
-            commands::create_profile
+            commands::create_profile,
+            commands::get_supported_games
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
