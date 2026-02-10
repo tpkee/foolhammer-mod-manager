@@ -33,7 +33,7 @@
   <modal-game
     ref="gameSettingsModal"
     :game-id="id"
-    @save="handleGameSettingsSave"
+    @save="emit('onRefresh')"
   />
 </template>
 
@@ -42,24 +42,18 @@ const props = defineProps<{
   id: string
   currentGame: Nullable<string>
 }>()
+const emit = defineEmits<{
+  onRefresh: []
+}>()
+const preferencesStore = usePreferencesStore()
 const { t } = useI18n()
-const currentGame = inject<Ref<Nullable<string>>>('currentGame')
 const gameSettingsModal = ref()
 
 function switchGame() {
-  if (!currentGame) {
-    throw new Error('currentGame is not provided')
-  }
-
-  currentGame.value = props.id
+  preferencesStore.setCurrentGame(props.id)
 }
 
 function openGameSettings() {
   gameSettingsModal.value?.open()
-}
-
-function handleGameSettingsSave(settings: { gamePath: string, steamWorkshopPath?: string, gameSavesPath?: string }) {
-  console.log('Game settings saved:', settings)
-  // TODO: Persist game settings
 }
 </script>

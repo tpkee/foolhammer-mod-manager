@@ -5,12 +5,12 @@
 </template>
 
 <script setup lang="ts">
-const settingsStore = useSettingsStore()
+const preferencesStore = usePreferencesStore()
 const { t } = useI18n()
 
 // Fetching
-const { data: listAvailableMods, pending: statusAvailableMods } = await useAsyncData(`${settingsStore.gameId}-mods`, () => useTauriInvoke('get_mods'), {
+const { data: listAvailableMods, pending: statusAvailableMods } = await useAsyncData(`${preferencesStore.currentGame}-mods`, () => useTauriInvoke('get_mods'), {
   default: () => [],
-  watch: [() => settingsStore.gameId],
+  watch: [() => preferencesStore.currentGame],
 })
 </script>

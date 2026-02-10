@@ -19,5 +19,4 @@ defineProps<{
   games: string[]
   currentGame: Nullable<string>
 }>()
-const { t } = useI18n()
 </script>

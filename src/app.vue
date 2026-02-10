@@ -6,14 +6,13 @@
         <NuxtPage />
       </div>
 
-      <app-sidebar class="relative overflow-hidden" :games="listSupportedGames" :current-game="currentGame" />
+      <app-sidebar class="relative overflow-hidden" :games="listSupportedGames" :current-game="preferencesStore.currentGame" />
     </div>
   </main>
 </template>
 
 <script setup lang="ts">
-const settingsStore = useSettingsStore()
-const currentGame = ref<Nullable<string>>(null)
+const preferencesStore = usePreferencesStore()
 
 const { data: userSettings, refresh: refreshUserSettings } = await useAsyncData<UserSettings>('user-settings', () => useTauriInvoke('get_state'))
 const { data: listSupportedGames } = await useAsyncData<string[]>(`supported-games`, () => useTauriInvoke('get_supported_games'), {
@@ -22,26 +21,24 @@ const { data: listSupportedGames } = await useAsyncData<string[]>(`supported-gam
 const unlistenUserSettings = useTauriListener('update/user-settings', _e => refreshUserSettings())
 
 watch(userSettings, (newSettings) => {
-  if (newSettings) {
-    settingsStore.setSettings(newSettings)
-    if (!currentGame.value) {
-      currentGame.value = newSettings.gameId ?? newSettings.currentGame
-    }
+  preferencesStore.setSettings(newSettings ?? null)
+  if (!preferencesStore.currentGame && newSettings) {
+    preferencesStore.setCurrentGame(newSettings.gameId ?? newSettings.currentGame)
   }
 }, { immediate: true })
 
 watch(listSupportedGames, (games) => {
   if (!Array.isArray(games) || games.length === 0) {
-    currentGame.value = null
+    preferencesStore.setCurrentGame(null)
     return
   }
 
-  if (!currentGame.value) {
-    currentGame.value = games[0]!
+  if (!preferencesStore.currentGame) {
+    preferencesStore.setCurrentGame(games[0]!)
   }
 }, { immediate: true })
 
-provide('currentGame', currentGame)
+provide('currentGame', preferencesStore.currentGame)
 
 onUnmounted(unlistenUserSettings)
 </script>
