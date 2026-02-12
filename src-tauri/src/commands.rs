@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
 use crate::{
     dto,
-    stores::{self, games::Profile},
+    stores::games::{GameStore, Profile},
 };
 
 use utils::ErrorCode;
@@ -24,20 +26,10 @@ pub fn get_game(
     app_handle: tauri::AppHandle,
     game_id: &str,
 ) -> Result<serde_json::Value, ErrorCode> {
-    let default_game = stores::games::GameStore::new(game_id)
-        .ok_or(ErrorCode::NotFound)?
-        .to_hashmap()
-        .or(Err(ErrorCode::InternalError))?;
+    let store = GameStore::new(&app_handle, game_id)?;
+    let map: HashMap<String, serde_json::Value> = store.entries().into_iter().collect();
 
-    let game_conf_path =
-        utils::path::generate_store_path(&app_handle, format!("{}.json", game_id).as_str());
-
-    let store = tauri_plugin_store::StoreBuilder::new(&app_handle, game_conf_path)
-        .defaults(default_game)
-        .build()
-        .or(Err(ErrorCode::InternalError))?;
-
-    Ok(serde_json::json!(store.entries()))
+    Ok(serde_json::json!(map))
 }
 
 #[tauri::command]
@@ -45,22 +37,9 @@ pub fn create_profile(
     app_handle: tauri::AppHandle,
     payload: dto::profiles::ProfileRequestDto,
 ) -> Result<serde_json::Value, ErrorCode> {
-    let default_game = stores::games::GameStore::new(&payload.game_id)
-        .ok_or(ErrorCode::NotFound)?
-        .to_hashmap()
-        .or(Err(ErrorCode::InternalError))?;
+    let store = GameStore::new(&app_handle, &payload.game_id)?;
 
-    let game_conf_path =
-        utils::path::generate_store_path(&app_handle, format!("{}.json", payload.game_id).as_str());
-
-    let store = tauri_plugin_store::StoreBuilder::new(&app_handle, game_conf_path)
-        .defaults(default_game)
-        .build()
-        .or(Err(ErrorCode::InternalError))?;
-
-    // if the store is new should we start the watcher? not sure, probs better to handle this logic separately
-
-    let mut profiles = store
+    let mut profiles: Vec<serde_json::Value> = store
         .get("profiles")
         .ok_or(ErrorCode::InternalError)?
         .as_array()
