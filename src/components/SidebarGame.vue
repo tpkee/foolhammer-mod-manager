@@ -26,6 +26,12 @@
         >
           Open game settings
         </item-option>
+        <item-option
+          class="px-4 py-2"
+          @click="setDefaultGame(); close()"
+        >
+          Set as default
+        </item-option>
       </template>
     </app-dropdown>
   </app-tooltip>
@@ -55,5 +61,9 @@ function switchGame() {
 
 function openGameSettings() {
   gameSettingsModal.value?.open()
+}
+
+function setDefaultGame() { // TODO: make a call to set this as default
+  console.warn('ding dong it\'s a todo')
 }
 </script>
