@@ -43,18 +43,9 @@ pnpm install
 
 ### Development
 
-Run the development server:
+Run the app:
 ```bash
 pnpm dev
-```
-
-This will start both the Nuxt development server and the Tauri development window.
-
-### Building
-
-Build the application for production:
-```bash
-pnpm build
 ```
 
 ## 🤝 Contributing
