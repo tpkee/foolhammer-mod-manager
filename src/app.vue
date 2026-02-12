@@ -6,7 +6,7 @@
         <NuxtPage />
       </div>
 
-      <app-sidebar class="relative overflow-hidden" :games="listSupportedGames" :current-game="preferencesStore.currentGame" />
+      <app-sidebar class="relative overflow-hidden min-w-17.5" :games="listSupportedGames" :current-game="preferencesStore.currentGame" />
     </div>
   </main>
 </template>
