@@ -44,7 +44,7 @@ provide('currentGame', preferencesStore.currentGame)
 
 onUnmounted(unlistenUserSettings)
 
-useHead({
+useHeadSafe({
   htmlAttrs: {
     lang: locale.value,
   },
