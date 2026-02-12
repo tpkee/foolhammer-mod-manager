@@ -24,7 +24,7 @@ Before you begin, ensure you have the following installed:
 - [Node.js](https://nodejs.org/) (v18 or higher recommended)
 - [pnpm](https://pnpm.io/) package manager
 - [Rust](https://rustup.rs/) and Cargo
-- [Tauri prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites) for your platform
+- [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for your platform
 
 ## 🚀 Getting Started
 
