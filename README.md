@@ -57,13 +57,6 @@ Build the application for production:
 pnpm build
 ```
 
-## 🧪 Code Quality
-
-Lint and fix frontend code:
-```bash
-pnpm lint:web
-```
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
