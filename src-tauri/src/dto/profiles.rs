@@ -28,10 +28,12 @@ impl ProfileResponseDto {
     }
 
     fn map_mods_to_dto(profile: &mut games::Profile, mods: &Vec<Pack>) -> Vec<ModResponseDto> {
-        for i in 0..profile.mods.len() {
-            profile.mods[i].order = (u32::try_from(i)
-                .expect("u32 overflow, it wasn't possible to convert usize to u32"))
-                + 1;
+        if !profile.manual_mode {
+            for i in 0..profile.mods.len() {
+                profile.mods[i].order = (u32::try_from(i)
+                    .expect("u32 overflow, it wasn't possible to convert usize to u32"))
+                    + 1;
+            }
         }
 
         profile
