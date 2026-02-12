@@ -6,10 +6,9 @@ Foolhammer Mod Manager is a desktop application designed to simplify mod managem
 
 - 🗂️ Organize and manage Total War game mods
 - 🔄 Steam Workshop integration via Steamworks SDK
-- 🎨 Modern, responsive UI built with Vue 3 and Tailwind CSS
 - 🌍 Internationalization support (i18n)
-- 🖥️ Cross-platform desktop support (Windows, Linux)
 - 🐧 First-party Linux support
+- 🖥️ Cross-platform desktop support (Windows, Linux)
 
 ## 🎯 Supported Games
 
