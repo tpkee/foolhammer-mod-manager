@@ -17,10 +17,11 @@
         {{ pack }}
       </p>
     </div>
-    <time :datetime="getLastUpdate" class="text-xs text-gray-400 col-span-3">
-      {{ getLastUpdate }}
-    </time>
-
+    <div class="text-xs text-gray-400 col-span-3">
+      <time v-if="getLastUpdate" :datetime="getLastUpdate">
+        {{ getLastUpdate }}
+      </time>
+    </div>
     <app-options class="justify-self-end" :options="getOptions" />
   </div>
 </template>
@@ -42,6 +43,8 @@ const order = defineModel('order', { type: Number, required: true })
 
 // Computed
 const getLastUpdate = computed(() => {
+  if (!props.lastUpdated)
+    return ''
   const date = new Date(props.lastUpdated)
   return date.toLocaleDateString()
 })
