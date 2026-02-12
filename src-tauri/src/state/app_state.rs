@@ -1,7 +1,7 @@
 use crate::{
     defaults::{games, system::STEAMDIR_INSTANCE},
     join_path, pathbuf_to_string, resolve_existing_path,
-    utils::retrieve_saves_absolute_path,
+    utils::path::retrieve_saves_absolute_path,
 };
 use notify::{Event, RecursiveMode, Watcher};
 use serde::Serialize;

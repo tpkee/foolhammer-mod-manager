@@ -32,7 +32,7 @@ pub fn run() {
                 app.state::<Mutex<state::app_state::State>>();
             let mut locked_state: std::sync::MutexGuard<'_, state::app_state::State> =
                 state.lock().unwrap();
-            let path = utils::generate_store_path(&app_handle, "settings.json");
+            let path = utils::path::generate_store_path(&app_handle, "settings.json");
 
             let store = tauri_plugin_store::StoreBuilder::new(app_handle, path.as_path())
                 .defaults(

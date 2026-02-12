@@ -1,9 +1,18 @@
+use serde::Serialize;
+
 use crate::{
     dto,
     stores::{self, games::Profile},
 };
 
 use crate::{AppState, mods, state::user_settings::SettingKey, utils};
+
+#[derive(Debug, Serialize)]
+pub enum ErrorCode {
+    NotFound = 404,
+    InternalError = 500,
+    Conflict = 409,
+}
 
 #[tauri::command]
 pub fn check_path_exists(path: &str) -> bool {
@@ -18,35 +27,51 @@ pub fn get_supported_games() -> serde_json::Value {
 }
 
 #[tauri::command]
-pub fn create_profile(
+pub fn get_game(
     app_handle: tauri::AppHandle,
-    payload: dto::profiles::ProfileRequestDto,
-) -> Result<serde_json::Value, u16> {
-    let default_game = stores::games::GameStore::new(&payload.game_id)
-        .ok_or(404)
-        .unwrap()
+    game_id: &str,
+) -> Result<serde_json::Value, ErrorCode> {
+    let default_game = stores::games::GameStore::new(game_id)
+        .ok_or(ErrorCode::NotFound)?
         .to_hashmap()
-        .or(Err(500))
-        .unwrap();
+        .or(Err(ErrorCode::InternalError))?;
 
     let game_conf_path =
-        utils::generate_store_path(&app_handle, format!("{}.json", payload.game_id).as_str());
+        utils::path::generate_store_path(&app_handle, format!("{}.json", game_id).as_str());
 
     let store = tauri_plugin_store::StoreBuilder::new(&app_handle, game_conf_path)
         .defaults(default_game)
         .build()
-        .or(Err(500))
-        .unwrap();
+        .or(Err(ErrorCode::InternalError))?;
+
+    Ok(serde_json::json!(store.entries()))
+}
+
+#[tauri::command]
+pub fn create_profile(
+    app_handle: tauri::AppHandle,
+    payload: dto::profiles::ProfileRequestDto,
+) -> Result<serde_json::Value, ErrorCode> {
+    let default_game = stores::games::GameStore::new(&payload.game_id)
+        .ok_or(ErrorCode::NotFound)?
+        .to_hashmap()
+        .or(Err(ErrorCode::InternalError))?;
+
+    let game_conf_path =
+        utils::path::generate_store_path(&app_handle, format!("{}.json", payload.game_id).as_str());
+
+    let store = tauri_plugin_store::StoreBuilder::new(&app_handle, game_conf_path)
+        .defaults(default_game)
+        .build()
+        .or(Err(ErrorCode::InternalError))?;
 
     // if the store is new should we start the watcher? not sure, probs better to handle this logic separately
 
     let mut profiles = store
         .get("profiles")
-        .ok_or(500)
-        .unwrap()
+        .ok_or(ErrorCode::InternalError)?
         .as_array()
-        .ok_or(500)
-        .unwrap()
+        .ok_or(ErrorCode::InternalError)?
         .to_vec();
 
     if profiles
@@ -54,7 +79,7 @@ pub fn create_profile(
         .find(|&p| p.get("name") == Some(&payload.name.clone().into()))
         .is_some()
     {
-        return Err(409);
+        return Err(ErrorCode::Conflict);
     }
 
     let profile = serde_json::json!(Profile::from_dto(payload));
@@ -66,7 +91,7 @@ pub fn create_profile(
     match store.save() {
         Err(e) => {
             eprintln!("Failed to save profile: {:?}", e);
-            return Err(500);
+            return Err(ErrorCode::InternalError);
         }
         Ok(_) => {}
     }
@@ -75,15 +100,15 @@ pub fn create_profile(
 }
 
 #[tauri::command]
-pub fn get_mods(state: AppState) -> serde_json::Value {
+pub fn get_mods(state: AppState) -> Result<serde_json::Value, ErrorCode> {
     let state = state.lock().unwrap();
 
     let game_id = state
         .user_settings
         .get(&SettingKey::GameId)
-        .unwrap()
+        .ok_or(ErrorCode::InternalError)?
         .as_str()
-        .unwrap();
+        .ok_or(ErrorCode::InternalError)?;
 
     let data_mods = &state
         .user_settings
@@ -111,5 +136,5 @@ pub fn get_mods(state: AppState) -> serde_json::Value {
         mods.extend(workshop_mods);
     }
 
-    serde_json::json!(mods)
+    Ok(serde_json::json!(mods))
 }

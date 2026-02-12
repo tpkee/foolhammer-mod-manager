@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_with::{KeyValueMap, serde_as};
 
-use crate::{defaults::games, resolve_existing_path, utils::retrieve_saves_absolute_path};
+use crate::{defaults::games, resolve_existing_path, utils::path::retrieve_saves_absolute_path};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
