@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::{
     dto::{packs::PackResponseDto, profiles::ProfileResponseDto},
-    mods::helpers,
+    mods::pack,
     resolve_existing_path,
     stores::games,
     utils::path::retrieve_steam_workshop_path,
@@ -25,8 +25,8 @@ impl GameResponseDto {
         let mods_path = resolve_existing_path!(&store.mods_path);
         let workshop_path = retrieve_steam_workshop_path(&store.game_id);
 
-        let mods = match mods_path {
-            Some(path) => helpers::retrieve_mods(&path, &workshop_path),
+        let mut mods = match mods_path {
+            Some(path) => pack::Pack::retrieve_mods(&path, &workshop_path),
             None => vec![],
         };
 
@@ -40,12 +40,12 @@ impl GameResponseDto {
             profiles: store
                 .profiles
                 .into_iter()
-                .map(|profile| ProfileResponseDto::new(profile, &mods))
+                .map(|profile| ProfileResponseDto::new(profile, &mut mods))
                 .collect(),
         }
     }
 
-    fn mods_to_dto(mods: &Vec<helpers::Pack>) -> Vec<PackResponseDto> {
+    fn mods_to_dto(mods: &Vec<pack::Pack>) -> Vec<PackResponseDto> {
         mods.into_iter()
             .map(|pack| {
                 let pack = pack.clone();

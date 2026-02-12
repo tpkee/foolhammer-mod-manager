@@ -1,6 +1,6 @@
 use crate::{
     dto::mods::{ModRequestDto, ModResponseDto},
-    mods::helpers::Pack,
+    mods::{pack::Pack, sort::SortMods},
     stores::games,
 };
 
@@ -14,16 +14,26 @@ pub struct ProfileResponseDto {
 }
 
 impl ProfileResponseDto {
-    pub fn new(profile: games::Profile, mods: &Vec<Pack>) -> Self {
+    pub fn new(mut profile: games::Profile, game_mods: &Vec<Pack>) -> Self {
+        profile.mods.sort_mods(|m| &m.name);
+
+        let mapped_mods = Self::map_mods_to_dto(&mut profile, &game_mods);
+
         Self {
-            mods: Self::map_mods_to_dto(&profile, &mods),
+            mods: mapped_mods,
             name: profile.name,
             default: profile.default,
             manual_mode: profile.manual_mode,
         }
     }
 
-    fn map_mods_to_dto(profile: &games::Profile, mods: &Vec<Pack>) -> Vec<ModResponseDto> {
+    fn map_mods_to_dto(profile: &mut games::Profile, mods: &Vec<Pack>) -> Vec<ModResponseDto> {
+        for i in 0..profile.mods.len() {
+            profile.mods[i].order = (u32::try_from(i)
+                .expect("u32 overflow, it wasn't possible to convert usize to u32"))
+                + 1;
+        }
+
         profile
             .mods
             .iter()

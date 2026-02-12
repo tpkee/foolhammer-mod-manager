@@ -7,7 +7,7 @@ use tauri::Wry;
 use crate::{
     defaults::games,
     dto::{mods::ModRequestDto, profiles::ProfileRequestDto},
-    mods::helpers,
+    mods::pack,
     resolve_existing_path,
     utils::{
         self, ErrorCode,
@@ -15,12 +15,20 @@ use crate::{
     },
 };
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModInfo {
+    pub name: String,
+    pub enabled: bool,
+    pub order: u32,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Profile {
     pub name: String,
     pub default: bool,
-    pub mods: Vec<ModRequestDto>,
+    pub mods: Vec<ModInfo>,
     pub manual_mode: bool,
 }
 
@@ -32,7 +40,7 @@ impl Profile {
             mods: dto
                 .mods
                 .into_iter()
-                .map(|m| ModRequestDto {
+                .map(|m| ModInfo {
                     name: m.name,
                     enabled: m.enabled,
                     order: m.order,
@@ -87,7 +95,7 @@ impl GameStore {
         let mods_path = resolve_existing_path!(&game_path, default_game.mods_path)?;
 
         let workshop_path: Option<PathBuf> = retrieve_steam_workshop_path(&default_game.game_id);
-        let mods: Vec<ModRequestDto> = helpers::retrieve_mods(&mods_path, &workshop_path)
+        let mods: Vec<ModRequestDto> = pack::Pack::retrieve_mods(&mods_path, &workshop_path)
             .iter()
             .map(|mod_pack| ModRequestDto {
                 order: 0,

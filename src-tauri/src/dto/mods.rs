@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::mods::helpers::Pack;
+use crate::{mods::pack::Pack, stores::games::ModInfo};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -16,7 +16,7 @@ pub struct ModResponseDto {
 }
 
 impl ModResponseDto {
-    pub fn new(mod_info: &ModRequestDto, mod_pack: Option<Pack>) -> Self {
+    pub fn new(mod_info: &ModInfo, mod_pack: Option<Pack>) -> Self {
         let (path, last_updated, from_steam_workshop, image) = match mod_pack {
             Some(pack) => (
                 Some(pack.path),
