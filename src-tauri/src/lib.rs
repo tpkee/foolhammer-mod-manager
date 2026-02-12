@@ -53,7 +53,6 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             get_state,
-            commands::get_mods,
             commands::check_path_exists,
             commands::create_profile,
             commands::get_supported_games,
