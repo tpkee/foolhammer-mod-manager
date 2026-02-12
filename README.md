@@ -61,7 +61,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - Built with [Tauri](https://tauri.app/)
-- Based on [tauri-nuxt-boilerplate](https://github.com/tpkee/tauri-nuxt-boilerplate)
 - Uses [RPFM Library](https://github.com/Frodo45127/rpfm) for pack file management
 - Steam integration via [steamworks-rs](https://github.com/Thinkofname/steamworks-rs)
 
