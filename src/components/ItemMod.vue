@@ -3,6 +3,7 @@
     <div class="flex items-center gap-2.5 col-span-2">
       <button class="cursor-grab active:cursor-move text-left">
         <nuxt-icon name="mi:reorder" class="size-6" />
+        <span class="sr-only">Drag</span>
       </button>
       <app-input v-model.number="order" label="Order number" sr-only-label type="number" :min="1" class="w-20" />
     </div>
@@ -16,7 +17,7 @@
         {{ pack }}
       </p>
     </div>
-    <time :datetime="getLastUpdate" class="text-xs text-gray-500 col-span-3">
+    <time :datetime="getLastUpdate" class="text-xs text-gray-400 col-span-3">
       {{ getLastUpdate }}
     </time>
 
