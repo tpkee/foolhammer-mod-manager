@@ -107,7 +107,8 @@ impl GameStore {
         })
     }
 
-    pub fn to_hashmap(&self) -> Result<HashMap<String, serde_json::Value>, serde_json::Error> {
+    fn to_hashmap(&self) -> Result<HashMap<String, serde_json::Value>, serde_json::Error> {
+        // TODO: maybe this should be moved to a trait impl? not sure if we will need this for other structs
         let hm: HashMap<String, Value> =
             serde_json::from_value(self.serialize(serde_json::value::Serializer)?)?;
         Ok(hm)
