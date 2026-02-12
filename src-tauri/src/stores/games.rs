@@ -1,10 +1,15 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use serde_with::{KeyValueMap, serde_as};
+use tauri::Wry;
 
-use crate::{defaults::games, resolve_existing_path, utils::path::retrieve_saves_absolute_path};
+use crate::{
+    defaults::games,
+    dto::profiles::ProfileRequestDto,
+    resolve_existing_path,
+    utils::{self, ErrorCode, path::retrieve_saves_absolute_path},
+};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -18,7 +23,6 @@ pub struct ModInfo {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Profile {
-    #[serde(rename = "$key$")]
     name: String,
 
     mods: Vec<ModInfo>,
@@ -26,7 +30,7 @@ pub struct Profile {
 }
 
 impl Profile {
-    pub fn from_dto(dto: crate::dto::profiles::ProfileRequestDto) -> Self {
+    pub fn from_dto(dto: ProfileRequestDto) -> Self {
         Self {
             name: dto.name,
             mods: dto
@@ -46,7 +50,6 @@ impl Profile {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct GameStore {
-    #[serde(rename = "$key$")]
     pub game_id: String,
 
     pub game_path: PathBuf,
@@ -56,7 +59,29 @@ pub struct GameStore {
 }
 
 impl GameStore {
-    pub fn new(game_id: &str) -> Option<Self> {
+    pub fn new(
+        app_handle: &tauri::AppHandle,
+        game_id: &str,
+    ) -> Result<Arc<tauri_plugin_store::Store<Wry>>, ErrorCode> {
+        let default_game = GameStore::new_game(game_id)
+            .ok_or(ErrorCode::NotFound)?
+            .to_hashmap()
+            .or(Err(ErrorCode::InternalError))?;
+
+        let game_conf_path =
+            utils::path::generate_store_path(app_handle, format!("{}.json", game_id).as_str());
+
+        let store = tauri_plugin_store::StoreBuilder::new(app_handle, game_conf_path)
+            .defaults(default_game)
+            .build()
+            .or(Err(ErrorCode::InternalError))?;
+
+        // TODO: if the store is new should we start the watcher? not sure, probs better to handle this logic separately
+
+        Ok(store)
+    }
+
+    fn new_game(game_id: &str) -> Option<Self> {
         let default_game = games::SUPPORTED_GAMES
             .iter()
             .find(|game| game_id == game.game_id)?;
@@ -65,12 +90,20 @@ impl GameStore {
         let saves_path = retrieve_saves_absolute_path(default_game.game_id);
         let mods_path = resolve_existing_path!(&game_path, default_game.mods_path)?;
 
+        let default_profile = Profile::from_dto(ProfileRequestDto {
+            game_id: default_game.game_id.to_string(),
+            name: "Default".to_string(),
+            default: Some(true),
+            manual_mode: Some(false),
+            mods: vec![],
+        });
+
         Some(Self {
             game_id: default_game.game_id.to_string(),
             game_path,
             saves_path,
             mods_path,
-            profiles: vec![],
+            profiles: vec![default_profile],
         })
     }
 
@@ -80,7 +113,3 @@ impl GameStore {
         Ok(hm)
     }
 }
-
-#[serde_as]
-#[derive(Serialize, Deserialize)]
-struct KVMap(#[serde_as(as = "KeyValueMap<_>")] Vec<GameStore>);
