@@ -1,5 +1,5 @@
 <template>
-  <main>
+  <div>
     <NuxtRouteAnnouncer />
     <div class="flex">
       <div class="p-2.5 grow">
@@ -8,11 +8,13 @@
 
       <app-sidebar class="relative overflow-hidden min-w-17.5" :games="listSupportedGames" :current-game="preferencesStore.currentGame" />
     </div>
-  </main>
+  </div>
 </template>
 
 <script setup lang="ts">
 const preferencesStore = usePreferencesStore()
+
+const { locale } = useI18n()
 
 const { data: userSettings, refresh: refreshUserSettings } = await useAsyncData<UserSettings>('user-settings', () => useTauriInvoke('get_state'))
 const { data: listSupportedGames } = await useAsyncData<string[]>(`supported-games`, () => useTauriInvoke('get_supported_games'), {
@@ -41,4 +43,10 @@ watch(listSupportedGames, (games) => {
 provide('currentGame', preferencesStore.currentGame)
 
 onUnmounted(unlistenUserSettings)
+
+useHead({
+  htmlAttrs: {
+    lang: locale.value,
+  },
+})
 </script>
