@@ -1,18 +1,11 @@
-use serde::Serialize;
-
 use crate::{
     dto,
     stores::{self, games::Profile},
 };
 
-use crate::{AppState, mods, state::user_settings::SettingKey, utils};
+use utils::ErrorCode;
 
-#[derive(Debug, Serialize)]
-pub enum ErrorCode {
-    NotFound = 404,
-    InternalError = 500,
-    Conflict = 409,
-}
+use crate::{AppState, mods, state::user_settings::SettingKey, utils};
 
 #[tauri::command]
 pub fn check_path_exists(path: &str) -> bool {
