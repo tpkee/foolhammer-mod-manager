@@ -21,7 +21,7 @@ Currently supported:
 ## 📋 Prerequisites
 
 Before you begin, ensure you have the following installed:
-- [Node.js](https://nodejs.org/) (v18 or higher recommended)
+- [Node.js](https://nodejs.org/) (>=24.13.0)
 - [pnpm](https://pnpm.io/) package manager
 - [Rust](https://rustup.rs/) and Cargo
 - [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for your platform
