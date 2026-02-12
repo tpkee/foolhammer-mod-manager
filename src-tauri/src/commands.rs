@@ -1,13 +1,16 @@
-use std::collections::HashMap;
-
 use crate::{
-    dto,
+    dto::{self, games::GameResponseDto},
     stores::games::{GameStore, Profile},
 };
 
 use utils::ErrorCode;
 
-use crate::{AppState, mods, state::user_settings::SettingKey, utils};
+use crate::utils;
+
+/*
+    TODO/notes:
+    - I don't like that the keys for the store are basically hardcoded here, they should be tied to an enum.
+*/
 
 #[tauri::command]
 pub fn check_path_exists(path: &str) -> bool {
@@ -27,9 +30,10 @@ pub fn get_game(
     game_id: &str,
 ) -> Result<serde_json::Value, ErrorCode> {
     let store = GameStore::new(&app_handle, game_id)?;
-    let map: HashMap<String, serde_json::Value> = store.entries().into_iter().collect();
 
-    Ok(serde_json::json!(map))
+    let game_response = GameResponseDto::from_store(GameStore::from_entries(store.entries())?);
+
+    Ok(serde_json::json!(game_response))
 }
 
 #[tauri::command]
@@ -69,44 +73,4 @@ pub fn create_profile(
     }
 
     Ok(profile)
-}
-
-#[tauri::command]
-pub fn get_mods(state: AppState) -> Result<serde_json::Value, ErrorCode> {
-    let state = state.lock().unwrap();
-
-    let game_id = state
-        .user_settings
-        .get(&SettingKey::GameId)
-        .ok_or(ErrorCode::InternalError)?
-        .as_str()
-        .ok_or(ErrorCode::InternalError)?;
-
-    let data_mods = &state
-        .user_settings
-        .get(&SettingKey::ModsPath)
-        .and_then(|game_path| {
-            let game_mods_path = std::path::PathBuf::from(game_path.as_str().unwrap());
-            mods::helpers::retrieve_mods(&game_mods_path).ok()
-        });
-
-    let workshop_mods = &state
-        .user_settings
-        .get(&SettingKey::SteamWorkshopPath)
-        .and_then(|workshop_path| {
-            let workshop_pathbuf = std::path::PathBuf::from(workshop_path.as_str().unwrap());
-            mods::helpers::retrieve_workshop_mods(&workshop_pathbuf, &game_id).ok()
-        });
-
-    let mut mods = vec![];
-
-    if let Some(data_mods) = data_mods {
-        mods.extend(data_mods);
-    }
-
-    if let Some(workshop_mods) = workshop_mods {
-        mods.extend(workshop_mods);
-    }
-
-    Ok(serde_json::json!(mods))
 }

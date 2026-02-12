@@ -2,9 +2,7 @@ use std::path::PathBuf;
 
 use tauri::Manager;
 
-use crate::{
-    defaults::system::STEAMDIR_INSTANCE, join_path, pathbuf_to_string, resolve_existing_path,
-};
+use crate::{defaults::system::STEAMDIR_INSTANCE, join_path, resolve_existing_path};
 
 pub fn generate_store_path(app: &tauri::AppHandle, relative_path: &str) -> std::path::PathBuf {
     app.path()
@@ -40,7 +38,7 @@ pub fn retrieve_saves_absolute_path(game_id: &str) -> Option<PathBuf> {
     }
 }
 
-pub fn retrieve_steam_workshop_path(game_id: &str) -> Option<String> {
+pub fn retrieve_steam_workshop_path(game_id: &str) -> Option<PathBuf> {
     match &*STEAMDIR_INSTANCE {
         Some(steam_dir) => {
             if let Some(p) = resolve_existing_path!(
@@ -50,7 +48,7 @@ pub fn retrieve_steam_workshop_path(game_id: &str) -> Option<String> {
                 "content",
                 game_id,
             ) {
-                return pathbuf_to_string!(p);
+                return Some(p);
             }
 
             return None;

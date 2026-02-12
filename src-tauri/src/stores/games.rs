@@ -6,40 +6,36 @@ use tauri::Wry;
 
 use crate::{
     defaults::games,
-    dto::profiles::ProfileRequestDto,
+    dto::{mods::ModRequestDto, profiles::ProfileRequestDto},
+    mods::helpers,
     resolve_existing_path,
-    utils::{self, ErrorCode, path::retrieve_saves_absolute_path},
+    utils::{
+        self, ErrorCode,
+        path::{retrieve_saves_absolute_path, retrieve_steam_workshop_path},
+    },
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ModInfo {
-    #[serde(rename = "$key$")]
-    name: String,
-    enabled: bool,
-    order: Option<u32>, // even if it's Some it will be ignored if the profile's manual mode is enabled
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct Profile {
-    name: String,
-
-    mods: Vec<ModInfo>,
-    manual_mode: bool,
+    pub name: String,
+    pub default: bool,
+    pub mods: Vec<ModRequestDto>,
+    pub manual_mode: bool,
 }
 
 impl Profile {
     pub fn from_dto(dto: ProfileRequestDto) -> Self {
         Self {
             name: dto.name,
+            default: dto.default.unwrap_or(false),
             mods: dto
                 .mods
                 .into_iter()
-                .map(|m| ModInfo {
+                .map(|m| ModRequestDto {
                     name: m.name,
                     enabled: m.enabled,
-                    order: Some(m.order),
+                    order: m.order,
                 })
                 .collect(),
             manual_mode: dto.manual_mode.unwrap_or(false),
@@ -63,7 +59,7 @@ impl GameStore {
         app_handle: &tauri::AppHandle,
         game_id: &str,
     ) -> Result<Arc<tauri_plugin_store::Store<Wry>>, ErrorCode> {
-        let default_game = GameStore::new_game(game_id)
+        let default_game = Self::new_game(game_id)
             .ok_or(ErrorCode::NotFound)?
             .to_hashmap()
             .or(Err(ErrorCode::InternalError))?;
@@ -90,12 +86,22 @@ impl GameStore {
         let saves_path = retrieve_saves_absolute_path(default_game.game_id);
         let mods_path = resolve_existing_path!(&game_path, default_game.mods_path)?;
 
+        let workshop_path: Option<PathBuf> = retrieve_steam_workshop_path(&default_game.game_id);
+        let mods: Vec<ModRequestDto> = helpers::retrieve_mods(&mods_path, &workshop_path)
+            .iter()
+            .map(|mod_pack| ModRequestDto {
+                order: 0,
+                enabled: false,
+                name: mod_pack.name.clone(),
+            })
+            .collect();
+
         let default_profile = Profile::from_dto(ProfileRequestDto {
             game_id: default_game.game_id.to_string(),
             name: "Default".to_string(),
             default: Some(true),
             manual_mode: Some(false),
-            mods: vec![],
+            mods, // this is the default profile so we should throw all the available mods in it
         });
 
         Some(Self {
@@ -112,5 +118,12 @@ impl GameStore {
         let hm: HashMap<String, Value> =
             serde_json::from_value(self.serialize(serde_json::value::Serializer)?)?;
         Ok(hm)
+    }
+
+    pub fn from_entries(entries: Vec<(String, Value)>) -> Result<Self, ErrorCode> {
+        let hm: HashMap<String, Value> = entries.into_iter().collect();
+        let game_store: Self =
+            serde_json::from_value(serde_json::json!(hm)).or(Err(ErrorCode::InternalError))?;
+        Ok(game_store)
     }
 }
