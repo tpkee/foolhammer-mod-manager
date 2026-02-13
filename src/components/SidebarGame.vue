@@ -38,12 +38,12 @@ const props = defineProps<{
 const emit = defineEmits<{
   onRefresh: []
 }>()
-const gameStore = useGameStore()
+const preferencesStore = usePreferencesStore()
 const { t } = useI18n()
 const gameSettingsModal = ref()
 
 function switchGame() {
-  gameStore.setGameId(props.id)
+  preferencesStore.setCurrentGame(props.id)
 }
 
 function openGameSettings() {
