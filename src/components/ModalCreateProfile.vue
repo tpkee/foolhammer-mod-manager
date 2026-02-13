@@ -3,10 +3,10 @@
     <div class="p-6 space-y-6">
       <div>
         <h2 class="text-lg font-semibold">
-          Rename Profile
+          Create New Profile
         </h2>
         <p class="text-sm text-gray-400">
-          {{ currentName }}
+          Enter a name for the new profile
         </p>
       </div>
 
@@ -19,10 +19,9 @@
             placeholder="Enter profile name"
             required
             class="w-full"
-            @keydown.enter="handleSubmit"
           />
-          <p v-if="error" class="text-sm text-red-500">
-            {{ error }}
+          <p v-if="getErrors" class="text-sm text-red-500">
+            {{ getErrors }}
           </p>
         </div>
 
@@ -38,9 +37,9 @@
           <app-button
             type="submit"
             class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            :disabled="!form.name.trim() || form.name === currentName"
+            :disabled="!!getErrors"
           >
-            Save
+            Create
           </app-button>
         </div>
       </form>
@@ -55,13 +54,13 @@ interface ProfileForm {
 
 const props = defineProps<{
   gameId: string
-  currentName: string
-  existingProfileNames: string[]
 }>()
 
 const emit = defineEmits<{
-  save: [newName: string]
+  created: []
 }>()
+
+const { getProfiles, refreshGame } = useCurrentGame()
 
 const modalRef = ref()
 
@@ -69,40 +68,46 @@ const form = ref<ProfileForm>({
   name: '',
 })
 
-const error = ref<string>('')
+// Computed
+const getErrors = computed(() => {
+  const normalizedName = form.value.name.toLowerCase()
+  const existsWithDifferentCase = getProfiles.value.some(
+    existing => existing.name.toLowerCase() === normalizedName,
+  )
 
-function validateName(name: string): string {
-  if (!name.trim()) {
-    return 'Profile name cannot be empty'
-  }
-
-  if (name === props.currentName) {
-    return ''
-  }
-
-  if (props.existingProfileNames.includes(name)) {
+  if (existsWithDifferentCase) {
     return 'A profile with this name already exists'
   }
 
   return ''
-}
+})
 
-function handleSubmit() {
-  const validationError = validateName(form.value.name)
-  if (validationError) {
-    error.value = validationError
+async function handleSubmit() {
+  if (getErrors.value) {
     return
   }
 
-  emit('save', form.value.name)
-  modalRef.value?.close()
+  try {
+    await useTauriInvoke('create_profile', {
+      gameId: props.gameId,
+      name: form.value.name,
+      default: false,
+      manualMode: false,
+      mods: [],
+    })
+    emit('created')
+    await refreshGame()
+    modalRef.value?.close()
+  }
+  catch (err) {
+    console.error('Failed to create profile:', err)
+  }
 }
 
 function resetForm() {
   form.value = {
-    name: props.currentName,
+    name: '',
   }
-  error.value = ''
 }
 
 function open() {

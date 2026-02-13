@@ -11,7 +11,6 @@
         :games="listSupportedGames"
         :current-game="preferencesStore.currentGame"
         :current-game-data="currentGameData"
-        @refresh-game="refreshGame"
       />
     </div>
   </div>

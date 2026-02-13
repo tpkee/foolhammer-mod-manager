@@ -15,7 +15,6 @@
         v-if="currentGame && currentGameData"
         :game-id="currentGame"
         :profiles="currentGameData.profiles ?? []"
-        @refresh="emit('refreshGame')"
       />
       <sidebar-button v-if="currentGame" label="settings" tooltip="Settings" class="block">
         <nuxt-icon name="mi:settings" class="size-10" />
@@ -31,10 +30,6 @@ const props = defineProps<{
   games: string[]
   currentGame: Nullable<string>
   currentGameData: Nullable<GameResponseDto>
-}>()
-
-const emit = defineEmits<{
-  refreshGame: []
 }>()
 
 async function playGame() {
