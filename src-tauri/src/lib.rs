@@ -58,6 +58,9 @@ pub fn run() {
             commands::get_supported_games,
             commands::get_game,
             commands::update_profile,
+            commands::rename_profile,
+            commands::set_default_profile,
+            commands::delete_profile,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

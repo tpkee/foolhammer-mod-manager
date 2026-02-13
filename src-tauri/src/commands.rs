@@ -36,12 +36,15 @@ pub fn get_game(
     Ok(serde_json::json!(game_response))
 }
 
-#[tauri::command]
-pub fn create_profile(
-    app_handle: tauri::AppHandle,
-    payload: dto::profiles::ProfileRequestDto,
-) -> Result<serde_json::Value, ErrorCode> {
-    let store = GameStore::new(&app_handle, &payload.game_id)?;
+fn modify_profiles<F, T>(
+    app_handle: &tauri::AppHandle,
+    game_id: &str,
+    modify_fn: F,
+) -> Result<T, ErrorCode>
+where
+    F: FnOnce(&mut Vec<serde_json::Value>) -> Result<T, ErrorCode>,
+{
+    let store = GameStore::new(app_handle, game_id)?;
 
     let mut profiles: Vec<serde_json::Value> = store
         .get("profiles")
@@ -50,29 +53,38 @@ pub fn create_profile(
         .ok_or(ErrorCode::InternalError)?
         .to_vec();
 
-    if profiles
-        .iter()
-        .find(|&p| p.get("name") == Some(&payload.name.clone().into()))
-        .is_some()
-    {
-        return Err(ErrorCode::Conflict);
-    }
+    let result = modify_fn(&mut profiles)?;
 
-    let profile = serde_json::json!(Profile::from_dto(payload));
+    store.set("profiles", serde_json::Value::Array(profiles));
 
-    profiles.push(profile.clone());
+    store.save().map_err(|e| {
+        eprintln!("Failed to save profiles: {:?}", e);
+        ErrorCode::InternalError
+    })?;
 
-    store.set("profiles", serde_json::Value::Array(profiles.to_vec()));
+    Ok(result)
+}
 
-    match store.save() {
-        Err(e) => {
-            eprintln!("Failed to save profile: {:?}", e);
-            return Err(ErrorCode::InternalError);
+#[tauri::command]
+pub fn create_profile(
+    app_handle: tauri::AppHandle,
+    payload: dto::profiles::ProfileRequestDto,
+) -> Result<serde_json::Value, ErrorCode> {
+    let game_id = payload.game_id.clone();
+
+    modify_profiles(&app_handle, &game_id, |profiles| {
+        if profiles
+            .iter()
+            .any(|p| p.get("name") == Some(&payload.name.clone().into()))
+        {
+            return Err(ErrorCode::Conflict);
         }
-        Ok(_) => {}
-    }
 
-    Ok(profile)
+        let profile = serde_json::json!(Profile::from_dto(payload));
+        profiles.push(profile.clone());
+
+        Ok(profile)
+    })
 }
 
 #[tauri::command]
@@ -81,33 +93,85 @@ pub fn update_profile(
     payload: dto::profiles::ProfileRequestDto,
 ) -> Result<serde_json::Value, ErrorCode> {
     println!("Updating profile: {:?}", payload);
-    let store = GameStore::new(&app_handle, &payload.game_id)?;
+    let game_id = payload.game_id.clone();
 
-    let mut profiles: Vec<serde_json::Value> = store
-        .get("profiles")
-        .ok_or(ErrorCode::InternalError)?
-        .as_array()
-        .ok_or(ErrorCode::InternalError)?
-        .to_vec();
+    modify_profiles(&app_handle, &game_id, |profiles| {
+        let profile_index = profiles
+            .iter()
+            .position(|p| p.get("name") == Some(&payload.name.clone().into()))
+            .ok_or(ErrorCode::NotFound)?;
 
-    let profile_index = profiles
-        .iter()
-        .position(|p| p.get("name") == Some(&payload.name.clone().into()))
-        .ok_or(ErrorCode::NotFound)?;
+        let profile = serde_json::json!(Profile::from_dto(payload));
+        profiles[profile_index] = profile.clone();
 
-    let profile = serde_json::json!(Profile::from_dto(payload));
+        Ok(profile)
+    })
+}
 
-    profiles[profile_index] = profile.clone();
+#[tauri::command]
+pub fn rename_profile(
+    app_handle: tauri::AppHandle,
+    game_id: &str,
+    old_name: &str,
+    new_name: &str,
+) -> Result<serde_json::Value, ErrorCode> {
+    modify_profiles(&app_handle, game_id, |profiles| {
+        if profiles
+            .iter()
+            .any(|p| p.get("name") == Some(&new_name.into()))
+        {
+            return Err(ErrorCode::Conflict);
+        }
 
-    store.set("profiles", serde_json::Value::Array(profiles));
+        let profile_index = profiles
+            .iter()
+            .position(|p| p.get("name") == Some(&old_name.into()))
+            .ok_or(ErrorCode::NotFound)?;
 
-    match store.save() {
-        Err(e) => {
-            eprintln!("Failed to update profile: {:?}", e);
+        if let Some(profile_obj) = profiles[profile_index].as_object_mut() {
+            profile_obj.insert("name".to_string(), new_name.into());
+        } else {
             return Err(ErrorCode::InternalError);
         }
-        Ok(_) => {}
-    }
 
-    Ok(profile)
+        Ok(profiles[profile_index].clone())
+    })
+}
+
+#[tauri::command]
+pub fn set_default_profile(
+    app_handle: tauri::AppHandle,
+    game_id: &str,
+    profile_name: &str,
+) -> Result<Vec<serde_json::Value>, ErrorCode> {
+    modify_profiles(&app_handle, game_id, |profiles| {
+        for profile in profiles.iter_mut() {
+            if let Some(profile_obj) = profile.as_object_mut() {
+                profile_obj.insert(
+                    "default".to_string(),
+                    serde_json::Value::Bool(profile_obj.get("name") == Some(&profile_name.into())),
+                );
+            }
+        }
+
+        Ok(profiles.clone())
+    })
+}
+
+#[tauri::command]
+pub fn delete_profile(
+    app_handle: tauri::AppHandle,
+    game_id: &str,
+    profile_name: &str,
+) -> Result<(), ErrorCode> {
+    modify_profiles(&app_handle, game_id, |profiles| {
+        let profile_index = profiles
+            .iter()
+            .position(|p| p.get("name") == Some(&profile_name.into()))
+            .ok_or(ErrorCode::NotFound)?;
+
+        profiles.remove(profile_index);
+
+        Ok(())
+    })
 }

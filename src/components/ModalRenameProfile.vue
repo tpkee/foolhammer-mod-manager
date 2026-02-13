@@ -1,5 +1,5 @@
 <template>
-  <app-modal ref="modalRef" :close-on-backdrop="false">
+  <app-modal ref="modal" :close-on-backdrop="false">
     <div class="p-6 space-y-6">
       <div>
         <h2 class="text-lg font-semibold">
@@ -56,14 +56,15 @@ interface ProfileForm {
 const props = defineProps<{
   gameId: string
   currentName: string
-  existingProfileNames: string[]
 }>()
 
 const emit = defineEmits<{
   save: [newName: string]
 }>()
 
-const modalRef = ref()
+const modalRef = useTemplateRef('modal')
+
+const { getProfiles } = useCurrentGame()
 
 const form = ref<ProfileForm>({
   name: '',
@@ -81,8 +82,8 @@ function validateName(name: string): string {
   }
 
   const normalizedName = name.toLowerCase()
-  const existsWithDifferentCase = props.existingProfileNames.some(
-    existing => existing.toLowerCase() === normalizedName,
+  const existsWithDifferentCase = getProfiles.value.some(
+    existing => existing.name.toLowerCase() === normalizedName && existing.name.toLowerCase() !== props.currentName.toLowerCase(),
   )
 
   if (existsWithDifferentCase) {

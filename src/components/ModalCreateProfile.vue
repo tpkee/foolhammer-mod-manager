@@ -98,12 +98,15 @@ async function handleSubmit() {
 
   try {
     await useTauriInvoke('create_profile', {
-      gameId: props.gameId,
-      name: form.value.name,
-      default: form.value.default,
-      manualMode: false,
-      mods: [],
+      payload: {
+        gameId: props.gameId,
+        name: form.value.name,
+        default: form.value.default,
+        manualMode: false,
+        mods: [],
+      },
     })
+
     emit('created')
     await refreshGame()
     modalRef.value?.close()
