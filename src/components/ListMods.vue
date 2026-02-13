@@ -45,7 +45,7 @@
         </p>
       </div>
       <div>
-        <div v-bind="containerProps" class="relative max-h-150">
+        <div v-bind="containerProps" class="relative max-h-[80svh]">
           <div v-bind="wrapperProps">
             <div
               v-for="({ data }, index) of virtualisedList"
@@ -87,7 +87,7 @@ import { profileResponseToRequest } from '~/utils/dto'
 // Props
 const props = defineProps<{
   list: ModResponseDto[]
-  profile: ProfileResponseDto
+  profile: Nullable<ProfileResponseDto>
 }>()
 
 const emit = defineEmits<{
