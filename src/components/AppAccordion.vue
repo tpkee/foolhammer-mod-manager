@@ -2,23 +2,23 @@
   <div class="relative">
     <button
       type="button"
-      class="w-full flex items-center justify-between gap-2 px-2 py-1.5 text-left border border-gray-800 rounded rounded-b-none"
+      class="w-full flex items-center justify-between gap-2 px-2 py-1.5 text-left border border-gray-700 rounded rounded-b-none"
       :class="{ 'opacity-60 cursor-not-allowed': disabled, 'border-b-transparent': isOpen }"
       :aria-expanded="isOpen"
       :aria-controls="contentId"
       :disabled="disabled"
       @click="toggle"
     >
-      <span class="text-sm font-medium">
-        {{ title }}
-      </span>
+      <div class="text-sm font-medium flex items-center gap-1">
+        <slot name="title" />
+      </div>
       <nuxt-icon name="mi:caret-down" class="size-4 transition-transform" :class="{ 'rotate-180': isOpen }" />
     </button>
 
     <div
       :id="contentId"
       ref="contentRef"
-      class="overflow-hidden transition-[max-height,opacity] duration-200 ease  w-full z-999 border rounded-b border-gray-800 -mt-px pt-2.5"
+      class="overflow-hidden transition-[max-height,opacity] duration-200 ease  w-full z-999 border rounded-b border-gray-700 -mt-px pt-2.5"
       :style="contentStyles"
       role="region"
       :aria-hidden="!isOpen"
@@ -32,7 +32,6 @@
 
 <script lang="ts" setup>
 const props = defineProps<{
-  title?: string
   disabled?: boolean
 }>()
 

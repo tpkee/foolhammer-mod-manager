@@ -32,6 +32,15 @@
           </div>
         </div>
 
+        <div v-if="getProfiles.length" class="pt-4">
+          <p class="text-sm  mb-2">
+            Copy mods from existing profiles
+          </p>
+          <div class="max-h-60 overflow-y-auto">
+            <list-profiles ref="listProfilesRef" :profiles="getProfiles" />
+          </div>
+        </div>
+
         <div class="flex gap-2 justify-end pt-4 w-full">
           <app-button
             type="button"
@@ -71,6 +80,7 @@ const emit = defineEmits<{
 const { getProfiles, refreshGame } = useCurrentGame()
 
 const modalRef = ref()
+const listProfilesRef = useTemplateRef('listProfilesRef')
 
 const form = ref<ProfileForm>({
   name: '',
@@ -103,7 +113,11 @@ async function handleSubmit() {
         name: form.value.name,
         default: form.value.default,
         manualMode: false,
-        mods: [],
+        mods: (listProfilesRef.value?.uniqueMods ?? []).map((name: string, index: number) => ({
+          name,
+          enabled: true,
+          order: index + 1,
+        })),
       },
     })
 
