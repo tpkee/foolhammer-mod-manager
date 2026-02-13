@@ -1,5 +1,5 @@
 <template>
-  <app-modal ref="modalRef" :close-on-backdrop="false">
+  <app-modal ref="modal" :close-on-backdrop="false">
     <div class="p-6 space-y-6">
       <div>
         <h2 class="text-lg font-semibold">
@@ -37,7 +37,7 @@
             Copy mods from existing profiles
           </p>
           <div class="max-h-60 overflow-y-auto">
-            <list-profiles ref="listProfilesRef" :profiles="getProfiles" />
+            <list-profiles :profiles="getProfiles" @change="updateSelection" />
           </div>
         </div>
 
@@ -79,8 +79,9 @@ const emit = defineEmits<{
 
 const { getProfiles, refreshGame } = useCurrentGame()
 
-const modalRef = ref()
-const listProfilesRef = useTemplateRef('listProfilesRef')
+const modalRef = useTemplateRef('modal')
+
+const listMods = ref<Set<string>>(new Set())
 
 const form = ref<ProfileForm>({
   name: '',
@@ -113,9 +114,9 @@ async function handleSubmit() {
         name: form.value.name,
         default: form.value.default,
         manualMode: false,
-        mods: (listProfilesRef.value?.uniqueMods ?? []).map((name: string, index: number) => ({
+        mods: (Array.from(listMods.value) ?? []).map((name: string, index: number) => ({
           name,
-          enabled: true,
+          enabled: false,
           order: index + 1,
         })),
       },
@@ -144,6 +145,10 @@ function open() {
 
 function close() {
   modalRef.value?.close()
+}
+
+function updateSelection(selected: Set<string>) {
+  listMods.value = selected
 }
 
 defineExpose({ open, close })

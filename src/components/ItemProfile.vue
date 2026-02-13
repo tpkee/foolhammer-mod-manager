@@ -21,6 +21,14 @@
       :current-name="profile.name"
       @save="handleRename"
     />
+
+    <modal-merge-profile
+      ref="mergeModal"
+      :game-id="gameId"
+      :profile-name="profile.name"
+      :profile="profile"
+      @merged="$emit('merged')"
+    />
   </div>
 </template>
 
@@ -35,10 +43,15 @@ interface Props {
 
 const props = defineProps<Props>()
 
+defineEmits<{
+  merged: []
+}>()
+
 const preferencesStore = usePreferencesStore()
 const { getProfiles, refreshGame } = useCurrentGame()
 
 const modalRef = useTemplateRef('modal')
+const mergeModalRef = useTemplateRef('mergeModal')
 
 const getOptions = computed(() => {
   const opts = [
@@ -46,6 +59,11 @@ const getOptions = computed(() => {
       icon: 'mi:edit',
       label: 'Rename',
       callback: openEditModal,
+    },
+    {
+      icon: 'mi:layers',
+      label: 'Merge from profiles',
+      callback: openMergeModal,
     },
     {
       icon: 'mi:delete',
@@ -96,6 +114,10 @@ async function handleRename(newName: string) {
 
 function openEditModal() {
   modalRef.value?.open()
+}
+
+function openMergeModal() {
+  mergeModalRef.value?.open()
 }
 
 async function switchProfile() {

@@ -3,17 +3,11 @@
     <app-accordion
       v-for="profile in profiles"
       :key="profile.name"
+      :model-value="isSelected(profile.name)"
+      :title="`${profile.name} (${profile.mods.length})`"
       class="relative"
+      @update:model-value="toggleSelection(profile.name)"
     >
-      <template #title>
-        <app-checkbox
-          :model-value="isSelected(profile.name)"
-          :label="`Select ${profile.name}`"
-          sr-only-label
-          @update:model-value="toggleSelection(profile.name)"
-        />
-        <span>{{ profile.name }} ({{ profile.mods.length }})</span>
-      </template>
       <ul v-if="profile.mods.length" class="grid grid-cols-3 gap-y-1">
         <li
           v-for="mod in profile.mods"
@@ -29,13 +23,11 @@
 
     <app-accordion
       v-if="selectedProfiles.length"
+      :title="`Combined Mods (${getUniqueMods.size})`"
     >
-      <template #title>
-        <span>Combined Mods ({{ uniqueMods.length }})</span>
-      </template>
-      <ul v-if="uniqueMods.length" class="gap-y-1 grid grid-cols-3">
+      <ul v-if="getUniqueMods.size" class="gap-y-1 grid grid-cols-3">
         <li
-          v-for="modName in uniqueMods"
+          v-for="modName in getUniqueMods"
           :key="modName"
         >
           <span class="truncate">{{ modName }}</span>
@@ -50,6 +42,10 @@ import type { ProfileResponseDto } from '~/types/dto/profiles'
 
 const props = defineProps<{
   profiles: ProfileResponseDto[]
+}>()
+
+const emit = defineEmits<{
+  change: [Set<string>]
 }>()
 
 const selectedProfiles = ref<string[]>([])
@@ -68,7 +64,7 @@ function toggleSelection(profileName: string) {
   }
 }
 
-const uniqueMods = computed(() => {
+const getUniqueMods = computed(() => {
   const allMods = new Set<string>()
 
   for (const profileName of selectedProfiles.value) {
@@ -80,8 +76,10 @@ const uniqueMods = computed(() => {
     }
   }
 
-  return [...allMods].sort((a, b) => a.localeCompare(b))
+  return allMods
 })
 
-defineExpose({ selectedProfiles, uniqueMods })
+watch(getUniqueMods, (newVal) => {
+  emit('change', newVal)
+}, { deep: true })
 </script>

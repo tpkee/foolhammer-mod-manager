@@ -1,19 +1,27 @@
 <template>
   <div class="relative">
-    <button
-      type="button"
+    <div
       class="w-full flex items-center justify-between gap-2 px-2 py-1.5 text-left border border-gray-700 rounded rounded-b-none"
       :class="{ 'opacity-60 cursor-not-allowed': disabled, 'border-b-transparent': isOpen }"
-      :aria-expanded="isOpen"
-      :aria-controls="contentId"
-      :disabled="disabled"
-      @click="toggle"
     >
-      <div class="text-sm font-medium flex items-center gap-1">
-        <slot name="title" />
-      </div>
-      <nuxt-icon name="mi:caret-down" class="size-4 transition-transform" :class="{ 'rotate-180': isOpen }" />
-    </button>
+      <app-checkbox
+        v-if="checked != null"
+        v-model="checked"
+      />
+      <button
+        class="flex items-center justify-between gap-2 w-full"
+        type="button"
+        :aria-expanded="isOpen"
+        :aria-controls="contentId"
+        :disabled="disabled"
+        @click="toggle"
+      >
+        <span class="text-sm font-medium">
+          {{ title }}
+        </span>
+        <nuxt-icon name="mi:caret-down" class="size-4 transition-transform" :class="{ 'rotate-180': isOpen }" />
+      </button>
+    </div>
 
     <div
       :id="contentId"
@@ -33,8 +41,13 @@
 <script lang="ts" setup>
 const props = defineProps<{
   disabled?: boolean
+  title: string
 }>()
-
+const checked = defineModel({
+  type: Boolean,
+  required: false,
+  default: undefined,
+})
 const contentRef = ref<HTMLElement | null>(null)
 const contentId = useId()
 const contentHeight = ref(0)
