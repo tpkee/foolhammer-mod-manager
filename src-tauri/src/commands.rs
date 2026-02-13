@@ -74,3 +74,40 @@ pub fn create_profile(
 
     Ok(profile)
 }
+
+#[tauri::command]
+pub fn update_profile(
+    app_handle: tauri::AppHandle,
+    payload: dto::profiles::ProfileRequestDto,
+) -> Result<serde_json::Value, ErrorCode> {
+    println!("Updating profile: {:?}", payload);
+    let store = GameStore::new(&app_handle, &payload.game_id)?;
+
+    let mut profiles: Vec<serde_json::Value> = store
+        .get("profiles")
+        .ok_or(ErrorCode::InternalError)?
+        .as_array()
+        .ok_or(ErrorCode::InternalError)?
+        .to_vec();
+
+    let profile_index = profiles
+        .iter()
+        .position(|p| p.get("name") == Some(&payload.name.clone().into()))
+        .ok_or(ErrorCode::NotFound)?;
+
+    let profile = serde_json::json!(Profile::from_dto(payload));
+
+    profiles[profile_index] = profile.clone();
+
+    store.set("profiles", serde_json::Value::Array(profiles));
+
+    match store.save() {
+        Err(e) => {
+            eprintln!("Failed to update profile: {:?}", e);
+            return Err(ErrorCode::InternalError);
+        }
+        Ok(_) => {}
+    }
+
+    Ok(profile)
+}
