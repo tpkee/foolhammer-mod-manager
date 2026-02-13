@@ -1,9 +1,29 @@
 <template>
   <div class="space-y-2.5">
-    <div class="flex items-center gap-2.5 w-full">
+    <div class="flex items-end gap-2.5 w-full">
       <app-input v-model="filters.search" placeholder="Search by pack or name..." class="w-full" label="Search" />
-      <div class="flex items-center gap-2.5">
+      <div class="flex items-end gap-2.5">
         <app-select v-model="filters.sortBy" :options="sortOptions" label="Sort by" />
+        <app-select v-model="filters.sortOrder" :options="orderOptions" label="Order " />
+        <app-dropdown>
+          <template #trigger="{ toggle }">
+            <div>
+              <app-button variant="secondary" @click="toggle">
+                <span class="sr-only">Menu</span>
+                <nuxt-icon name="mi:menu" class="size-5 align-middle block" />
+              </app-button>
+            </div>
+          </template>
+          <template #default>
+            <div class="p-2.5">
+              <div class="grid gap-1.5">
+                <app-button @click="toggleAllMods()">
+                  Toggle All mods
+                </app-button>
+              </div>
+            </div>
+          </template>
+        </app-dropdown>
       </div>
     </div>
 
@@ -34,12 +54,14 @@
               :style="{ height: `${ITEM_HEIGHT}px` }"
             >
               <item-mod
-                :order="2"
-                enabled
+                :order="data.order"
+                :enabled="data.enabled"
                 :name="data.name"
-                :pack="data.name"
                 :last-updated="data.lastUpdated"
                 :image="data.image"
+                :can-enable="data.canEnable"
+                @status="changeStatus(data.name, $event)"
+                @order="changeOrder(data.name, $event)"
               />
               <hr class="h-px mx-2.5 border-gray-800 group-last:border-none select-none" aria-hidden="true">
             </div>
@@ -48,40 +70,74 @@
       </div>
     </div>
   </div>
+  <mods-edit-bar
+    :visible="hasEdits"
+    :can-undo="canUndo"
+    :can-redo="canRedo"
+    @cancel="cancel()"
+    @save="saveEdits"
+    @undo="undo()"
+    @redo="redo()"
+  />
 </template>
 
 <script lang="ts" setup>
+import type { ModResponseDto, ProfileRequestDto, ProfileResponseDto } from '~/types/dto'
+import { profileResponseToRequest } from '~/utils/dto'
 // Props
 const props = defineProps<{
-  list: unknown[]
-  loading: boolean
+  list: ModResponseDto[]
+  profile: ProfileResponseDto
 }>()
+
+const emit = defineEmits<{
+  refresh: []
+}>()
+
+// Store
+const preferencesStore = usePreferencesStore()
 
 // Non reactive state
 const ITEM_HEIGHT = 60 // px
+const sortOptions = [
+  { value: '', label: 'Sort by', disabled: true, selected: true },
+  { value: 'order', label: 'Order' },
+  { value: 'name', label: 'Name' },
+  { value: 'lastUpdate', label: 'Last update' },
+]
+const orderOptions = [
+  { value: 'asc', label: 'Asc', selected: true },
+  { value: 'desc', label: 'Desc' },
+]
 
 // Reactive state
 const filters = ref({
   search: '',
   sortBy: 'order',
+  sortOrder: 'desc',
 })
+const localList = ref<ModResponseDto[]>([])
+
+const {
+  snapshots,
+  undo,
+  redo,
+  commit,
+  cancel,
+  canUndo,
+  canRedo,
+} = useHistory(localList)
 
 // Computed
-const getList = computed(() => {
-  const arr = Array.isArray(props.list) ? props.list : []
-
-  if (arr.length === 0) {
-    return []
-  }
-
+const getList = computed(() => Array.isArray(props.list) ? props.list : [])
+const getLocalList = computed(() => {
   const search = filters.value.search.toLowerCase()
 
   const checkTransformed = (x: string | undefined) => !x || x.toLowerCase().includes(search.replace(/ /g, '_'))
   const checkNormal = (x: string | undefined) => !x || x.toLowerCase().includes(search)
   const check = (x: string | undefined) => checkTransformed(x) || checkNormal(x)
 
-  return arr
-    .filter(item => check(item?.name))
+  const sorted = localList.value.filter(item => check(item?.name))
     .sort((a, b) => {
       switch (filters.value.sortBy) {
         case 'order':
@@ -90,30 +146,72 @@ const getList = computed(() => {
           if (!a.name && !b.name)
             return 0
           return a.name.localeCompare(b.name)
-        case 'pack':
-          if (!a.pack && !b.pack)
-            return 0
-          return a.pack.localeCompare(b.pack)
         case 'lastUpdate':
           return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
         default:
           return 0
       }
     })
+
+  return filters.value.sortOrder === 'asc' ? sorted.reverse() : sorted
 })
-const sortOptions = computed(() => [
-  { value: '', label: 'Sort by', disabled: true },
-  { value: 'order', label: 'Order' },
-  { value: 'name', label: 'Name' },
-  { value: 'pack', label: 'Pack' },
-  { value: 'lastUpdate', label: 'Last update' },
-])
+
+watch(getList, (value) => {
+  localList.value = value
+  commit()
+}, { immediate: true, deep: true })
 
 // Composables
 const { list: virtualisedList, containerProps, wrapperProps } = useVirtualList(
-  getList,
+  getLocalList,
   {
     itemHeight: ITEM_HEIGHT,
   },
 )
+const hasEdits = computed(() => snapshots.value.length > 1)
+
+// Functions
+function toggleAllMods() {
+  const toggle = !localList.value.every(mod => mod.enabled)
+
+  localList.value.forEach((mod: ModResponseDto) => {
+    mod.enabled = toggle
+  })
+}
+
+async function saveEdits() {
+  if (!props.profile || preferencesStore.currentGame === null)
+    return
+
+  try {
+    const profileRequest = profileResponseToRequest(
+      {
+        ...props.profile,
+        mods: localList.value,
+      },
+      preferencesStore.currentGame,
+    )
+
+    await useTauriInvoke<ProfileRequestDto>('update_profile', { payload: profileRequest })
+    commit()
+    emit('refresh')
+  }
+  catch (error) {
+    console.error('Failed to save edits:', error)
+  }
+}
+
+function changeStatus(name: string, value: boolean) {
+  const modIndex = localList.value.findIndex((m: ModResponseDto) => m.name === name)
+  if (modIndex !== -1) {
+    localList.value[modIndex]!.enabled = value
+  }
+}
+
+function changeOrder(name: string, value: number) {
+  const modIndex = localList.value.findIndex((m: ModResponseDto) => m.name === name)
+  if (modIndex !== -1) {
+    localList.value[modIndex]!.order = value
+  }
+}
 </script>
