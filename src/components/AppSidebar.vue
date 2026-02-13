@@ -4,17 +4,34 @@
       <sidebar-game v-for="(item, index) of games" :id="item" :key="index" :current-game="currentGame" />
     </div>
 
-    <!-- <div>
-      <nuxt-link-locale class="cursor-pointer" to="/settings">
-        <nuxt-icon name="mi:settings" class="size-6" />
-      </nuxt-link-locale>
-    </div> -->
+    <div>
+      <sidebar-button v-if="currentGame" label="play" tooltip="Start the game" @click="playGame">
+        <nuxt-icon name="mi:play" class="size-10" />
+      </sidebar-button>
+    </div>
+
+    <div class="grid gap-2.5">
+      <sidebar-profile
+        game-id="the-sims-4"
+        profile-name="My Mods"
+        :is-default="false"
+        :all-profile-names="['default', 'My Mods', 'Testing']"
+      />
+      <sidebar-button v-if="currentGame" label="play" tooltip="Start the game" class="block" @click="playGame">
+        <nuxt-icon name="mi:settings" class="size-10" />
+      </sidebar-button>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-defineProps<{
+const props = defineProps<{
   games: string[]
   currentGame: Nullable<string>
 }>()
+
+async function playGame() {
+  console.warn('TODO: implement playGame function')
+  // await useTauriInvoke('start_game', { gameId: props.currentGame })
+}
 </script>
