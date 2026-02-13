@@ -23,6 +23,13 @@
           <p v-if="getErrors" class="text-sm text-red-500">
             {{ getErrors }}
           </p>
+
+          <div class="pt-2">
+            <app-checkbox
+              v-model="form.default"
+              label="Set as default profile"
+            />
+          </div>
         </div>
 
         <div class="flex gap-2 justify-end pt-4 w-full">
@@ -50,6 +57,7 @@
 <script lang="ts" setup>
 interface ProfileForm {
   name: string
+  default: boolean
 }
 
 const props = defineProps<{
@@ -66,6 +74,7 @@ const modalRef = ref()
 
 const form = ref<ProfileForm>({
   name: '',
+  default: false,
 })
 
 // Computed
@@ -91,7 +100,7 @@ async function handleSubmit() {
     await useTauriInvoke('create_profile', {
       gameId: props.gameId,
       name: form.value.name,
-      default: false,
+      default: form.value.default,
       manualMode: false,
       mods: [],
     })
@@ -107,6 +116,7 @@ async function handleSubmit() {
 function resetForm() {
   form.value = {
     name: '',
+    default: false,
   }
 }
 

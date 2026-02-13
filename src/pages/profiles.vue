@@ -52,15 +52,6 @@
             Edit
           </app-button>
           <app-button
-            v-if="!profile.default"
-            type="button"
-            variant="secondary"
-            class="px-3 py-1.5 text-sm"
-            @click.stop="setAsDefault(profile.name)"
-          >
-            Set Default
-          </app-button>
-          <app-button
             v-if="profile.name !== 'default'"
             type="button"
             variant="tertiary"
@@ -74,10 +65,11 @@
     </div>
   </div>
 
-  <modal-profile
+  <modal-rename-profile
     ref="editModalRef"
     :game-id="currentGameId"
     :current-name="selectedProfileForEdit"
+    :current-is-default="selectedProfileIsDefault"
     :existing-profile-names="otherProfileNames"
     @save="handleProfileRenamed"
   />
@@ -111,6 +103,11 @@ const currentProfile = computed(() => {
 const otherProfileNames = computed(() =>
   getProfiles.value.map(p => p.name).filter(name => name !== selectedProfileForEdit.value),
 )
+
+const selectedProfileIsDefault = computed(() => {
+  const profile = getProfiles.value.find(p => p.name === selectedProfileForEdit.value)
+  return profile?.default ?? false
+})
 
 function openCreateModal() {
   createModalRef.value?.open()
@@ -149,7 +146,7 @@ function editProfile(profileName: string) {
   editModalRef.value?.open()
 }
 
-async function handleProfileRenamed(newName: string) {
+async function handleProfileRenamed(newName: string, isDefault: boolean) {
   const oldName = selectedProfileForEdit.value
 
   try {
@@ -157,7 +154,7 @@ async function handleProfileRenamed(newName: string) {
       gameId: currentGameId.value,
       oldName,
       name: newName,
-      default: false,
+      default: isDefault,
       manualMode: false,
       mods: [],
     })
@@ -165,22 +162,6 @@ async function handleProfileRenamed(newName: string) {
   }
   catch (error) {
     console.error('Failed to rename profile:', error)
-  }
-}
-
-async function setAsDefault(profileName: string) {
-  try {
-    await useTauriInvoke('update_profile', {
-      gameId: currentGameId.value,
-      name: profileName,
-      default: true,
-      manualMode: false,
-      mods: [],
-    })
-    await refreshGame()
-  }
-  catch (error) {
-    console.error('Failed to set profile as default:', error)
   }
 }
 
