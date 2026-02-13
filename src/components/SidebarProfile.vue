@@ -11,30 +11,39 @@
   <modal-list-profiles
     ref="modalListProfilesRef"
     :game-id="gameId"
-    :current-profile="profileName"
-    :profiles="allProfileNames"
+    :current-profile="currentProfile?.name ?? ''"
+    :profiles="profiles"
     @profile-switch="handleProfileSwitch"
-    @profile-deleted="emit('onProfileDeleted')"
+    @profile-deleted="emit('refresh')"
+    @profile-renamed="emit('refresh')"
+    @profile-set-default="emit('refresh')"
   />
 </template>
 
 <script lang="ts" setup>
+import type { ProfileResponseDto } from '~/types/dto'
+
 const props = defineProps<{
   gameId: string
-  profileName: string
-  isDefault: boolean
-  allProfileNames: string[]
+  profiles: ProfileResponseDto[]
 }>()
 
 const emit = defineEmits<{
-  onProfileUpdated: []
-  onProfileDeleted: []
+  refresh: []
 }>()
 
 const modalListProfilesRef = useTemplateRef('modalListProfilesRef')
 
+const currentProfile = computed(() => {
+  if (!props.profiles.length)
+    return null
+
+  const defaultProfile = props.profiles.find(p => p.default)
+  return defaultProfile ?? props.profiles[0]
+})
+
 const getTooltip = computed(() => {
-  return `Current profile: ${props.profileName}`
+  return currentProfile.value ? `Current profile: ${currentProfile.value.name}` : 'No profile'
 })
 
 function openProfilesList() {
@@ -50,7 +59,7 @@ async function handleProfileSwitch(newProfileName: string) {
       manualMode: false,
       mods: [],
     })
-    emit('onProfileUpdated')
+    emit('refresh')
   }
   catch (error) {
     console.error('Failed to switch profile:', error)

@@ -12,12 +12,12 @@
 
     <div class="grid gap-2.5">
       <sidebar-profile
-        game-id="the-sims-4"
-        profile-name="My Mods"
-        :is-default="false"
-        :all-profile-names="['default', 'My Mods', 'Testing']"
+        v-if="currentGame && currentGameData"
+        :game-id="currentGame"
+        :profiles="currentGameData.profiles ?? []"
+        @refresh="emit('refreshGame')"
       />
-      <sidebar-button v-if="currentGame" label="play" tooltip="Start the game" class="block" @click="playGame">
+      <sidebar-button v-if="currentGame" label="settings" tooltip="Settings" class="block">
         <nuxt-icon name="mi:settings" class="size-10" />
       </sidebar-button>
     </div>
@@ -25,9 +25,16 @@
 </template>
 
 <script lang="ts" setup>
+import type { GameResponseDto } from '~/types/dto'
+
 const props = defineProps<{
   games: string[]
   currentGame: Nullable<string>
+  currentGameData: Nullable<GameResponseDto>
+}>()
+
+const emit = defineEmits<{
+  refreshGame: []
 }>()
 
 async function playGame() {
