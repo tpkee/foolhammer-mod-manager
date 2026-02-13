@@ -25,7 +25,7 @@
 
 <script lang="ts" setup>
 const props = defineProps<{
-  disable?: boolean
+  disabled?: boolean
 }>()
 
 // Refs
@@ -33,7 +33,7 @@ const triggerRef = ref<HTMLElement | null>(null)
 const tooltipRef = ref<HTMLElement | null>(null)
 const isVisible = ref(false)
 
-const isEnabled = computed(() => !props.disable)
+const isEnabled = computed(() => !props.disabled)
 
 // Floating position composable
 const { floatingStyles, updatePosition } = useFloatingPosition(triggerRef, tooltipRef, {
