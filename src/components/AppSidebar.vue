@@ -4,10 +4,14 @@
       <sidebar-game v-for="(item, index) of games" :id="item" :key="index" :current-game="currentGame" />
     </div>
 
-    <div>
-      <sidebar-button v-if="currentGame" label="play" tooltip="Start the game" @click="playGame">
+    <div class="flex flex-col gap-1">
+      <sidebar-button v-if="currentGame" label="Start the game" tooltip="Start the game" @click="playGame">
         <nuxt-icon name="mi:play" class="size-10" />
       </sidebar-button>
+
+      <!-- <sidebar-button v-if="currentGame" label="Load from last save" tooltip="Load from last save" @click="playGame">
+        <nuxt-icon name="mi:next" class="size-10" />
+      </sidebar-button> -->
     </div>
 
     <div class="grid gap-2.5">
@@ -16,9 +20,6 @@
         :game-id="currentGame"
         :profiles="currentGameData.profiles ?? []"
       />
-      <sidebar-button v-if="currentGame" label="settings" tooltip="Settings" class="block">
-        <nuxt-icon name="mi:settings" class="size-10" />
-      </sidebar-button>
     </div>
   </div>
 </template>

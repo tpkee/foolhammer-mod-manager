@@ -37,6 +37,7 @@
 
 <script lang="ts" setup>
 import { convertFileSrc } from '@tauri-apps/api/core'
+import { profileResponseToRequest } from '~/utils/dto'
 
 // Props
 const props = defineProps<{
@@ -55,6 +56,10 @@ const emit = defineEmits<{
   order: [value: number]
 }>()
 
+// Composables
+const preferencesStore = usePreferencesStore()
+const { getCurrentProfile, refreshGame } = useCurrentGame()
+
 // Computed
 const getLastUpdate = computed(() => {
   if (!props.lastUpdated)
@@ -70,9 +75,7 @@ const getOptions = computed(() => {
     {
       icon: 'mi:delete',
       label: 'Delete from profile',
-      callback: () => {
-        console.log('Delete from profile')
-      },
+      callback: deleteFromProfile,
     },
     {
       icon: 'mi:close',
@@ -83,4 +86,25 @@ const getOptions = computed(() => {
     },
   ]
 })
+
+async function deleteFromProfile() {
+  const profile = getCurrentProfile.value
+  if (!profile || preferencesStore.currentGame === null)
+    return
+
+  try {
+    const updatedMods = profile.mods.filter(m => m.name !== props.name)
+
+    const profileRequest = profileResponseToRequest(
+      { ...profile, mods: updatedMods },
+      preferencesStore.currentGame,
+    )
+
+    await useTauriInvoke('update_profile', { payload: profileRequest })
+    await refreshGame()
+  }
+  catch (err) {
+    console.error('Failed to delete mod from profile:', err)
+  }
+}
 </script>
