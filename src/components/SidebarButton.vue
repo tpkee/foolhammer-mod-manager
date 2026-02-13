@@ -7,7 +7,7 @@
     <app-dropdown :disabled="!hasMenuItems">
       <template #trigger="{ toggle }">
         <button
-          class="cursor-pointer bg-gray-800 border border-gray-700 p-1 rounded hover:border-purple-600 hover:bg-purple-900 transition-all duration-100"
+          class="cursor-pointer bg-gray-800 border border-gray-700 p-1 rounded hover:border-purple-600 hover:bg-purple-900 transition-all duration-100 flex items-center justify-center"
           :class="{
             'border-purple-600 bg-purple-900 hover:bg-purple-900/90!': isActive,
           }"
