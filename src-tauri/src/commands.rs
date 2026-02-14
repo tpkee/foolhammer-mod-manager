@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::{
     dto::{self, games::GameResponseDto},
     stores::games::{GameStore, Profile},
@@ -174,4 +176,26 @@ pub fn delete_profile(
 
         Ok(())
     })
+}
+
+#[tauri::command]
+pub fn start_game(
+    app_handle: tauri::AppHandle,
+    game_id: &str,
+    profile_name: &str,
+    save_name: Option<&str>,
+) -> Result<(), ErrorCode> {
+    let store = GameStore::new(&app_handle, game_id)?;
+
+    let game_store = GameResponseDto::from_store(GameStore::from_entries(store.entries())?);
+
+    let profile = game_store
+        .profiles
+        .iter()
+        .find(|p| p.name == profile_name)
+        .ok_or(ErrorCode::NotFound)?;
+
+    utils::game_launcher::launch_game(&game_store, &profile.mods, save_name)?;
+
+    Ok(())
 }

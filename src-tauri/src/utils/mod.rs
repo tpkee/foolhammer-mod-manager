@@ -1,4 +1,5 @@
 pub mod custom_macro;
+pub mod game_launcher;
 pub mod path;
 
 #[derive(Debug, serde::Serialize)]

@@ -25,16 +25,14 @@
 </template>
 
 <script lang="ts" setup>
-import type { GameResponseDto } from '~/types/dto'
-
 const props = defineProps<{
   games: string[]
   currentGame: Nullable<string>
-  currentGameData: Nullable<GameResponseDto>
 }>()
 
+const { currentGameData, getCurrentProfile } = useCurrentGame()
+
 async function playGame() {
-  console.warn('TODO: implement playGame function')
-  // await useTauriInvoke('start_game', { gameId: props.currentGame })
+  await useTauriInvoke('start_game', { gameId: props.currentGame, profileName: getCurrentProfile.value?.name })
 }
 </script>

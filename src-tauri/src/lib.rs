@@ -61,6 +61,7 @@ pub fn run() {
             commands::rename_profile,
             commands::set_default_profile,
             commands::delete_profile,
+            commands::start_game,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
