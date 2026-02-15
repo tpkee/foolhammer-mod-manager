@@ -8,6 +8,7 @@ use serde::Serialize;
 use std::{
     collections::HashMap,
     path::{Path, PathBuf},
+    sync::Mutex,
 };
 use tauri::Emitter;
 
@@ -16,9 +17,12 @@ use crate::state::user_settings;
 #[derive(Debug, Serialize)]
 pub struct State {
     pub user_settings: user_settings::UserSettings,
+
     #[serde(skip)]
     watcher: notify::RecommendedWatcher,
 }
+
+pub type AppState<'a> = tauri::State<'a, Mutex<State>>;
 
 impl State {
     pub fn set_settings_from_store(
