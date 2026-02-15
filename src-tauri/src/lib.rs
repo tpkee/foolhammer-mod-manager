@@ -10,10 +10,8 @@ pub mod state;
 pub mod stores;
 pub mod utils;
 
-type AppState<'a> = tauri::State<'a, Mutex<state::app_state::State>>;
-
 #[tauri::command]
-fn get_state(state: AppState) -> serde_json::Value {
+fn get_state(state: state::app_state::AppState) -> serde_json::Value {
     let state = state.lock().unwrap();
     println!("Getting state: {:?}", state);
     serde_json::json!(&state.user_settings)
@@ -28,8 +26,7 @@ pub fn run() {
         .manage(Mutex::new(state::app_state::State::default()))
         .setup(move |app| {
             let app_handle = app.handle();
-            let state: tauri::State<'_, Mutex<state::app_state::State>> =
-                app.state::<Mutex<state::app_state::State>>();
+            let state: state::app_state::AppState = app.state::<Mutex<state::app_state::State>>();
             let mut locked_state: std::sync::MutexGuard<'_, state::app_state::State> =
                 state.lock().unwrap();
             let path = utils::path::generate_store_path(&app_handle, "settings.json");
@@ -62,6 +59,7 @@ pub fn run() {
             commands::set_default_profile,
             commands::delete_profile,
             commands::start_game,
+            commands::stop_game,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,4 +1,5 @@
 use crate::{
+    defaults::games::{DefaultGameInfo, SUPPORTED_GAMES},
     dto::{self, games::GameResponseDto},
     stores::games::{GameStore, Profile},
 };
@@ -20,9 +21,7 @@ pub fn check_path_exists(path: &str) -> bool {
 
 #[tauri::command]
 pub fn get_supported_games() -> serde_json::Value {
-    crate::defaults::games::SUPPORTED_GAMES
-        .map(|game| game.game_id)
-        .into()
+    SUPPORTED_GAMES.map(|game| game.game_id).into()
 }
 
 #[tauri::command]
@@ -193,14 +192,39 @@ impl GameLaunchEvent {
     }
 }
 
+fn kill_process_by_exe(game_id: &str) -> Result<(), ErrorCode> {
+    let game = DefaultGameInfo::find_by_id(game_id).ok_or(ErrorCode::NotFound)?;
+
+    let exe_name = game.executable_name;
+    let sys = sysinfo::System::new_all();
+
+    for process in sys.processes_by_name(exe_name.as_ref()) {
+        process.kill();
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn stop_game(app_handle: tauri::AppHandle, game_id: &str) -> Result<(), ErrorCode> {
+    if let Err(e) = kill_process_by_exe(game_id) {
+        eprintln!("Failed to kill existing game  {}: {:?}", game_id, e);
+        return Err(e);
+    }
+
+    app_handle.emit("game_closed", game_id).unwrap();
+
+    Ok(())
+}
+
 #[tauri::command]
 // return the pid of the launched game if successful
-pub async fn start_game(
+pub async fn start_game<'a>(
     app_handle: tauri::AppHandle,
     game_id: &str,
     profile_name: &str,
     save_name: Option<&str>,
-) -> Result<Option<u32>, ErrorCode> {
+) -> Result<(), ErrorCode> {
     let emitter = |event: GameLaunchEvent| {
         let _ = &app_handle
             .emit("game_launch", event.as_str())
@@ -215,7 +239,7 @@ pub async fn start_game(
 
     emitter(GameLaunchEvent::Start);
 
-    let store = GameStore::new(&app_handle, game_id).map_err(error);
+    let store = GameStore::new(&app_handle, &game_id).map_err(error);
 
     let Ok(store) = store else {
         eprintln!(
@@ -239,10 +263,15 @@ pub async fn start_game(
         return Err(ErrorCode::NotFound);
     };
 
-    let pid = utils::game_launcher::launch_game(&app_handle, &game_store, &profile.mods, save_name)
-        .await?;
+    utils::game_launcher::launch_game(
+        &app_handle,
+        &game_store,
+        &profile.mods,
+        save_name.as_deref(),
+    )
+    .await?;
 
     emitter(GameLaunchEvent::Success);
 
-    Ok(Some(pid))
+    Ok(())
 }
