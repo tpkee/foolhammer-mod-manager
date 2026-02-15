@@ -5,7 +5,7 @@ use serde_json::Value;
 use tauri::Wry;
 
 use crate::{
-    defaults::games,
+    defaults::games::{self, DefaultGameInfo},
     dto::{mods::ModRequestDto, profiles::ProfileRequestDto},
     mods::pack,
     resolve_existing_path,
@@ -86,9 +86,7 @@ impl GameStore {
     }
 
     fn new_game(game_id: &str) -> Option<Self> {
-        let default_game = games::SUPPORTED_GAMES
-            .iter()
-            .find(|game| game_id == game.game_id)?;
+        let default_game = DefaultGameInfo::find_by_id(game_id)?;
 
         let game_path = default_game.get_game_path()?;
         let saves_path = retrieve_saves_absolute_path(default_game.game_id);

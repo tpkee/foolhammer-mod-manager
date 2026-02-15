@@ -57,6 +57,8 @@ async fn run_game(
     game_path: &PathBuf,
     save_name: Option<&str>,
 ) -> Result<(), ErrorCode> {
+    use crate::defaults::games::DefaultGameInfo;
+
     let umu_status = utils::umu_manager::is_umu_available(&app_handle);
 
     match umu_status {
@@ -109,10 +111,7 @@ async fn run_game(
         command.env("SteamGameId", game_id);
     }
 
-    let game_preset = defaults::games::SUPPORTED_GAMES
-        .iter()
-        .find(|g| g.game_id == game_id)
-        .unwrap(); // honestly, it's impossible to break here
+    let game_preset = DefaultGameInfo::find_by_id(game_id).ok_or(ErrorCode::NotFound)?;
 
     command.arg(&game_preset.executable_name);
     command.arg("used_mods.txt;");

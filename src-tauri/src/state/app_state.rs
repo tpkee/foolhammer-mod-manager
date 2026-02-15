@@ -1,5 +1,8 @@
 use crate::{
-    defaults::{games, system::STEAMDIR_INSTANCE},
+    defaults::{
+        games::{self, DefaultGameInfo},
+        system::STEAMDIR_INSTANCE,
+    },
     pathbuf_to_string, resolve_existing_path,
     utils::path::retrieve_saves_absolute_path,
 };
@@ -97,10 +100,8 @@ impl Default for State {
 }
 
 fn default_user_settings() -> user_settings::UserSettings {
-    let default_game = games::SUPPORTED_GAMES
-        .iter()
-        .find(|game| game.game_id == games::DEFAULT_GAME_ID)
-        .unwrap_or(&games::DefaultGameInfo {
+    let default_game =
+        DefaultGameInfo::find_by_id(games::DEFAULT_GAME_ID).unwrap_or(&games::DefaultGameInfo {
             game_id: "",
             executable_name: "",
             mods_path: "data",
