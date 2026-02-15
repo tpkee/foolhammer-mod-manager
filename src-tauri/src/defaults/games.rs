@@ -23,6 +23,10 @@ impl DefaultGameInfo {
             _ => None,
         }
     }
+
+    pub fn find_by_id(game_id: &str) -> Option<&'static DefaultGameInfo> {
+        SUPPORTED_GAMES.iter().find(|game| game.game_id == game_id)
+    }
 }
 
 pub const DEFAULT_GAME_ID: &str = "1142710";
