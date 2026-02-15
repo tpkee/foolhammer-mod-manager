@@ -56,3 +56,10 @@ pub fn retrieve_steam_workshop_path(game_id: &str) -> Option<PathBuf> {
         _ => None,
     }
 }
+
+pub fn retrieve_wine_pfx_path(game_id: &str) -> Option<PathBuf> {
+    if let Some(steam_dir) = &*STEAMDIR_INSTANCE {
+        return resolve_existing_path!(steam_dir.path(), "steamapps", "compatdata", game_id);
+    }
+    None
+}
