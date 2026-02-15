@@ -18,7 +18,7 @@ pub async fn launch_game(
     game: &GameResponseDto,
     profile_mods: &Vec<ModResponseDto>,
     save_name: Option<&str>,
-) -> Result<u32, ErrorCode> {
+) -> Result<(), ErrorCode> {
     let &GameResponseDto {
         game_path,
         saves_path,
@@ -47,10 +47,7 @@ pub async fn launch_game(
 
     generate_mods_file(&mut f, &mods)?;
 
-    // TODO: refactor this entire thing with a GameManager struct + some game traits or smth like that
-    let pid = run_game(&app_handle, &game.game_id, &game_path, save_name).await?;
-
-    Ok(pid)
+    run_game(&app_handle, &game.game_id, &game_path, save_name).await
 }
 
 #[cfg(target_os = "linux")]
@@ -59,7 +56,7 @@ async fn run_game(
     game_id: &str,
     game_path: &PathBuf,
     save_name: Option<&str>,
-) -> Result<u32, ErrorCode> {
+) -> Result<(), ErrorCode> {
     let umu_status = utils::umu_manager::is_umu_available(&app_handle);
 
     match umu_status {
@@ -122,9 +119,8 @@ async fn run_game(
 
     println!("Running command: {:?}", command);
 
-    let child = command.spawn().expect("Umu failed"); // TODO: use the pid to show loaders and shit
-
-    Ok(child.id())
+    command.spawn().expect("Umu failed");
+    Ok(())
 }
 
 #[cfg(target_os = "windows")]
