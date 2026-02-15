@@ -1,10 +1,9 @@
-use std::path::PathBuf;
-
 use crate::{
     dto::{self, games::GameResponseDto},
     stores::games::{GameStore, Profile},
 };
 
+use tauri::Emitter;
 use utils::ErrorCode;
 
 use crate::utils;
@@ -178,24 +177,72 @@ pub fn delete_profile(
     })
 }
 
+enum GameLaunchEvent {
+    Start,
+    Error,
+    Success,
+}
+
+impl GameLaunchEvent {
+    fn as_str(&self) -> &'static str {
+        match self {
+            GameLaunchEvent::Start => "start",
+            GameLaunchEvent::Error => "error",
+            GameLaunchEvent::Success => "success",
+        }
+    }
+}
+
 #[tauri::command]
-pub fn start_game(
+// return the pid of the launched game if successful
+pub async fn start_game(
     app_handle: tauri::AppHandle,
     game_id: &str,
     profile_name: &str,
     save_name: Option<&str>,
-) -> Result<(), ErrorCode> {
-    let store = GameStore::new(&app_handle, game_id)?;
+) -> Result<Option<u32>, ErrorCode> {
+    let emitter = |event: GameLaunchEvent| {
+        let _ = &app_handle
+            .emit("game_launch", event.as_str())
+            .map_err(|e| eprintln!("Failed to emit event {}: {:?}", event.as_str(), e));
+    };
 
-    let game_store = GameResponseDto::from_store(GameStore::from_entries(store.entries())?);
+    let error = |e: ErrorCode| {
+        emitter(GameLaunchEvent::Error);
+        eprintln!("{:?}", e);
+        return Err(e);
+    };
 
-    let profile = game_store
-        .profiles
-        .iter()
-        .find(|p| p.name == profile_name)
-        .ok_or(ErrorCode::NotFound)?;
+    emitter(GameLaunchEvent::Start);
 
-    utils::game_launcher::launch_game(&game_store, &profile.mods, save_name)?;
+    let store = GameStore::new(&app_handle, game_id).map_err(error);
 
-    Ok(())
+    let Ok(store) = store else {
+        eprintln!(
+            "Failed to create game store for game_id {}: {:?}",
+            game_id,
+            store.as_ref().err()
+        );
+        return Err(store.err().unwrap().unwrap());
+    };
+
+    let game_store = GameResponseDto::from_store(
+        GameStore::from_entries(store.entries())
+            .map_err(error)
+            .unwrap(),
+    );
+
+    let profile = game_store.profiles.iter().find(|p| p.name == profile_name);
+
+    let Some(profile) = profile else {
+        eprintln!("Profile {} not found for game_id {}", profile_name, game_id);
+        return Err(ErrorCode::NotFound);
+    };
+
+    let pid = utils::game_launcher::launch_game(&app_handle, &game_store, &profile.mods, save_name)
+        .await?;
+
+    emitter(GameLaunchEvent::Success);
+
+    Ok(Some(pid))
 }
