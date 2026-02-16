@@ -6,16 +6,16 @@
           <p class="text-sm text-gray-300 mr-auto">
             Unsaved changes
           </p>
-          <app-button variant="secondary" @click="$emit('cancel')">
+          <app-button variant="secondary" @click="emit('cancel')">
             Cancel
           </app-button>
-          <app-button @click="$emit('save')">
+          <app-button @click="emit('save')">
             Save
           </app-button>
-          <app-button variant="secondary" :disabled="!canUndo" @click="$emit('undo')">
+          <app-button variant="secondary" :disabled="!canUndo" @click="emit('undo')">
             Undo
           </app-button>
-          <app-button variant="secondary" :disabled="!canRedo" @click="$emit('redo')">
+          <app-button variant="secondary" :disabled="!canRedo" @click="emit('redo')">
             Redo
           </app-button>
         </div>
@@ -29,6 +29,13 @@ const props = defineProps<{
   visible: boolean
   canUndo: boolean
   canRedo: boolean
+}>()
+
+const emit = defineEmits<{
+  cancel: []
+  save: []
+  undo: []
+  redo: []
 }>()
 </script>
 

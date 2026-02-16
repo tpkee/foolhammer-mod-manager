@@ -1,5 +1,6 @@
 <template>
   <div class="space-y-2.5">
+    {{ snapshots.length }}
     <div class="flex items-end gap-2.5 w-full">
       <app-input v-model="filters.search" placeholder="Search by pack or name..." class="w-full" label="Search" />
       <div class="flex items-end gap-2.5">
@@ -156,8 +157,8 @@ const getLocalList = computed(() => {
   return filters.value.sortOrder === 'asc' ? sorted.reverse() : sorted
 })
 
-watch(getList, (value) => {
-  localList.value = value
+watch(() => getList.value, (value) => {
+  localList.value = value.map(m => ({ ...m })) // Shallow clone to trigger reactivity on properties
   commit()
 }, { immediate: true, deep: true })
 
@@ -173,7 +174,6 @@ const hasEdits = computed(() => snapshots.value.length > 1)
 // Functions
 function toggleAllMods() {
   const toggle = !localList.value.every(mod => mod.enabled)
-
   localList.value.forEach((mod: ModResponseDto) => {
     mod.enabled = toggle
   })

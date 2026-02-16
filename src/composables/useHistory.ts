@@ -9,10 +9,6 @@ interface EditHistoryControls<T> {
 }
 
 export function useHistory<T extends object>(source: Ref<T>): EditHistoryControls<T> {
-  if (typeof source.value !== 'object') {
-    throw new TypeError('useHistory can only be used with object refs')
-  }
-
   const snapshots = ref<T[]>([]) as Ref<T[]>
   const index = ref(0)
   const isApplying = ref(false)
@@ -105,7 +101,16 @@ export function useHistory<T extends object>(source: Ref<T>): EditHistoryControl
 }
 
 function cloneValue<T extends object>(value: T): T {
-  return JSON.parse(JSON.stringify(value)) as T
+  if (typeof structuredClone === 'function') {
+    try {
+      return structuredClone(toRaw(value))
+    }
+    catch (error) {
+      console.warn('structuredClone failed, falling back to JSON clone', error)
+    }
+  }
+
+  return JSON.parse(JSON.stringify(toRaw(value))) as T
 }
 
 function recursiveDeepEqual(a: unknown, b: unknown): boolean {
