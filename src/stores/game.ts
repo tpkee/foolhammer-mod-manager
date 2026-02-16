@@ -26,9 +26,6 @@ export const useGameStore = defineStore('gameStore', {
     getGameMods(state): PackResponseDto[] {
       return transformToNonNullable(state.currentGame?.mods)
     },
-    getDataKey(state): string {
-      return `game-${state.selectedGame}`
-    },
   },
   actions: {
     setGameId(gameId: Nullable<string>) {

@@ -16,6 +16,7 @@
 </template>
 
 <script setup lang="ts">
+import type { GameResponseDto } from './types/dto'
 import type { SettingsResponseDto } from './types/dto/settings'
 
 // Stores
@@ -30,12 +31,26 @@ const { data: listSupportedGames } = await useAsyncData<string[]>(`supported-gam
   default: () => [],
 })
 
+const { data: game, refresh } = await useAsyncData<Nullable<GameResponseDto>>(`game-${gameStore.selectedGame}`, () => {
+  if (!gameStore.selectedGame)
+    return Promise.resolve(null)
+
+  return useTauriInvoke('get_game', { gameId: gameStore.selectedGame })
+}, {
+  default: () => null,
+  watch: [() => gameStore.selectedGame],
+})
+
 const { data: userSettings, refresh: refreshUserSettings } = await useAsyncData<Nullable<SettingsResponseDto>>('user-settings', () => useTauriInvoke('get_user_settings'), {
   default: () => null,
   immediate: false,
 })
 
 // Watchers
+watch(game, () => {
+  gameStore.setGame(game.value)
+}, { immediate: true })
+
 watch(listSupportedGames, () => {
   refreshUserSettings()
 }, { immediate: true })
@@ -56,6 +71,7 @@ useHeadSafe({
     lang: locale.value,
   },
 })
+provide('refreshGame', refresh)
 
 // Lifecycle hooks
 onUnmounted(unlistenUserSettings)

@@ -43,7 +43,7 @@
       ref="createModalRef"
       :game-id="gameStore.selectedGame!"
       :existing-profile-names="getProfileNames"
-      @created="clearNuxtData(gameStore.getDataKey)"
+      @created="refreshGame()"
     />
   </div>
 </template>
@@ -55,6 +55,8 @@ const gameStore = useGameStore()
 const createModalRef = useTemplateRef('createModalRef')
 
 const getProfileNames = computed(() => gameStore.getProfiles.map(p => p.name))
+
+const refreshGame = inject('refreshGame') as () => void
 
 function goBack() {
   router.back()

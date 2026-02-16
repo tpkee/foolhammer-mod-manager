@@ -59,7 +59,7 @@ const listMods = ref<Set<string>>(new Set())
 const otherProfiles = computed(() =>
   gameStore.getProfiles.filter(p => p && p.name !== props.profile.name),
 )
-
+const refreshGame = inject('refreshGame') as () => void
 const hasSelection = computed(() => listMods.value.size > 0)
 
 async function handleMerge() {
@@ -103,7 +103,7 @@ async function handleMerge() {
     })
 
     emit('merged')
-    clearNuxtData(gameStore.getDataKey)
+    refreshGame()
     close()
   }
   catch (err) {

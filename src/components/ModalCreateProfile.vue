@@ -81,6 +81,8 @@ const gameStore = useGameStore()
 
 const modalRef = useTemplateRef('modal')
 
+const refreshGame = inject('refreshGame') as () => void
+
 const listMods = ref<Set<string>>(new Set())
 
 const form = ref<ProfileForm>({
@@ -123,7 +125,7 @@ async function handleSubmit() {
     })
 
     emit('created')
-    clearNuxtData(gameStore.getDataKey)
+    refreshGame()
     modalRef.value?.close()
   }
   catch (err) {

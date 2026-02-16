@@ -5,21 +5,6 @@
 </template>
 
 <script setup lang="ts">
-import type { GameResponseDto } from '~/types/dto'
-
 const gameStore = useGameStore()
-
-const { data, refresh } = await useAsyncData<Nullable<GameResponseDto>>(gameStore.getDataKey, () => {
-  if (!gameStore.selectedGame)
-    return Promise.resolve(null)
-
-  return useTauriInvoke('get_game', { gameId: gameStore.selectedGame })
-}, {
-  default: () => null,
-  watch: [() => gameStore.selectedGame],
-})
-
-watch(data, () => {
-  gameStore.setGame(data.value)
-}, { immediate: true })
+const refresh = inject('refreshGame') as () => void
 </script>

@@ -51,6 +51,8 @@ const gameStore = useGameStore()
 const modalRef = useTemplateRef('modal')
 const mergeModalRef = useTemplateRef('mergeModal')
 
+const refreshGame = inject('refreshGame') as () => void
+
 const getOptions = computed(() => {
   const opts = [
     {
@@ -110,10 +112,6 @@ async function handleRename(newName: string) {
   }
 }
 
-function refreshGame() { // invalidate the fetched state, this should trigger a refetch. hopefully.
-  clearNuxtData(gameStore.getDataKey)
-}
-
 function openEditModal() {
   modalRef.value?.open()
 }
@@ -133,7 +131,7 @@ async function switchProfile() {
 async function deleteProfileItem(profileName: string) {
   try {
     await useTauriInvoke('delete_profile', {
-      gameId: gameStore.currentGame,
+      gameId: gameStore.selectedGame,
       profileName,
     })
     if (gameStore.selectedProfile === profileName) {
