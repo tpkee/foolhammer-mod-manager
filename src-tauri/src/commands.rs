@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{collections::HashMap, path::PathBuf};
 
 use crate::{
     defaults::games::{DefaultGameInfo, SUPPORTED_GAMES},
@@ -113,6 +113,34 @@ where
     Ok(result)
 }
 
+fn modify_game<F, T>(
+    app_handle: &tauri::AppHandle,
+    game_id: &str,
+    modify_fn: F,
+) -> Result<T, ErrorCode>
+where
+    F: FnOnce(&mut HashMap<String, serde_json::Value>) -> Result<T, ErrorCode>,
+{
+    let store = GameStore::new(app_handle, game_id)?;
+
+    let entries = store.entries();
+
+    let mut map: HashMap<String, serde_json::Value> = HashMap::from_iter(entries);
+
+    let result = modify_fn(&mut map)?;
+
+    for (k, v) in map {
+        store.set(k, v);
+    }
+
+    store.save().map_err(|e| {
+        eprintln!("Failed to save profiles: {:?}", e);
+        ErrorCode::InternalError
+    })?;
+
+    Ok(result)
+}
+
 #[tauri::command]
 pub fn create_profile(
     app_handle: tauri::AppHandle,
@@ -191,18 +219,25 @@ pub fn set_default_profile(
     app_handle: tauri::AppHandle,
     game_id: &str,
     profile_name: &str,
-) -> Result<Vec<serde_json::Value>, ErrorCode> {
-    modify_profiles(&app_handle, game_id, |profiles| {
-        for profile in profiles.iter_mut() {
-            if let Some(profile_obj) = profile.as_object_mut() {
-                profile_obj.insert(
-                    "default".to_string(),
-                    serde_json::Value::Bool(profile_obj.get("name") == Some(&profile_name.into())),
-                );
-            }
+) -> Result<(), ErrorCode> {
+    modify_game(&app_handle, game_id, |game| {
+        if game.get("defaultProfile") == Some(&profile_name.into()) {
+            return Ok(());
         }
 
-        Ok(profiles.clone())
+        if !game
+            .get("profiles")
+            .and_then(|p| p.as_array())
+            .ok_or(ErrorCode::InternalError)?
+            .iter()
+            .any(|p| p.get("name") == Some(&profile_name.into()))
+        {
+            return Err(ErrorCode::NotFound);
+        }
+
+        game.insert("defaultProfile".to_string(), profile_name.into());
+
+        Ok(())
     })
 }
 

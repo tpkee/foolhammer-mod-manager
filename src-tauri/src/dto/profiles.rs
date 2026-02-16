@@ -9,7 +9,6 @@ use crate::{
 pub struct ProfileResponseDto {
     pub name: String, // name must be unique across profiles, but not necessarily across games
     pub mods: Vec<ModResponseDto>,
-    pub default: bool,
     pub manual_mode: bool,
 }
 
@@ -22,7 +21,6 @@ impl ProfileResponseDto {
         Self {
             mods: mapped_mods,
             name: profile.name,
-            default: profile.default,
             manual_mode: profile.manual_mode,
         }
     }

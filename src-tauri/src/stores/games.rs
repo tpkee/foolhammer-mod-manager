@@ -27,7 +27,6 @@ pub struct ModInfo {
 #[serde(rename_all = "camelCase")]
 pub struct Profile {
     pub name: String,
-    pub default: bool,
     pub mods: Vec<ModInfo>,
     pub manual_mode: bool,
 }
@@ -36,7 +35,6 @@ impl Profile {
     pub fn from_dto(dto: ProfileRequestDto) -> Self {
         Self {
             name: dto.name,
-            default: dto.default.unwrap_or(false),
             mods: dto
                 .mods
                 .into_iter()
@@ -60,6 +58,7 @@ pub struct GameStore {
     pub saves_path: Option<PathBuf>,
     pub mods_path: PathBuf,
     pub profiles: Vec<Profile>,
+    pub default_profile: Option<String>,
 }
 
 impl GameStore {
@@ -102,9 +101,11 @@ impl GameStore {
             })
             .collect();
 
+        let default_profile_name = String::from("Default");
+
         let default_profile = Profile::from_dto(ProfileRequestDto {
             game_id: default_game.game_id.to_string(),
-            name: "Default".to_string(),
+            name: default_profile_name.clone(),
             default: Some(true),
             manual_mode: Some(false),
             mods, // this is the default profile so we should throw all the available mods in it
@@ -116,6 +117,7 @@ impl GameStore {
             saves_path,
             mods_path,
             profiles: vec![default_profile],
+            default_profile: Some(default_profile_name),
         })
     }
 
