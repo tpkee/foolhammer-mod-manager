@@ -1,6 +1,5 @@
 <template>
   <div class="space-y-2.5">
-    {{ snapshots.length }}
     <div class="flex items-end gap-2.5 w-full">
       <app-input v-model="filters.search" placeholder="Search by pack or name..." class="w-full" label="Search" />
       <div class="flex items-end gap-2.5">
