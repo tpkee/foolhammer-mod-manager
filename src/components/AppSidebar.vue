@@ -5,9 +5,11 @@
     </div>
 
     <div class="flex flex-col gap-1">
-      <sidebar-button v-if="currentGame" label="Start the game" tooltip="Start the game" @click="playGame">
-        <nuxt-icon name="mi:play" class="size-10" />
-      </sidebar-button>
+      <sidebar-play
+        v-if="currentGame && getCurrentProfile"
+        :current-game="currentGame"
+        :profile-name="getCurrentProfile.name"
+      />
 
       <!-- <sidebar-button v-if="currentGame" label="Load from last save" tooltip="Load from last save" @click="playGame">
         <nuxt-icon name="mi:next" class="size-10" />
@@ -25,16 +27,10 @@
 </template>
 
 <script lang="ts" setup>
-import type { GameResponseDto } from '~/types/dto'
-
-const props = defineProps<{
+defineProps<{
   games: string[]
   currentGame: Nullable<string>
-  currentGameData: Nullable<GameResponseDto>
 }>()
 
-async function playGame() {
-  console.warn('TODO: implement playGame function')
-  // await useTauriInvoke('start_game', { gameId: props.currentGame })
-}
+const { currentGameData, getCurrentProfile } = useCurrentGame()
 </script>

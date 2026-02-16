@@ -1,24 +1,29 @@
 use crate::{
-    defaults::{games, system::STEAMDIR_INSTANCE},
+    defaults::{
+        games::{self, DefaultGameInfo},
+        system::STEAMDIR_INSTANCE,
+    },
+    launchers::GameManager,
     pathbuf_to_string, resolve_existing_path,
     utils::path::retrieve_saves_absolute_path,
 };
 use notify::{Event, RecursiveMode, Watcher};
-use serde::Serialize;
 use std::{
     collections::HashMap,
     path::{Path, PathBuf},
 };
-use tauri::Emitter;
+use tauri::{Emitter, async_runtime::Mutex};
 
 use crate::state::user_settings;
 
-#[derive(Debug, Serialize)]
 pub struct State {
     pub user_settings: user_settings::UserSettings,
-    #[serde(skip)]
+
+    pub game_runner: Option<Box<dyn GameManager>>,
     watcher: notify::RecommendedWatcher,
 }
+
+pub type AppState<'a> = tauri::State<'a, Mutex<State>>;
 
 impl State {
     pub fn set_settings_from_store(
@@ -88,15 +93,14 @@ impl Default for State {
         Self {
             watcher,
             user_settings,
+            game_runner: None,
         }
     }
 }
 
 fn default_user_settings() -> user_settings::UserSettings {
-    let default_game = games::SUPPORTED_GAMES
-        .iter()
-        .find(|game| game.game_id == games::DEFAULT_GAME_ID)
-        .unwrap_or(&games::DefaultGameInfo {
+    let default_game =
+        DefaultGameInfo::find_by_id(games::DEFAULT_GAME_ID).unwrap_or(&games::DefaultGameInfo {
             game_id: "",
             executable_name: "",
             mods_path: "data",
