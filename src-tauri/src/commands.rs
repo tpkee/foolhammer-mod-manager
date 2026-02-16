@@ -15,7 +15,7 @@ use crate::utils;
 
 /*
     TODO/notes:
-    - I don't like that the keys for the store are basically hardcoded here, they should be tied to an enum.
+    - I don't like that the keys for the store are basically hardcoded here, they should be tied to an enum. Refactor this into the aforementioned enum and add a wrapper method for retrieval
 */
 
 fn get_game_response_from_store(
