@@ -3,25 +3,23 @@ use crate::{
         games::{self, DefaultGameInfo},
         system::STEAMDIR_INSTANCE,
     },
+    launchers::GameManager,
     pathbuf_to_string, resolve_existing_path,
     utils::path::retrieve_saves_absolute_path,
 };
 use notify::{Event, RecursiveMode, Watcher};
-use serde::Serialize;
 use std::{
     collections::HashMap,
     path::{Path, PathBuf},
-    sync::Mutex,
 };
-use tauri::Emitter;
+use tauri::{Emitter, async_runtime::Mutex};
 
 use crate::state::user_settings;
 
-#[derive(Debug, Serialize)]
 pub struct State {
     pub user_settings: user_settings::UserSettings,
 
-    #[serde(skip)]
+    pub game_runner: Option<Box<dyn GameManager>>,
     watcher: notify::RecommendedWatcher,
 }
 
@@ -95,6 +93,7 @@ impl Default for State {
         Self {
             watcher,
             user_settings,
+            game_runner: None,
         }
     }
 }

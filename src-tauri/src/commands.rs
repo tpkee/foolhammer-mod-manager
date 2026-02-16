@@ -1,10 +1,14 @@
+use std::path::PathBuf;
+
 use crate::{
     defaults::games::{DefaultGameInfo, SUPPORTED_GAMES},
     dto::{self, games::GameResponseDto},
+    join_path,
+    launchers::{GameManager, linux::LinuxLauncher},
+    mods,
+    state::app_state::AppState,
     stores::games::{GameStore, Profile},
 };
-
-use tauri::Emitter;
 use utils::ErrorCode;
 
 use crate::utils;
@@ -13,6 +17,17 @@ use crate::utils;
     TODO/notes:
     - I don't like that the keys for the store are basically hardcoded here, they should be tied to an enum.
 */
+
+fn get_game_response_from_store(
+    app_handler: &tauri::AppHandle,
+    game_id: &str,
+) -> Result<GameResponseDto, ErrorCode> {
+    let store = GameStore::new(app_handler, game_id)?;
+
+    let game_store = GameResponseDto::from_store(GameStore::from_entries(store.entries())?);
+
+    Ok(game_store)
+}
 
 #[tauri::command]
 pub fn check_path_exists(path: &str) -> bool {
@@ -25,13 +40,46 @@ pub fn get_supported_games() -> serde_json::Value {
 }
 
 #[tauri::command]
+pub async fn get_user_settings<'a>(state: AppState<'a>) -> Result<serde_json::Value, ErrorCode> {
+    let state = state.lock().await;
+    Ok(serde_json::json!(&state.user_settings))
+}
+
+#[tauri::command]
+pub fn get_saves(game_id: &str) -> Result<Vec<String>, ErrorCode> {
+    let game_info = DefaultGameInfo::find_by_id(game_id).ok_or(ErrorCode::NotFound)?;
+
+    let saves_path = PathBuf::from(&game_info.saves_path);
+
+    if !saves_path.exists() {
+        return Err(ErrorCode::NotFound);
+    }
+
+    let entries = std::fs::read_dir(saves_path)
+        .map_err(|e| {
+            eprintln!("Failed to read saves directory: {:?}", e);
+            ErrorCode::InternalError
+        })?
+        .filter_map(|entry| {
+            entry.ok().and_then(|e| {
+                if e.path().is_file() {
+                    e.file_name().into_string().ok()
+                } else {
+                    None
+                }
+            })
+        })
+        .collect();
+
+    Ok(entries)
+}
+
+#[tauri::command]
 pub fn get_game(
     app_handle: tauri::AppHandle,
     game_id: &str,
 ) -> Result<serde_json::Value, ErrorCode> {
-    let store = GameStore::new(&app_handle, game_id)?;
-
-    let game_response = GameResponseDto::from_store(GameStore::from_entries(store.entries())?);
+    let game_response = get_game_response_from_store(&app_handle, game_id)?;
 
     Ok(serde_json::json!(game_response))
 }
@@ -192,27 +240,10 @@ impl GameLaunchEvent {
     }
 }
 
-fn kill_process_by_exe(game_id: &str) -> Result<(), ErrorCode> {
-    let game = DefaultGameInfo::find_by_id(game_id).ok_or(ErrorCode::NotFound)?;
-
-    let exe_name = game.executable_name;
-    let sys = sysinfo::System::new_all();
-
-    for process in sys.processes_by_name(exe_name.as_ref()) {
-        process.kill();
-    }
-
-    Ok(())
-}
-
 #[tauri::command]
-pub fn stop_game(app_handle: tauri::AppHandle, game_id: &str) -> Result<(), ErrorCode> {
-    if let Err(e) = kill_process_by_exe(game_id) {
-        eprintln!("Failed to kill existing game  {}: {:?}", game_id, e);
-        return Err(e);
-    }
-
-    app_handle.emit("game_closed", game_id).unwrap();
+pub async fn stop_game<'a>(state: AppState<'a>) -> Result<(), ErrorCode> {
+    let mut local_state = state.lock().await;
+    local_state.game_runner.take().unwrap().kill_game().unwrap();
 
     Ok(())
 }
@@ -220,58 +251,67 @@ pub fn stop_game(app_handle: tauri::AppHandle, game_id: &str) -> Result<(), Erro
 #[tauri::command]
 // return the pid of the launched game if successful
 pub async fn start_game<'a>(
-    app_handle: tauri::AppHandle,
+    app_handler: tauri::AppHandle,
+    state: AppState<'a>,
     game_id: &str,
     profile_name: &str,
     save_name: Option<&str>,
 ) -> Result<(), ErrorCode> {
-    let emitter = |event: GameLaunchEvent| {
-        let _ = &app_handle
-            .emit("game_launch", event.as_str())
-            .map_err(|e| eprintln!("Failed to emit event {}: {:?}", event.as_str(), e));
+    let game_store = get_game_response_from_store(&app_handler, game_id)?;
+
+    let profile = game_store
+        .profiles
+        .iter()
+        .find(|p| p.name == profile_name)
+        .ok_or(ErrorCode::NotFound)?;
+
+    let GameResponseDto {
+        game_path,
+        saves_path,
+        mods_path,
+        workshop_path,
+        game_id,
+        ..
+    } = game_store;
+
+    let savegame_path = save_name
+        .zip(saves_path.as_ref())
+        .map(|(name, saves)| saves.join(name))
+        .filter(|path| {
+            if !path.exists() {
+                eprintln!(
+                    "Save game '{}' not found in saves directory. Ignoring save name.",
+                    path.display()
+                );
+            }
+            path.exists()
+        });
+
+    let txt_path = join_path!(&game_path, "used_mods.txt");
+
+    println!("TODO: Using save game path: {:?}", savegame_path);
+
+    if !game_path.exists() {
+        return Err(ErrorCode::InternalError);
+    }
+
+    let mod_writer = mods::writer::ModWriter::new(&profile.mods, &mods_path, &workshop_path);
+
+    mod_writer
+        .write(txt_path)
+        .expect("It wasn't possible to write the mod file");
+
+    let mut runner = if cfg!(target_os = "linux") {
+        LinuxLauncher::new(&app_handler).await
+    } else {
+        unimplemented!("Game launching is only implemented for Linux at the moment");
     };
 
-    let error = |e: ErrorCode| {
-        emitter(GameLaunchEvent::Error);
-        eprintln!("{:?}", e);
-        return Err(e);
-    };
+    let _ = runner.launch_game(&game_id, &game_path, savegame_path.as_ref());
 
-    emitter(GameLaunchEvent::Start);
+    let mut state = state.lock().await;
 
-    let store = GameStore::new(&app_handle, &game_id).map_err(error);
-
-    let Ok(store) = store else {
-        eprintln!(
-            "Failed to create game store for game_id {}: {:?}",
-            game_id,
-            store.as_ref().err()
-        );
-        return Err(store.err().unwrap().unwrap());
-    };
-
-    let game_store = GameResponseDto::from_store(
-        GameStore::from_entries(store.entries())
-            .map_err(error)
-            .unwrap(),
-    );
-
-    let profile = game_store.profiles.iter().find(|p| p.name == profile_name);
-
-    let Some(profile) = profile else {
-        eprintln!("Profile {} not found for game_id {}", profile_name, game_id);
-        return Err(ErrorCode::NotFound);
-    };
-
-    utils::game_launcher::launch_game(
-        &app_handle,
-        &game_store,
-        &profile.mods,
-        save_name.as_deref(),
-    )
-    .await?;
-
-    emitter(GameLaunchEvent::Success);
+    state.game_runner = Some(Box::new(runner));
 
     Ok(())
 }
