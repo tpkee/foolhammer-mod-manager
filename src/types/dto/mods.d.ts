@@ -1,16 +1,16 @@
 export interface ModRequestDto {
   name: string
   enabled: boolean
-  order: number
+  order?: Nullable<number>
 }
 
-export interface ModResponseDto {
+export type ModResponseDto = RecursivePartial<{
   name: string
   path: string | null
   enabled: boolean
-  order: number
+  order: Nullable<number>
   canEnable: boolean
   lastUpdated: string | null
   fromSteamWorkshop: boolean
   image: string | null
-}
+}>

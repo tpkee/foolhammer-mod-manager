@@ -13,22 +13,13 @@
 import type { ProfileResponseDto } from '~/types/dto'
 
 const props = defineProps<{
-  gameId: string
-  profiles: ProfileResponseDto[]
+  currentProfile: Nullable<ProfileResponseDto>
 }>()
 
 const router = useRouter()
 
-const currentProfile = computed(() => {
-  if (!props.profiles.length)
-    return null
-
-  const defaultProfile = props.profiles.find(p => p.default)
-  return defaultProfile ?? props.profiles[0]
-})
-
 const getTooltip = computed(() => {
-  return currentProfile.value ? `Current profile: ${currentProfile.value.name}` : 'No profile'
+  return props.currentProfile ? `Current profile: ${props.currentProfile.name}` : 'No profile'
 })
 
 function navigateToProfiles() {

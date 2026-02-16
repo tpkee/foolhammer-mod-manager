@@ -55,13 +55,14 @@
             >
               <item-mod
                 :order="data.order"
-                :enabled="data.enabled"
-                :name="data.name"
+                :enabled="Boolean(data.enabled)"
+                :name="data.name!"
                 :last-updated="data.lastUpdated"
                 :image="data.image"
                 :can-enable="data.canEnable"
-                @status="changeStatus(data.name, $event)"
-                @order="changeOrder(data.name, $event)"
+                @status="changeStatus(data.name!, $event)"
+                @order="changeOrder(data.name!, $event)"
+                @refresh="emit('refresh')"
               />
               <hr class="h-px mx-2.5 border-gray-800 group-last:border-none select-none" aria-hidden="true">
             </div>
@@ -86,6 +87,7 @@ import type { ModResponseDto, ProfileRequestDto, ProfileResponseDto } from '~/ty
 import { profileResponseToRequest } from '~/utils/dto'
 // Props
 const props = defineProps<{
+  gameId: string
   list: ModResponseDto[]
   profile: Nullable<ProfileResponseDto>
 }>()
@@ -93,9 +95,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   refresh: []
 }>()
-
-// Store
-const preferencesStore = usePreferencesStore()
 
 // Non reactive state
 const ITEM_HEIGHT = 60 // px
@@ -137,16 +136,17 @@ const getLocalList = computed(() => {
   const checkNormal = (x: string | undefined) => !x || x.toLowerCase().includes(search)
   const check = (x: string | undefined) => checkTransformed(x) || checkNormal(x)
 
-  const sorted = localList.value.filter(item => check(item?.name))
+  const sorted = localList.value.filter(item => Boolean(item.name) && check(item.name))
     .sort((a, b) => {
       switch (filters.value.sortBy) {
         case 'order':
-          return a.order - b.order
+          return (a.order ?? 0) - (b.order ?? 0)
         case 'name':
-          if (!a.name && !b.name)
-            return 0
-          return a.name.localeCompare(b.name)
+          return a.name!.localeCompare(b.name!)
         case 'lastUpdate':
+          if (!a.lastUpdated || !b.lastUpdated)
+            return 0
+
           return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
         default:
           return 0
@@ -180,16 +180,13 @@ function toggleAllMods() {
 }
 
 async function saveEdits() {
-  if (!props.profile || preferencesStore.currentGame === null)
-    return
-
   try {
     const profileRequest = profileResponseToRequest(
       {
         ...props.profile,
         mods: localList.value,
       },
-      preferencesStore.currentGame,
+      props.gameId,
     )
 
     await useTauriInvoke<ProfileRequestDto>('update_profile', { payload: profileRequest })

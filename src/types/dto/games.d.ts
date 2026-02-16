@@ -1,12 +1,13 @@
 import type { PackResponseDto } from './packs'
 import type { ProfileResponseDto } from './profiles'
 
-export interface GameResponseDto {
+export type GameResponseDto = RecursivePartial<{
   mods: PackResponseDto[]
   profiles: ProfileResponseDto[]
+  defaultProfile: Nullable<string>
   gameId: string
   gamePath: string
-  savesPath: string | null
+  savesPath: Nullable<string>
   modsPath: string
-  workshopPath: string | null
-}
+  workshopPath: Nullable<string>
+}>

@@ -1,9 +1,12 @@
 import type { ModRequestDto, ModResponseDto } from '~/types/dto'
 
 export function modResponseToRequest(mod: ModResponseDto): ModRequestDto {
+  if (!mod.name) {
+    throw new Error('Mod name is required')
+  }
   return {
     name: mod.name,
-    enabled: mod.enabled,
+    enabled: !!mod.enabled,
     order: mod.order,
   }
 }
@@ -14,7 +17,7 @@ export function modRequestToResponse(
 ): ModResponseDto {
   return {
     name: mod.name,
-    enabled: mod.enabled,
+    enabled: !!mod.enabled,
     order: mod.order,
     path: overrides.path ?? null,
     canEnable: overrides.canEnable ?? false,

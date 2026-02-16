@@ -12,28 +12,29 @@ export function useCurrentGame() {
     },
   )
 
-  watch(() => preferencesStore.currentGame, (newGameId) => {
-    if (!newGameId) {
-      const defaultProfile = currentGameData.value?.profiles.find(p => p.default)
-      if (defaultProfile) {
-        preferencesStore.setCurrentProfile(defaultProfile.name)
-      }
-      else {
-        preferencesStore.setCurrentProfile(null)
-      }
+  watch(() => preferencesStore.currentGame, (gameId) => {
+    if (gameId) {
+      const defaultProfile = currentGameData.value?.defaultProfile
+      preferencesStore.setCurrentProfile(defaultProfile ?? null)
     }
+  }, {
+    immediate: true,
+  })
+
+  const getProfiles = computed(() => {
+    return currentGameData.value?.profiles ?? []
   })
 
   const getCurrentProfile = computed(() => {
     if (!currentGameData.value || !currentGameData.value.profiles?.length)
       return null
 
-    const defaultProfile = currentGameData.value.profiles.find(p => p.name === preferencesStore.currentProfile)
-    return defaultProfile ?? currentGameData.value.profiles[0]
-  })
-
-  const getProfiles = computed(() => {
-    return currentGameData.value?.profiles ?? []
+    if (preferencesStore.currentProfile) {
+      const profile = getProfiles.value.find(p => p.name === preferencesStore.currentProfile)
+      if (profile) {
+        return profile ?? null
+      }
+    }
   })
 
   const getMods = computed(() => {

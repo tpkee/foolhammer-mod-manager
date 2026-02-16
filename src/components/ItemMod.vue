@@ -43,7 +43,7 @@ import { profileResponseToRequest } from '~/utils/dto'
 const props = defineProps<{
   name: string
   enabled: boolean
-  order: number
+  order: Nullable<number>
   image?: Nullable<string>
   lastUpdated: Nullable<string>
   canEnable?: boolean
@@ -54,11 +54,11 @@ const props = defineProps<{
 const emit = defineEmits<{
   status: [value: boolean]
   order: [value: number]
+  refresh: []
 }>()
 
-// Composables
-const preferencesStore = usePreferencesStore()
-const { getCurrentProfile, refreshGame } = useCurrentGame()
+// Store
+const gameStore = useGameStore()
 
 // Computed
 const getLastUpdate = computed(() => {
@@ -88,20 +88,22 @@ const getOptions = computed(() => {
 })
 
 async function deleteFromProfile() {
-  const profile = getCurrentProfile.value
-  if (!profile || preferencesStore.currentGame === null)
+  const profile = gameStore.getActiveProfile
+  const profileMods = gameStore.getProfileMods
+
+  if (!profile)
     return
 
   try {
-    const updatedMods = profile.mods.filter(m => m.name !== props.name)
+    const updatedMods = profileMods.filter(m => m.name !== props.name)
 
     const profileRequest = profileResponseToRequest(
       { ...profile, mods: updatedMods },
-      preferencesStore.currentGame,
+      gameStore.selectedGame!,
     )
 
     await useTauriInvoke('update_profile', { payload: profileRequest })
-    await refreshGame()
+    emit('refresh')
   }
   catch (err) {
     console.error('Failed to delete mod from profile:', err)
