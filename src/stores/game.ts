@@ -15,7 +15,7 @@ export const useGameStore = defineStore('gameStore', {
     getProfiles(state): ProfileResponseDto[] {
       return transformToNonNullable(state.currentGame?.profiles)
     },
-    getActiveProfile(state): Nullable<ProfileResponseDto> {
+    getProfile(state): Nullable<ProfileResponseDto> {
       return transformToNonNullable(state.currentGame?.profiles).find(profile => profile?.name && profile?.name === state.selectedProfile)
     },
     // returns the mods for the active profile
@@ -27,27 +27,30 @@ export const useGameStore = defineStore('gameStore', {
     getGameMods(state): PackResponseDto[] {
       return transformToNonNullable(state.currentGame?.mods)
     },
+    getDataKey(state): string {
+      return `game-${state.selectedGame}`
+    },
   },
   actions: {
-    setActiveGame(gameId: Nullable<string>) {
+    setGameId(gameId: Nullable<string>) {
       if (!gameId) {
         this.setGame(null)
         return
       }
       this.selectedGame = gameId
     },
-    setActiveProfile(profileName: Nullable<string>) {
+    setProfile(profileName: Nullable<string>) {
       this.selectedProfile = profileName
     },
     setGame(game: Nullable<GameResponseDto>) {
       this.currentGame = game
       // we have to set the profile
       if (!game || !game.defaultProfile) {
-        this.setActiveProfile(null)
+        this.setProfile(null)
         return
       }
 
-      this.setActiveProfile(game.defaultProfile)
+      this.setProfile(game.defaultProfile)
     },
   },
 })

@@ -18,14 +18,13 @@
     <modal-rename-profile
       ref="modal"
       :game-id="gameId"
-      :current-name="profile.name"
+      :current-name="profile.name!"
       @save="handleRename"
     />
 
     <modal-merge-profile
       ref="mergeModal"
       :game-id="gameId"
-      :profile-name="profile.name"
       :profile="profile"
       @merged="$emit('merged')"
     />
@@ -47,8 +46,7 @@ defineEmits<{
   merged: []
 }>()
 
-const preferencesStore = usePreferencesStore()
-const { getProfiles, refreshGame } = useCurrentGame()
+const gameStore = useGameStore()
 
 const modalRef = useTemplateRef('modal')
 const mergeModalRef = useTemplateRef('mergeModal')
@@ -68,7 +66,7 @@ const getOptions = computed(() => {
     {
       icon: 'mi:delete',
       label: 'Delete',
-      callback: () => deleteProfileItem(props.profile.name),
+      callback: () => props.profile.name ? deleteProfileItem(props.profile.name) : {},
       hide: props.profile.name === 'default',
     },
   ]
@@ -91,7 +89,7 @@ async function handleSetDefault() {
       profileName: props.profile.name,
     })
 
-    await refreshGame()
+    refreshGame()
   }
   catch (err) {
     console.error('Failed to set default profile:', err)
@@ -105,11 +103,15 @@ async function handleRename(newName: string) {
       oldName: props.profile.name,
       newName,
     })
-    await refreshGame()
+    refreshGame()
   }
   catch (err) {
     console.error('Failed to rename profile:', err)
   }
+}
+
+function refreshGame() { // invalidate the fetched state, this should trigger a refetch. hopefully.
+  clearNuxtData(gameStore.getDataKey)
 }
 
 function openEditModal() {
@@ -121,24 +123,24 @@ function openMergeModal() {
 }
 
 async function switchProfile() {
-  if (props.profile.name === preferencesStore.currentProfile)
+  if (props.profile.name === gameStore.selectedProfile)
     return
 
-  preferencesStore.setCurrentProfile(props.profile.name)
-  await refreshGame()
+  gameStore.setProfile(props.profile.name)
+  refreshGame()
 }
 
 async function deleteProfileItem(profileName: string) {
   try {
     await useTauriInvoke('delete_profile', {
-      gameId: preferencesStore.currentGame,
+      gameId: gameStore.currentGame,
       profileName,
     })
-    if (preferencesStore.currentProfile === profileName) {
-      const defaultProfile = getProfiles.value.find(p => p.default && p.name !== profileName)
-      preferencesStore.setCurrentProfile(defaultProfile?.name ?? null)
+    if (gameStore.selectedProfile === profileName) {
+      const defaultProfile = gameStore.getProfiles.find(p => p.default && p.name !== profileName)
+      gameStore.setProfile(defaultProfile?.name ?? null)
     }
-    await refreshGame()
+    refreshGame()
   }
   catch (error) {
     console.error('Failed to delete profile:', error)

@@ -29,33 +29,32 @@
       <!-- Profiles List -->
       <div class="space-y-2 max-h-[calc(100vh-12rem)] overflow-y-auto">
         <item-profile
-          v-for="profile in getProfiles"
+          v-for="profile in gameStore.getProfiles"
           :key="profile.name"
           :profile="profile"
-          :is-active="profile.name === preferencesStore.currentProfile"
-          :game-id="preferencesStore.currentGame"
-          :all-profiles="getProfiles"
+          :is-active="profile.name === gameStore.getProfile?.name"
+          :game-id="gameStore.selectedGame!"
+          :all-profiles="gameStore.getProfiles"
         />
       </div>
     </div>
 
     <modal-create-profile
       ref="createModalRef"
-      :game-id="preferencesStore.currentGame"
+      :game-id="gameStore.selectedGame!"
       :existing-profile-names="getProfileNames"
-      @created="refreshGame"
+      @created="clearNuxtData(gameStore.getDataKey)"
     />
   </div>
 </template>
 
 <script lang="ts" setup>
 const router = useRouter()
-const preferencesStore = usePreferencesStore()
-const { getProfiles, refreshGame } = useCurrentGame()
+const gameStore = useGameStore()
 
 const createModalRef = useTemplateRef('createModalRef')
 
-const getProfileNames = computed(() => getProfiles.value.map(p => p.name))
+const getProfileNames = computed(() => gameStore.getProfiles.map(p => p.name))
 
 function goBack() {
   router.back()

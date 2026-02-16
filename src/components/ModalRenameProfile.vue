@@ -82,12 +82,14 @@ function validateName(name: string): string {
   }
 
   const normalizedName = name.toLowerCase()
-  const existsWithDifferentCase = getProfiles.value.some(
-    existing => existing.name.toLowerCase() === normalizedName && existing.name.toLowerCase() !== props.currentName.toLowerCase(),
-  )
 
-  if (existsWithDifferentCase) {
-    return 'A profile with this name already exists'
+  for (const profile of getProfiles.value) {
+    if (!profile || !profile.name)
+      continue
+
+    if (profile.name.toLowerCase() === normalizedName) {
+      return 'A profile with this name already exists'
+    }
   }
 
   return ''

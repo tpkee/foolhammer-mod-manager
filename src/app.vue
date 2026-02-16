@@ -16,39 +16,35 @@
 </template>
 
 <script setup lang="ts">
+import type { SettingsResponseDto } from './types/dto/settings'
+
 // Stores
-const preferencesStore = usePreferencesStore()
+const settingsStore = useSettingsStore()
 const gameStore = useGameStore()
 
 // Reactive state
 const { locale } = useI18n()
 
 // Fetching
-const { data: userSettings, refresh: refreshUserSettings } = await useAsyncData<Nullable<RecursivePartial<UserSettings>>>('user-settings', () => useTauriInvoke('get_user_settings'), {
-  default: () => null,
-})
-
 const { data: listSupportedGames } = await useAsyncData<string[]>(`supported-games`, () => useTauriInvoke('get_supported_games'), {
   default: () => [],
 })
 
-// Watchers
-watch(listSupportedGames, (games) => {
-  if (!Array.isArray(games) || games.length === 0) {
-    preferencesStore.setCurrentGame(null)
-    return
-  }
+const { data: userSettings, refresh: refreshUserSettings } = await useAsyncData<Nullable<SettingsResponseDto>>('user-settings', () => useTauriInvoke('get_user_settings'), {
+  default: () => null,
+  immediate: false,
+})
 
-  if (!preferencesStore.currentGame) {
-    preferencesStore.setCurrentGame(games[0]!)
-  }
+// Watchers
+watch(listSupportedGames, () => {
+  refreshUserSettings()
 }, { immediate: true })
 
 watch(userSettings, (newSettings) => {
-  preferencesStore.setSettings(newSettings)
+  settingsStore.setSettings(newSettings)
 
   if (gameStore.selectedGame != null && newSettings?.defaultGame) {
-    preferencesStore.setCurrentGame(newSettings.defaultGame)
+    gameStore.setGameId(newSettings.defaultGame)
   }
 }, { immediate: true })
 

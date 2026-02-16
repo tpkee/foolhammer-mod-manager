@@ -6,12 +6,12 @@
           Merge Into Profile
         </h2>
         <p class="text-sm text-gray-400">
-          Copy mods from other profiles into <strong>{{ profileName }}</strong>
+          Copy mods from other profiles into <strong>{{ props.profile.name }}</strong>
         </p>
       </div>
 
       <div v-if="otherProfiles.length" class="max-h-80 overflow-y-auto">
-        <list-profiles :profiles="otherProfiles" @change="updateSelection" />
+        <list-profiles :profiles="otherProfiles as NonNullable<ProfileResponseDto[]>" @change="updateSelection" />
       </div>
       <p v-else class="text-sm italic text-gray-400">
         No other profiles available to merge from
@@ -44,7 +44,6 @@ import type { ProfileResponseDto } from '~/types/dto/profiles'
 
 const props = defineProps<{
   gameId: string
-  profileName: string
   profile: ProfileResponseDto
 }>()
 
@@ -58,7 +57,7 @@ const modalRef = useTemplateRef('modal')
 const listMods = ref<Set<string>>(new Set())
 
 const otherProfiles = computed(() =>
-  getProfiles.value.filter(p => p.name !== props.profileName),
+  getProfiles.value.filter(p => p && p.name !== props.profile.name),
 )
 
 const hasSelection = computed(() => listMods.value.size > 0)
@@ -67,20 +66,18 @@ async function handleMerge() {
   if (!listMods.value.size)
     return
 
-  const existingMods = props.profile.mods
-  const existingNames = new Set(existingMods.map(m => m.name))
+  const existingMods = (props.profile.mods ?? []).filter(m => m && m.name)
+  const existingNames = new Set(existingMods.map(m => m!.name))
 
-  let nextOrder = existingMods.length
-    ? Math.max(...existingMods.map(m => m.order)) + 1
-    : 1
+  let nextOrder = (existingMods?.length ?? 0) + 1
 
   const mods = []
 
   for (const mod of existingMods) {
     mods.push({
-      name: mod.name,
-      enabled: mod.enabled,
-      order: mod.order,
+      name: mod!.name, // we checked for name above, so this is safe
+      enabled: Boolean(mod?.enabled),
+      order: mod?.order,
     })
   }
 
@@ -98,7 +95,7 @@ async function handleMerge() {
     await useTauriInvoke('update_profile', {
       payload: {
         gameId: props.gameId,
-        name: props.profileName,
+        name: props.profile.name,
         default: props.profile.default,
         manualMode: props.profile.manualMode,
         mods,

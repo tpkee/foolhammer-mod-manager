@@ -19,7 +19,7 @@
     <div class="grid gap-2.5">
       <sidebar-profile
         v-if="gameStore.selectedGame"
-        :current-profile="gameStore.getActiveProfile"
+        :current-profile="gameStore.getProfile"
       />
     </div>
   </div>

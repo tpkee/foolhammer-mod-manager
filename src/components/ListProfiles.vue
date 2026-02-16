@@ -1,19 +1,19 @@
 <template>
   <div class="space-y-2">
     <app-accordion
-      v-for="profile in profiles"
+      v-for="profile in getProfiles"
       :key="profile.name"
-      :model-value="isSelected(profile.name)"
-      :title="`${profile.name} (${profile.mods.length})`"
+      :model-value="isSelected(profile.name!)"
+      :title="`${profile.name} (${profile.mods?.length})`"
       class="relative"
-      @update:model-value="toggleSelection(profile.name)"
+      @update:model-value="toggleSelection(profile.name!)"
     >
-      <ul v-if="profile.mods.length" class="grid grid-cols-3 gap-y-1">
+      <ul v-if="profile.mods?.length" class="grid grid-cols-3 gap-y-1">
         <li
-          v-for="mod in profile.mods"
-          :key="mod.name"
+          v-for="mod in profile.mods.filter(m => m && m.name)"
+          :key="mod!.name"
         >
-          <span class="truncate" :title="mod.name">{{ mod.name }}</span>
+          <span class="truncate" :title="mod!.name">{{ mod!.name }}</span>
         </li>
       </ul>
       <p v-else class="text-sm  italic">
@@ -64,14 +64,21 @@ function toggleSelection(profileName: string) {
   }
 }
 
+const getProfiles = computed(() => {
+  return props.profiles.filter(p => p && p.name)
+})
+
 const getUniqueMods = computed(() => {
   const allMods = new Set<string>()
 
   for (const profileName of selectedProfiles.value) {
     const profile = props.profiles.find(p => p.name === profileName)
+    const mods = profile?.mods ?? []
     if (profile) {
-      for (const mod of profile.mods) {
-        allMods.add(mod.name)
+      for (const mod of mods) {
+        if (mod?.name) {
+          allMods.add(mod.name)
+        }
       }
     }
   }
