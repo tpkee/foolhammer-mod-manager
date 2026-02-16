@@ -5,7 +5,7 @@ use serde_json::Value;
 use tauri::Wry;
 
 use crate::{
-    defaults::games::{self, DefaultGameInfo},
+    defaults::games::DefaultGameInfo,
     dto::{mods::ModRequestDto, profiles::ProfileRequestDto},
     mods::pack,
     resolve_existing_path,

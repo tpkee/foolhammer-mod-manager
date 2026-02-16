@@ -224,22 +224,6 @@ pub fn delete_profile(
     })
 }
 
-enum GameLaunchEvent {
-    Start,
-    Error,
-    Success,
-}
-
-impl GameLaunchEvent {
-    fn as_str(&self) -> &'static str {
-        match self {
-            GameLaunchEvent::Start => "start",
-            GameLaunchEvent::Error => "error",
-            GameLaunchEvent::Success => "success",
-        }
-    }
-}
-
 #[tauri::command]
 pub async fn stop_game<'a>(state: AppState<'a>) -> Result<(), ErrorCode> {
     let mut local_state = state.lock().await;
