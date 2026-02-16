@@ -45,6 +45,7 @@ export default defineNuxtConfig({
       strictPort: true,
     },
     plugins: [
+      // @ts-expect-error - Dunno why it doesn't recognize the plugin, but it works fine
       tailwindcss(),
     ],
   },

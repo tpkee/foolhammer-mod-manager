@@ -28,6 +28,7 @@ export default withNuxt(
       'vue/block-order': ['error', {
         order: ['template', 'script', 'style'],
       }],
+      'pnpm/yaml-enforce-settings': 'off',
     },
   },
 )
