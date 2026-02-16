@@ -25,7 +25,6 @@ const props = defineProps<{
 const gameStatus = ref<GameRunnerStatus>()
 
 // Non reactive state
-let launchGameListener: Nullable<Promise<UnlistenFn>> = null
 const stopGameListener: Promise<UnlistenFn> = useTauriListener('game_closed', () => {
   gameStatus.value = undefined
 })
@@ -61,6 +60,7 @@ async function stopGame() {
     await useTauriInvoke('stop_game', {
       gameId: props.currentGame,
     })
+    gameStatus.value = undefined
   }
   catch (e) {
     console.error('Failed to stop game:', e)
@@ -68,42 +68,22 @@ async function stopGame() {
 }
 
 async function playGame() {
+  gameStatus.value = 'start'
   try {
-    initGameListener()
-
     await useTauriInvoke('start_game', {
       gameId: props.currentGame,
       profileName: props.profileName,
     })
+
+    gameStatus.value = 'success'
   }
   catch (e) {
+    gameStatus.value = 'error'
     console.error('Failed to start game:', e)
   }
 }
 
-function initGameListener() {
-  gameStatus.value = undefined
-  launchGameListener = useTauriListener<GameRunnerStatus>('game_launch', (status) => {
-    switch (status.payload) {
-      case 'start':
-        gameStatus.value = 'start'
-        break
-      case 'error':
-        // TODO: should trigger a notification with the error message
-        gameStatus.value = 'error'
-        break
-      case 'success':
-        gameStatus.value = 'success'
-        break
-    }
-  })
-}
-
 onUnmounted(async () => {
-  if (launchGameListener) {
-    (await launchGameListener)()
-  }
-
   if (stopGameListener) {
     (await stopGameListener)()
   }
