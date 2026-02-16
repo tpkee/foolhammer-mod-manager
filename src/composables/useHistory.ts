@@ -1,18 +1,19 @@
-import type { Ref } from 'vue'
-import { computed, ref, watch } from 'vue'
-
 interface EditHistoryControls<T> {
   snapshots: Ref<T[]>
   undo: () => void
   redo: () => void
   commit: () => void
   cancel: () => void
-  canUndo: Ref<boolean>
-  canRedo: Ref<boolean>
+  canUndo: ComputedRef<boolean>
+  canRedo: ComputedRef<boolean>
 }
 
-export function useHistory<T>(source: Ref<T>): EditHistoryControls<T> {
-  const snapshots = ref<T[]>([])
+export function useHistory<T extends object>(source: Ref<T>): EditHistoryControls<T> {
+  if (typeof source.value !== 'object') {
+    throw new TypeError('useHistory can only be used with object refs')
+  }
+
+  const snapshots = ref<T[]>([]) as Ref<T[]>
   const index = ref(0)
   const isApplying = ref(false)
   let initialSnapshot = cloneValue(source.value)
@@ -36,14 +37,30 @@ export function useHistory<T>(source: Ref<T>): EditHistoryControls<T> {
     if (!canUndo.value)
       return
     index.value -= 1
-    applySnapshot(snapshots.value[index.value])
+
+    const snapshot = snapshots.value[index.value]
+
+    if (!snapshot) {
+      console.warn('No snapshot found at index', index.value)
+      return
+    }
+
+    applySnapshot(snapshot)
   }
 
   function redo() {
     if (!canRedo.value)
       return
     index.value += 1
-    applySnapshot(snapshots.value[index.value])
+
+    const snapshot = snapshots.value[index.value]
+
+    if (!snapshot) {
+      console.warn('No snapshot found at index', index.value)
+      return
+    }
+
+    applySnapshot(snapshot)
   }
 
   function commit() {
@@ -87,7 +104,7 @@ export function useHistory<T>(source: Ref<T>): EditHistoryControls<T> {
   }
 }
 
-function cloneValue<T>(value: T): T {
+function cloneValue<T extends object>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T
 }
 
