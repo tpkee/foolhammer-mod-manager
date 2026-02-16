@@ -31,6 +31,8 @@
 </template>
 
 <script lang="ts" setup>
+import { useGameImage } from '~/composables/gameImage'
+
 const props = defineProps<{
   id: string
   currentGame: Nullable<string>
@@ -43,7 +45,7 @@ const { t } = useI18n()
 const gameSettingsModal = ref()
 
 function switchGame() {
-  gameStore.setActiveGame(props.id)
+  gameStore.setGameId(props.id)
 }
 
 function openGameSettings() {

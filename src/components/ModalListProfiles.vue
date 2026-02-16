@@ -12,13 +12,13 @@
 
       <div class="space-y-2 max-h-96 overflow-y-auto">
         <button
-          v-for="profile in profiles"
+          v-for="profile in getProfiles"
           :key="profile.name"
           class="flex items-center justify-between p-3 bg-gray-800 border border-gray-700 rounded hover:border-purple-600 transition-colors group w-full cursor-pointer"
           :class="{
             'border-purple-600! hover:border-purple-400': profile.name === currentProfile,
           }"
-          @click="switchProfile(profile.name); close()"
+          @click="switchProfile(profile.name!); close()"
         >
           {{ profile.name }}
 
@@ -27,7 +27,7 @@
               type="button"
               variant="secondary"
               class="px-2 py-1 text-sm"
-              @click.stop="editProfile(profile.name)"
+              @click.stop="editProfile(profile.name!)"
             >
               Edit
             </app-button>
@@ -36,7 +36,7 @@
               type="button"
               variant="secondary"
               class="px-2 py-1 text-sm"
-              @click.stop="setAsDefault(profile.name)"
+              @click.stop="setAsDefault(profile.name!)"
             >
               Set Default
             </app-button>
@@ -45,7 +45,7 @@
               type="button"
               variant="tertiary"
               class="px-2 py-1 text-sm"
-              @click.stop="deleteProfileItem(profile.name)"
+              @click.stop="deleteProfileItem(profile.name!)"
             >
               Delete
             </app-button>
@@ -94,9 +94,10 @@ const emit = defineEmits<{
 const modalRef = ref()
 const editModalRef = useTemplateRef('modalEdit')
 const selectedProfileForEdit = ref<string>('')
+const getProfiles = computed(() => props.profiles.filter(p => p && p.name))
 
 const otherProfileNames = computed(() =>
-  props.profiles.map(p => p.name).filter(name => name !== selectedProfileForEdit.value),
+  getProfiles.value.map(p => p.name).filter(name => name !== selectedProfileForEdit.value),
 )
 
 async function switchProfile(profileName: string) {

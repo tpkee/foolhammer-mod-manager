@@ -32,12 +32,12 @@
           </div>
         </div>
 
-        <div v-if="getProfiles.length" class="pt-4">
+        <div v-if="gameStore.getProfiles.length" class="pt-4">
           <p class="text-sm  mb-2">
             Copy mods from existing profiles
           </p>
           <div class="max-h-60 overflow-y-auto">
-            <list-profiles :profiles="getProfiles" @change="updateSelection" />
+            <list-profiles :profiles="gameStore.getProfiles" @change="updateSelection" />
           </div>
         </div>
 
@@ -77,7 +77,7 @@ const emit = defineEmits<{
   created: []
 }>()
 
-const { getProfiles, refreshGame } = useCurrentGame()
+const gameStore = useGameStore()
 
 const modalRef = useTemplateRef('modal')
 
@@ -91,8 +91,8 @@ const form = ref<ProfileForm>({
 // Computed
 const getErrors = computed(() => {
   const normalizedName = form.value.name.toLowerCase()
-  const existsWithDifferentCase = getProfiles.value.some(
-    existing => existing.name.toLowerCase() === normalizedName,
+  const existsWithDifferentCase = gameStore.getProfiles.some(
+    existing => existing?.name && existing.name.toLowerCase() === normalizedName,
   )
 
   if (existsWithDifferentCase) {
@@ -123,7 +123,7 @@ async function handleSubmit() {
     })
 
     emit('created')
-    await refreshGame()
+    clearNuxtData(gameStore.getDataKey)
     modalRef.value?.close()
   }
   catch (err) {

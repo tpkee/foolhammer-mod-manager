@@ -88,7 +88,7 @@ const getOptions = computed(() => {
 })
 
 async function deleteFromProfile() {
-  const profile = gameStore.getActiveProfile
+  const profile = gameStore.getProfile
   const profileMods = gameStore.getProfileMods
 
   if (!profile)

@@ -30,6 +30,7 @@ defineProps<{
     value: string | number
     label: string
     disabled?: boolean
+    selected?: boolean
   }>
 }>()
 

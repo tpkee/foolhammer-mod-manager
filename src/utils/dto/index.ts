@@ -1,4 +1,4 @@
 export { ensureGameResponseDto } from './games'
 export { modRequestToResponse, modResponseToRequest } from './mods'
-export { packResponseToRequestDisabled } from './packs'
+export { packResponseToRequest } from './packs'
 export { profileRequestToResponse, profileResponseToRequest } from './profiles'

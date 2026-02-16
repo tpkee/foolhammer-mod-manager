@@ -64,7 +64,7 @@ const emit = defineEmits<{
 
 const modalRef = useTemplateRef('modal')
 
-const { getProfiles } = useCurrentGame()
+const gameStore = useGameStore()
 
 const form = ref<ProfileForm>({
   name: '',
@@ -83,7 +83,7 @@ function validateName(name: string): string {
 
   const normalizedName = name.toLowerCase()
 
-  for (const profile of getProfiles.value) {
+  for (const profile of gameStore.getProfiles) {
     if (!profile || !profile.name)
       continue
 

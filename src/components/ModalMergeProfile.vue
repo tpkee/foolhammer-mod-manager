@@ -51,13 +51,13 @@ const emit = defineEmits<{
   merged: []
 }>()
 
-const { getProfiles, refreshGame } = useCurrentGame()
+const gameStore = useGameStore()
 
 const modalRef = useTemplateRef('modal')
 const listMods = ref<Set<string>>(new Set())
 
 const otherProfiles = computed(() =>
-  getProfiles.value.filter(p => p && p.name !== props.profile.name),
+  gameStore.getProfiles.filter(p => p && p.name !== props.profile.name),
 )
 
 const hasSelection = computed(() => listMods.value.size > 0)
@@ -103,7 +103,7 @@ async function handleMerge() {
     })
 
     emit('merged')
-    await refreshGame()
+    clearNuxtData(gameStore.getDataKey)
     close()
   }
   catch (err) {
