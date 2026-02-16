@@ -2,7 +2,7 @@
 
 Foolhammer Mod Manager is a desktop application designed to simplify mod management for Total War games. This is a straightforward, no-frills mod manager that does one thing well: manages your mods.
 
-## ✨ Features
+## Features
 
 - 🗂️ Organize and manage Total War game mods
 - 🔄 Steam Workshop integration via Steamworks SDK
@@ -10,14 +10,14 @@ Foolhammer Mod Manager is a desktop application designed to simplify mod managem
 - 🐧 First-party Linux support
 - 🖥️ Cross-platform desktop support (Windows, Linux)
 
-## 🎯 Supported Games
+## Supported Games
 
 Currently supported:
 - **Total War: Warhammer III**
 
 > **Note:** PRs for additional Total War titles are welcome!
 
-## 📋 Prerequisites
+## Prerequisites
 
 Before you begin, ensure you have the following installed:
 - [Node.js](https://nodejs.org/) (>=24.13.0)
@@ -25,7 +25,7 @@ Before you begin, ensure you have the following installed:
 - [Rust](https://rustup.rs/) and Cargo
 - [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for your platform
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Installation
 
@@ -47,23 +47,23 @@ Run the app:
 pnpm dev
 ```
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 > **Note:** No AI slop pls 
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Built with [Tauri](https://tauri.app/)
 - Uses [RPFM Library](https://github.com/Frodo45127/rpfm) for pack file management
 - Steam integration via [steamworks-rs](https://github.com/Thinkofname/steamworks-rs)
 
-## 🐛 Issues
+## Issues
 
 If you encounter any issues or have suggestions, please [open an issue](https://github.com/tpkee/foolhammer-mod-manager/issues) on GitHub.
 
