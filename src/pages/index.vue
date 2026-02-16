@@ -9,7 +9,12 @@ import type { GameResponseDto } from '~/types/dto'
 
 const gameStore = useGameStore()
 
-const { data, refresh } = await useAsyncData<Nullable<GameResponseDto>>(gameStore.getDataKey, () => useTauriInvoke('get_game', { gameId: gameStore.selectedGame }), {
+const { data, refresh } = await useAsyncData<Nullable<GameResponseDto>>(gameStore.getDataKey, () => {
+  if (!gameStore.selectedGame)
+    return Promise.resolve(null)
+
+  return useTauriInvoke('get_game', { gameId: gameStore.selectedGame })
+}, {
   default: () => null,
   watch: [() => gameStore.selectedGame],
 })
