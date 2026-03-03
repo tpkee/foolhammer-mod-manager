@@ -42,7 +42,7 @@ impl GameResponseDto {
             game_path: store.game_path,
             saves_path: store.saves_path,
             mods_path: store.mods_path,
-            workshop_path: workshop_path,
+            workshop_path,
             mods: Self::mods_to_dto(&mods),
             default_profile: store.default_profile.or(profiles
                 .first()
