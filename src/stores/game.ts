@@ -1,7 +1,7 @@
 import type { GameResponseDto, ModResponseDto, PackResponseDto, ProfileResponseDto } from '~/types/dto'
 
 interface GameStore {
-  selectedGame: Nullable<string>
+  selectedGame: Nullable<string> // TODO: Potentially refactor this, there shouldn't be a need to store the gameId separately from the game object (maybe for background updates and stuff? idk)
   selectedProfile: Nullable<string>
   currentGame: Nullable<GameResponseDto>
 }
