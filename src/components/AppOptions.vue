@@ -13,7 +13,7 @@
     <template #default="{ close }">
       <div class="w-48">
         <item-option
-          v-for="(option, index) in options" :key="index"
+          v-for="(option, index) in getOpts" :key="index"
           class="p-2 text-sm"
           :icon="option.icon"
           :label="option.label"
@@ -26,13 +26,17 @@
 
 <script lang="ts" setup>
 // Props
-defineProps<{
-  options: Array<{
+const props = defineProps<{
+  options: {
     icon?: string
     label: string
     callback?: () => void
-  }>
+    hide?: boolean
+  }[]
 }>()
+
+// Computed
+const getOpts = computed(() => props.options.filter(opt => !opt.hide))
 
 // Functions
 function handleOption(callback: (() => void) | undefined, close: () => void) {
