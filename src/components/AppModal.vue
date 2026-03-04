@@ -2,7 +2,6 @@
   <Teleport to="body">
     <transition name="modal-fade" mode="out-in">
       <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center">
-        <!-- Backdrop -->
         <div
           role="button"
           tabindex="0"
@@ -11,7 +10,6 @@
           @keydown.escape="closeOnBackdrop"
         />
 
-        <!-- Modal -->
         <div
           ref="modalRef"
           class="relative z-10 bg-gray-800 rounded shadow-lg max-h-[90vh] overflow-y-auto w-[90vw]"
@@ -26,7 +24,6 @@
 <script lang="ts" setup>
 const props = withDefaults(
   defineProps<{
-    /** Allow closing by clicking the backdrop */
     closeOnBackdrop?: boolean
   }>(),
   {
