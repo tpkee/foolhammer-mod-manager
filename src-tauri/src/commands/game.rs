@@ -2,7 +2,6 @@ use std::path::PathBuf;
 
 use crate::commands::helpers::get_game_response_from_store;
 use crate::defaults::games::{DefaultGameInfo, SUPPORTED_GAMES};
-use crate::state::app_state::AppState;
 use crate::utils::ErrorCode;
 
 #[tauri::command]
@@ -13,12 +12,6 @@ pub fn check_path_exists(path: &str) -> bool {
 #[tauri::command]
 pub fn get_supported_games() -> serde_json::Value {
     SUPPORTED_GAMES.map(|game| game.game_id).into()
-}
-
-#[tauri::command]
-pub async fn get_user_settings<'a>(state: AppState<'a>) -> Result<serde_json::Value, ErrorCode> {
-    let state = state.lock().await;
-    Ok(serde_json::json!(&state.user_settings))
 }
 
 #[tauri::command]
