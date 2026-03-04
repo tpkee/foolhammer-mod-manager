@@ -62,7 +62,7 @@ watch(listSupportedGames, () => {
 watch(userSettings, (newSettings) => {
   settingsStore.setSettings(newSettings)
 
-  if (gameStore.selectedGame != null && newSettings?.defaultGame) {
+  if (!gameStore.selectedGame && newSettings?.defaultGame) {
     gameStore.setGameId(newSettings.defaultGame)
   }
 }, { immediate: true })

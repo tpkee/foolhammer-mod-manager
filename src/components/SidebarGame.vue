@@ -5,7 +5,12 @@
     :is-active="currentGame === id"
     @click="switchGame()"
   >
-    <img v-if="useGameImage(id)" :src="useGameImage(id)!" :alt="t(`games.${id}`)" class="size-10">
+    <img
+      v-if="useGameImage(id)"
+      :src="useGameImage(id)!"
+      :alt="t(`games.${id}`)"
+      class="size-10"
+    >
 
     <template #menu="{ close }">
       <item-option
@@ -15,6 +20,7 @@
         Open game settings
       </item-option>
       <item-option
+        v-if="settingsStore.settings?.defaultGame !== id"
         class="px-4 py-2"
         @click="setDefaultGame(); close()"
       >
@@ -33,17 +39,28 @@
 <script lang="ts" setup>
 import { useGameImage } from '~/composables/gameImage'
 
+// Props
 const props = defineProps<{
   id: string
   currentGame: Nullable<string>
 }>()
+
+// Emits
 const emit = defineEmits<{
   onRefresh: []
 }>()
-const gameStore = useGameStore()
-const { t } = useI18n()
-const gameSettingsModal = ref()
 
+// Template refs
+const gameSettingsModal = useTemplateRef('gameSettingsModal')
+
+// Stores
+const gameStore = useGameStore()
+const settingsStore = useSettingsStore()
+
+// composables
+const { t } = useI18n()
+
+// Functions
 function switchGame() {
   gameStore.setGameId(props.id)
 }
@@ -52,7 +69,7 @@ function openGameSettings() {
   gameSettingsModal.value?.open()
 }
 
-function setDefaultGame() { // TODO: make a call to set this as default
-  console.warn('ding dong it\'s a todo')
+async function setDefaultGame() {
+  await useTauriInvoke('set_default_game', { gameId: props.id })
 }
 </script>
