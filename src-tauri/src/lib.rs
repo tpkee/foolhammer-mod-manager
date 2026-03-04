@@ -42,20 +42,20 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            commands::check_path_exists,
-            commands::create_profile,
-            commands::get_supported_games,
-            commands::get_game,
-            commands::update_profile,
-            commands::rename_profile,
-            commands::set_default_profile,
-            commands::delete_profile,
-            commands::set_profile_mods,
-            commands::add_profile_mods,
-            commands::start_game,
-            commands::stop_game,
-            commands::get_saves,
-            commands::get_user_settings,
+            commands::game::check_path_exists,
+            commands::profile::create_profile,
+            commands::game::get_supported_games,
+            commands::game::get_game,
+            commands::profile::update_profile,
+            commands::profile::rename_profile,
+            commands::profile::set_default_profile,
+            commands::profile::delete_profile,
+            commands::mods::set_profile_mods,
+            commands::mods::add_profile_mods,
+            commands::mods::start_game,
+            commands::mods::stop_game,
+            commands::game::get_saves,
+            commands::game::get_user_settings,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
