@@ -35,28 +35,18 @@ const { data: listSupportedGames } = await useAsyncData<string[]>(`supported-gam
   default: () => [],
 })
 
-const { data: game, refresh } = await useAsyncData<Nullable<GameResponseDto>>(`game-${gameStore.selectedGame}`, () => {
-  if (!gameStore.selectedGame)
-    return Promise.resolve(null)
-
-  return useTauriInvoke('get_game', { gameId: gameStore.selectedGame })
-}, {
+const { data: game, refresh } = await useAsyncData<Nullable<GameResponseDto>>(() => useTauriInvoke('get_game', { gameId: gameStore.selectedGame }), {
   default: () => null,
   watch: [() => gameStore.selectedGame],
 })
 
 const { data: userSettings, refresh: refreshUserSettings } = await useAsyncData<Nullable<SettingsResponseDto>>('user-settings', () => useTauriInvoke('get_user_settings'), {
   default: () => null,
-  immediate: false,
 })
 
 // Watchers
 watch(game, () => {
   gameStore.setGame(game.value)
-}, { immediate: true })
-
-watch(listSupportedGames, () => {
-  refreshUserSettings()
 }, { immediate: true })
 
 watch(userSettings, (newSettings) => {
@@ -68,7 +58,7 @@ watch(userSettings, (newSettings) => {
 }, { immediate: true })
 
 // Misc
-const unlistenUserSettings = useTauriListener('update/user-settings', _e => refreshUserSettings())
+const unlistenUserSettings = useTauriListener('update_user_settings', _e => refreshUserSettings())
 
 useHeadSafe({
   htmlAttrs: {
