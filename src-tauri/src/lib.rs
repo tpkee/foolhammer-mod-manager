@@ -50,6 +50,8 @@ pub fn run() {
             commands::rename_profile,
             commands::set_default_profile,
             commands::delete_profile,
+            commands::set_profile_mods,
+            commands::add_profile_mods,
             commands::start_game,
             commands::stop_game,
             commands::get_saves,

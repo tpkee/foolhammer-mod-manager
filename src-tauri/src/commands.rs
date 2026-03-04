@@ -1,13 +1,13 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::path::PathBuf;
 
 use crate::{
     defaults::games::{DefaultGameInfo, SUPPORTED_GAMES},
     dto::{self, games::GameResponseDto},
     join_path,
     launchers::{GameManager, linux::LinuxLauncher},
-    mods,
+    mods::{self},
     state::app_state::AppState,
-    stores::games::{GameStore, Profile},
+    stores::games::{GameStore, ModInfo, Profile},
 };
 use utils::ErrorCode;
 
@@ -84,61 +84,59 @@ pub fn get_game(
     Ok(serde_json::json!(game_response))
 }
 
-fn modify_profiles<F, T>(
-    app_handle: &tauri::AppHandle,
-    game_id: &str,
-    modify_fn: F,
-) -> Result<T, ErrorCode>
-where
-    F: FnOnce(&mut Vec<serde_json::Value>) -> Result<T, ErrorCode>,
-{
-    let store = GameStore::new(app_handle, game_id)?;
-
-    let mut profiles: Vec<serde_json::Value> = store
-        .get("profiles")
-        .ok_or(ErrorCode::InternalError)?
-        .as_array()
-        .ok_or(ErrorCode::InternalError)?
-        .to_vec();
-
-    let result = modify_fn(&mut profiles)?;
-
-    store.set("profiles", serde_json::Value::Array(profiles));
-
-    store.save().map_err(|e| {
-        eprintln!("Failed to save profiles: {:?}", e);
-        ErrorCode::InternalError
-    })?;
-
-    Ok(result)
-}
-
 fn modify_game<F, T>(
     app_handle: &tauri::AppHandle,
     game_id: &str,
     modify_fn: F,
 ) -> Result<T, ErrorCode>
 where
-    F: FnOnce(&mut HashMap<String, serde_json::Value>) -> Result<T, ErrorCode>,
+    F: FnOnce(&mut GameStore) -> Result<T, ErrorCode>,
 {
     let store = GameStore::new(app_handle, game_id)?;
+    let mut game = GameStore::from_entries(store.entries())?;
 
-    let entries = store.entries();
+    let result = modify_fn(&mut game)?;
 
-    let mut map: HashMap<String, serde_json::Value> = HashMap::from_iter(entries);
-
-    let result = modify_fn(&mut map)?;
-
-    for (k, v) in map {
+    for (k, v) in game.to_hashmap().or(Err(ErrorCode::InternalError))? {
         store.set(k, v);
     }
 
     store.save().map_err(|e| {
-        eprintln!("Failed to save profiles: {:?}", e);
+        eprintln!("Failed to save game: {:?}", e);
         ErrorCode::InternalError
     })?;
 
     Ok(result)
+}
+
+fn modify_profiles<F, T>(
+    app_handle: &tauri::AppHandle,
+    game_id: &str,
+    modify_fn: F,
+) -> Result<T, ErrorCode>
+where
+    F: FnOnce(&mut Vec<Profile>) -> Result<T, ErrorCode>,
+{
+    modify_game(app_handle, game_id, |game| modify_fn(&mut game.profiles))
+}
+
+fn modify_profile<F, T>(
+    app_handle: &tauri::AppHandle,
+    game_id: &str,
+    profile_name: &str,
+    modify_fn: F,
+) -> Result<T, ErrorCode>
+where
+    F: FnOnce(&mut Profile) -> Result<T, ErrorCode>,
+{
+    modify_profiles(app_handle, game_id, |profiles| {
+        let mut profile = profiles
+            .iter_mut()
+            .find(|p| p.name == profile_name)
+            .ok_or(ErrorCode::NotFound)?;
+
+        modify_fn(&mut profile)
+    })
 }
 
 #[tauri::command]
@@ -149,17 +147,14 @@ pub fn create_profile(
     let game_id = payload.game_id.clone();
 
     modify_profiles(&app_handle, &game_id, |profiles| {
-        if profiles
-            .iter()
-            .any(|p| p.get("name") == Some(&payload.name.clone().into()))
-        {
+        if profiles.iter().any(|p| p.name == payload.name) {
             return Err(ErrorCode::Conflict);
         }
 
-        let profile = serde_json::json!(Profile::from_dto(payload));
+        let profile = Profile::from(payload);
         profiles.push(profile.clone());
 
-        Ok(profile)
+        Ok(serde_json::json!(profile))
     })
 }
 
@@ -172,15 +167,15 @@ pub fn update_profile(
     let game_id = payload.game_id.clone();
 
     modify_profiles(&app_handle, &game_id, |profiles| {
-        let profile_index = profiles
+        let idx = profiles
             .iter()
-            .position(|p| p.get("name") == Some(&payload.name.clone().into()))
+            .position(|p| p.name == payload.name)
             .ok_or(ErrorCode::NotFound)?;
 
-        let profile = serde_json::json!(Profile::from_dto(payload));
-        profiles[profile_index] = profile.clone();
+        let profile = Profile::from(payload);
+        profiles[idx] = profile.clone();
 
-        Ok(profile)
+        Ok(serde_json::json!(profile))
     })
 }
 
@@ -192,25 +187,18 @@ pub fn rename_profile(
     new_name: &str,
 ) -> Result<serde_json::Value, ErrorCode> {
     modify_profiles(&app_handle, game_id, |profiles| {
-        if profiles
-            .iter()
-            .any(|p| p.get("name") == Some(&new_name.into()))
-        {
+        if profiles.iter().any(|p| p.name == new_name) {
             return Err(ErrorCode::Conflict);
         }
 
-        let profile_index = profiles
-            .iter()
-            .position(|p| p.get("name") == Some(&old_name.into()))
+        let profile = profiles
+            .iter_mut()
+            .find(|p| p.name == old_name)
             .ok_or(ErrorCode::NotFound)?;
 
-        if let Some(profile_obj) = profiles[profile_index].as_object_mut() {
-            profile_obj.insert("name".to_string(), new_name.into());
-        } else {
-            return Err(ErrorCode::InternalError);
-        }
+        profile.name = new_name.to_string();
 
-        Ok(profiles[profile_index].clone())
+        Ok(serde_json::json!(&*profile))
     })
 }
 
@@ -221,21 +209,15 @@ pub fn set_default_profile(
     profile_name: &str,
 ) -> Result<(), ErrorCode> {
     modify_game(&app_handle, game_id, |game| {
-        if game.get("defaultProfile") == Some(&profile_name.into()) {
+        if game.default_profile.as_deref() == Some(profile_name) {
             return Ok(());
         }
 
-        if !game
-            .get("profiles")
-            .and_then(|p| p.as_array())
-            .ok_or(ErrorCode::InternalError)?
-            .iter()
-            .any(|p| p.get("name") == Some(&profile_name.into()))
-        {
+        if !game.profiles.iter().any(|p| p.name == profile_name) {
             return Err(ErrorCode::NotFound);
         }
 
-        game.insert("defaultProfile".to_string(), profile_name.into());
+        game.default_profile = Some(profile_name.to_string());
 
         Ok(())
     })
@@ -248,14 +230,57 @@ pub fn delete_profile(
     profile_name: &str,
 ) -> Result<(), ErrorCode> {
     modify_profiles(&app_handle, game_id, |profiles| {
-        let profile_index = profiles
+        let idx = profiles
             .iter()
-            .position(|p| p.get("name") == Some(&profile_name.into()))
+            .position(|p| p.name == profile_name)
             .ok_or(ErrorCode::NotFound)?;
 
-        profiles.remove(profile_index);
+        profiles.remove(idx);
 
         Ok(())
+    })
+}
+
+#[tauri::command]
+// this mod doesn't add any custom order
+pub fn set_profile_mods(
+    app_handle: tauri::AppHandle,
+    game_id: &str,
+    profile_name: &str,
+    mods: Vec<dto::mods::ModRequestDto>,
+) -> Result<serde_json::Value, ErrorCode> {
+    modify_profile(&app_handle, game_id, profile_name, |profile| {
+        profile.mods = mods.into_iter().map(ModInfo::from).collect();
+        Ok(serde_json::json!(&profile.mods))
+    })
+}
+
+#[tauri::command]
+// if manual order is enabled it will add the order from oldLen to newLen UNLESS a custom order was already provided.
+pub fn add_profile_mods(
+    app_handle: tauri::AppHandle,
+    game_id: &str,
+    profile_name: &str,
+    mods: Vec<dto::mods::ModRequestDto>,
+) -> Result<serde_json::Value, ErrorCode> {
+    modify_profile(&app_handle, game_id, profile_name, |profile| {
+        if profile.manual_mode {
+            let old_len = profile.mods.len();
+            let new_mods: Vec<ModInfo> = mods
+                .into_iter()
+                .enumerate()
+                .map(|(i, m)| ModInfo {
+                    name: m.name,
+                    enabled: m.enabled,
+                    order: m.order.unwrap_or(u32::try_from(old_len + i).unwrap_or(0)),
+                })
+                .collect();
+
+            profile.mods.extend(new_mods);
+        } else {
+            profile.mods.extend(mods.into_iter().map(ModInfo::from));
+        }
+        Ok(serde_json::json!(&profile.mods))
     })
 }
 
@@ -268,7 +293,6 @@ pub async fn stop_game<'a>(state: AppState<'a>) -> Result<(), ErrorCode> {
 }
 
 #[tauri::command]
-// return the pid of the launched game if successful
 pub async fn start_game<'a>(
     app_handler: tauri::AppHandle,
     state: AppState<'a>,

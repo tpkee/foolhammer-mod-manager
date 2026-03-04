@@ -1,9 +1,3 @@
-use std::{collections::HashMap, path::PathBuf, sync::Arc};
-
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use tauri::Wry;
-
 use crate::{
     defaults::games::DefaultGameInfo,
     dto::{mods::ModRequestDto, profiles::ProfileRequestDto},
@@ -14,40 +8,10 @@ use crate::{
         path::{retrieve_saves_absolute_path, retrieve_steam_workshop_path},
     },
 };
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ModInfo {
-    pub name: String,
-    pub enabled: bool,
-    pub order: u32,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Profile {
-    pub name: String,
-    pub mods: Vec<ModInfo>,
-    pub manual_mode: bool,
-}
-
-impl Profile {
-    pub fn from_dto(dto: ProfileRequestDto) -> Self {
-        Self {
-            name: dto.name,
-            mods: dto
-                .mods
-                .into_iter()
-                .map(|m| ModInfo {
-                    name: m.name,
-                    enabled: m.enabled,
-                    order: m.order,
-                })
-                .collect(),
-            manual_mode: dto.manual_mode.unwrap_or(false),
-        }
-    }
-}
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::{collections::HashMap, path::PathBuf, sync::Arc};
+use tauri::Wry;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -59,6 +23,50 @@ pub struct GameStore {
     pub mods_path: PathBuf,
     pub profiles: Vec<Profile>,
     pub default_profile: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Profile {
+    pub name: String,
+    pub mods: Vec<ModInfo>,
+    pub manual_mode: bool,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModInfo {
+    pub name: String,
+    pub enabled: bool,
+    pub order: u32,
+}
+
+impl From<ModRequestDto> for ModInfo {
+    fn from(dto: ModRequestDto) -> Self {
+        Self {
+            name: dto.name,
+            enabled: dto.enabled,
+            order: dto.order.unwrap_or(0),
+        }
+    }
+}
+
+impl From<ProfileRequestDto> for Profile {
+    fn from(dto: ProfileRequestDto) -> Self {
+        Self {
+            name: dto.name,
+            mods: dto
+                .mods
+                .into_iter()
+                .map(|m| ModInfo {
+                    name: m.name,
+                    enabled: m.enabled,
+                    order: m.order.unwrap_or(0),
+                })
+                .collect(),
+            manual_mode: dto.manual_mode.unwrap_or(false),
+        }
+    }
 }
 
 impl GameStore {
@@ -95,7 +103,7 @@ impl GameStore {
         let mods: Vec<ModRequestDto> = pack::Pack::retrieve_mods(&mods_path, &workshop_path)
             .iter()
             .map(|mod_pack| ModRequestDto {
-                order: 0,
+                order: None,
                 enabled: false,
                 name: mod_pack.name.clone(),
             })
@@ -103,7 +111,7 @@ impl GameStore {
 
         let default_profile_name = String::from("Default");
 
-        let default_profile = Profile::from_dto(ProfileRequestDto {
+        let default_profile = Profile::from(ProfileRequestDto {
             game_id: default_game.game_id.to_string(),
             name: default_profile_name.clone(),
             default: Some(true),
@@ -121,7 +129,7 @@ impl GameStore {
         })
     }
 
-    fn to_hashmap(&self) -> Result<HashMap<String, serde_json::Value>, serde_json::Error> {
+    pub fn to_hashmap(&self) -> Result<HashMap<String, serde_json::Value>, serde_json::Error> {
         // TODO: maybe this should be moved to a trait impl? not sure if we will need this for other structs
         let hm: HashMap<String, Value> =
             serde_json::from_value(self.serialize(serde_json::value::Serializer)?)?;

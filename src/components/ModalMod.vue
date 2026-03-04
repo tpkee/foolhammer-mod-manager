@@ -1,6 +1,10 @@
 <template>
   <app-modal ref="modalRef" :close-on-backdrop="false">
-    <div class="p-6 space-y-4">
+    <form
+      class="p-6 space-y-4"
+      @submit.prevent="onSave"
+      @reset.prevent="close"
+    >
       <div>
         <h2 class="text-lg font-semibold">
           Add Mods
@@ -52,28 +56,39 @@
       </div>
 
       <div class="flex gap-2 justify-end">
-        <app-button class="px-4 py-2" type="button" variant="secondary" @click="close">
+        <app-button
+          class="px-4 py-2"
+          type="reset"
+          variant="secondary"
+        >
           Cancel
         </app-button>
 
-        <app-button :disabled="!selectedMods.size" class="px-4 py-2" type="button" @click="addMods">
+        <app-button
+          :disabled="!selectedMods.size"
+          class="px-4 py-2"
+          type="submit"
+        >
           Add selected
         </app-button>
       </div>
-    </div>
+    </form>
   </app-modal>
 </template>
 
 <script lang="ts" setup>
-import type { ModResponseDto } from '~/types/dto'
+import type { ModRequestDto, ModResponseDto } from '~/types/dto'
 
 const props = defineProps<{
   mods: ModResponseDto[]
 }>()
 
 const emit = defineEmits<{
-  add: [mods: ModResponseDto[]]
+  save: []
 }>()
+
+// Stores
+const gameStore = useGameStore()
 
 const modalRef = useTemplateRef('modalRef')
 
@@ -104,12 +119,20 @@ function close() {
   modalRef.value?.close()
 }
 
-function addMods() {
-  if (!selectedMods.value.size)
-    return
+async function onSave() {
+  try {
+    await useTauriInvoke<ModRequestDto[]>('add_profile_mods', {
+      profileName: gameStore.selectedProfile!,
+      gameId: gameStore.selectedGame!,
+      mods: Array.from(selectedMods.value).map(name => ({ name, order: null, enabled: true })),
+    })
 
-  // emit('add', selectedMods.value) TODO: handle this thing
-  close()
+    emit('save')
+    close()
+  }
+  catch (err) {
+    console.error(err)
+  }
 }
 
 defineExpose({ open, close })

@@ -47,5 +47,5 @@ impl ModResponseDto {
 pub struct ModRequestDto {
     pub name: String,
     pub enabled: bool,
-    pub order: u32,
+    pub order: Option<u32>,
 }

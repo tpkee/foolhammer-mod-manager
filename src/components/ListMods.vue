@@ -17,6 +17,13 @@
           <template #default>
             <div class="p-2.5">
               <div class="grid gap-1.5">
+                <app-button
+                  v-if="modalModRef"
+                  v-show="getMissingMods.length"
+                  @click="modalModRef.open()"
+                >
+                  Add mods to profile
+                </app-button>
                 <app-button @click="toggleAllMods()">
                   Toggle All mods
                 </app-button>
@@ -28,7 +35,9 @@
     </div>
 
     <div class="border overflow-hidden rounded border-gray-700 overflow-x-auto md:overflow-x-hidden">
-      <div class="grid grid-cols-12 p-2.5 border border-gray-800 items-center gap-2.5 text-left [&>p]:whitespace-nowrap bg-gray-800 w-[400%] sm:w-[125%] md:w-full">
+      <div
+        class="grid grid-cols-12 p-2.5 border border-gray-800 items-center gap-2.5 text-left [&>p]:whitespace-nowrap bg-gray-800 w-[400%] sm:w-[125%] md:w-full"
+      >
         <div class="flex items-center gap-2.5 col-span-2">
           <p class="ml-9">
             Order
@@ -48,20 +57,13 @@
         <div v-bind="containerProps" class="relative max-h-[80svh]">
           <div v-bind="wrapperProps">
             <div
-              v-for="({ data }, index) of virtualisedList"
-              :key="index"
-              class="group w-[400%] sm:w-[125%] md:w-full"
+              v-for="({ data }, index) of virtualizedList" :key="index" class="group w-[400%] sm:w-[125%] md:w-full"
               :style="{ height: `${ITEM_HEIGHT}px` }"
             >
               <item-mod
-                :order="data.order"
-                :enabled="Boolean(data.enabled)"
-                :name="data.name!"
-                :last-updated="data.lastUpdated"
-                :image="data.image"
-                :can-enable="data.canEnable"
-                @status="changeStatus(data.name!, $event)"
-                @order="changeOrder(data.name!, $event)"
+                :order="data.order" :enabled="Boolean(data.enabled)" :name="data.name!"
+                :last-updated="data.lastUpdated" :image="data.image" :can-enable="data.canEnable"
+                @status="changeStatus(data.name!, $event)" @order="changeOrder(data.name!, $event)"
                 @refresh="emit('refresh')"
               />
               <hr class="h-px mx-2.5 border-gray-800 group-last:border-none select-none" aria-hidden="true">
@@ -71,10 +73,19 @@
       </div>
     </div>
   </div>
+
+  <!-- TODO: when adding new mods ask for confirmation if there are edits, and allow the user to undo/save em before proceedin -->
+  <modal-mod
+    ref="modalModRef"
+    :mods="getMissingMods"
+    @save="emit('refresh')"
+  />
+
   <mods-edit-bar
     :visible="hasEdits"
     :can-undo="canUndo"
     :can-redo="canRedo"
+
     @cancel="cancel()"
     @save="saveEdits"
     @undo="undo()"
@@ -83,8 +94,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { ModResponseDto, ProfileRequestDto, ProfileResponseDto } from '~/types/dto'
+import type { ModRequestDto, ModResponseDto, ProfileRequestDto, ProfileResponseDto } from '~/types/dto'
 import { profileResponseToRequest } from '~/utils/dto'
+
 // Props
 const props = defineProps<{
   gameId: string
@@ -92,11 +104,18 @@ const props = defineProps<{
   profile: Nullable<ProfileResponseDto>
 }>()
 
+// Emits
 const emit = defineEmits<{
   refresh: []
 }>()
 
-// Non reactive state
+// Template refs
+const modalModRef = useTemplateRef('modalModRef')
+
+// Stores
+const gameStore = useGameStore()
+
+// Non-reactive state
 const ITEM_HEIGHT = 60 // px
 const sortOptions = [
   { value: '', label: 'Sort by', disabled: true, selected: true },
@@ -162,13 +181,27 @@ watch(() => getList.value, (value) => {
 }, { immediate: true, deep: true })
 
 // Composables
-const { list: virtualisedList, containerProps, wrapperProps } = useVirtualList(
+const { list: virtualizedList, containerProps, wrapperProps } = useVirtualList(
   getLocalList,
   {
     itemHeight: ITEM_HEIGHT,
   },
 )
 const hasEdits = computed(() => snapshots.value.length > 1)
+const getMissingMods = computed(() => {
+  const profileModNames = new Set(
+    localList.value
+      .reduce<string[]>((acc, mod) => {
+        if (mod.name) {
+          acc.push(mod.name)
+        }
+
+        return acc
+      }, []),
+  )
+
+  return gameStore.getGameMods.filter(mod => mod.name && !profileModNames.has(mod.name))
+})
 
 // Functions
 function toggleAllMods() {
@@ -180,15 +213,7 @@ function toggleAllMods() {
 
 async function saveEdits() {
   try {
-    const profileRequest = profileResponseToRequest(
-      {
-        ...props.profile,
-        mods: localList.value,
-      },
-      props.gameId,
-    )
-
-    await useTauriInvoke<ProfileRequestDto>('update_profile', { payload: profileRequest })
+    await useTauriInvoke<ModRequestDto[]>('set_profile_mods', { mods: localList.value, profileName: props.profile!.name, gameId: props.gameId })
     commit()
     emit('refresh')
   }
