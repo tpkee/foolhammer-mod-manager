@@ -130,16 +130,11 @@ impl GameStore {
     }
 
     pub fn to_hashmap(&self) -> Result<HashMap<String, serde_json::Value>, serde_json::Error> {
-        // TODO: maybe this should be moved to a trait impl? not sure if we will need this for other structs
-        let hm: HashMap<String, Value> =
-            serde_json::from_value(self.serialize(serde_json::value::Serializer)?)?;
-        Ok(hm)
+        serde_json::from_value(self.serialize(serde_json::value::Serializer)?)
     }
 
     pub fn from_entries(entries: Vec<(String, Value)>) -> Result<Self, ErrorCode> {
         let hm: HashMap<String, Value> = entries.into_iter().collect();
-        let game_store: Self =
-            serde_json::from_value(serde_json::json!(hm)).or(Err(ErrorCode::InternalError))?;
-        Ok(game_store)
+        serde_json::from_value(serde_json::json!(hm)).or(Err(ErrorCode::InternalError))
     }
 }
