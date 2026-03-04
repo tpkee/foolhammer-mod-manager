@@ -7,10 +7,14 @@
         <NuxtPage />
       </div>
 
-      <app-sidebar
-        class="relative overflow-hidden min-w-17.5"
-        :games="listSupportedGames"
-      />
+      <div
+        class="shrink"
+      >
+        <app-sidebar
+          class="relative overflow-hidden"
+          :games="listSupportedGames"
+        />
+      </div>
     </div>
   </div>
 </template>
