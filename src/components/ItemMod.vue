@@ -77,13 +77,13 @@ const getOptions = computed(() => {
       label: 'Delete from profile',
       callback: deleteFromProfile,
     },
-    {
-      icon: 'mi:close',
-      label: 'Delete from disk',
-      callback: () => {
-        console.log('Delete from disk')
-      },
-    },
+    // {
+    //   icon: 'mi:close',
+    //   label: 'Delete from disk',
+    //   callback: () => {
+    //     console.log('Delete from disk')
+    //   },
+    // },
   ]
 })
 
