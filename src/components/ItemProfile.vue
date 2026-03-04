@@ -53,6 +53,8 @@ const mergeModalRef = useTemplateRef('mergeModal')
 
 const refreshGame = inject('refreshGame') as () => void
 
+// Computed
+const isDefault = computed(() => gameStore.currentGame?.defaultProfile && gameStore.currentGame?.defaultProfile === props.profile.name)
 const getOptions = computed(() => {
   const opts = [
     {
@@ -69,11 +71,11 @@ const getOptions = computed(() => {
       icon: 'mi:delete',
       label: 'Delete',
       callback: () => props.profile.name ? deleteProfileItem(props.profile.name) : {},
-      hide: props.profile.name === 'default',
+      // hide: isDefault.value,
     },
   ]
 
-  if (!props.profile.default) {
+  if (!isDefault.value) {
     opts.unshift({
       icon: 'mi:heart',
       label: 'Set as Default',
