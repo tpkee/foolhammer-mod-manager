@@ -79,8 +79,8 @@ impl State {
         self.user_settings = settings;
 
         app_handle
-            .emit("update/user-settings", &self.user_settings)
-            .expect("Failed to emit update/user-settings event");
+            .emit("update_user_settings", &self.user_settings)
+            .expect("Failed to emit update_user_settings event");
     }
 }
 
