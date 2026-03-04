@@ -18,7 +18,7 @@ impl SettingKey {
     pub fn get(&self) -> String {
         match self {
             Self::DefaultProfile => "default_profile".to_string(),
-            Self::GameId => "game_id".to_string(),
+            Self::GameId => "default_game".to_string(),
             Self::GamePath => "game_path".to_string(),
             Self::SteamWorkshopPath => "steam_workshop_path".to_string(),
             Self::SavesPath => "saves_path".to_string(),
@@ -31,7 +31,7 @@ impl SettingKey {
             "default_profile" => Ok(Self::DefaultProfile),
             "game_path" => Ok(Self::GamePath),
             "steam_workshop_path" => Ok(Self::SteamWorkshopPath),
-            "game_id" => Ok(Self::GameId),
+            "default_game" => Ok(Self::GameId),
             "saves_path" => Ok(Self::SavesPath),
             "mods_path" => Ok(Self::ModsPath),
             _ => Err("Invalid SettingKey"),
