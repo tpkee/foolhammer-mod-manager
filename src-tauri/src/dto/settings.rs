@@ -1,4 +1,4 @@
-use crate::state::user_settings::{SettingKey, UserSettings};
+use crate::stores::settings::SettingsStore;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -6,17 +6,10 @@ pub struct UserSettingsResponseDto {
     pub default_game: Option<String>,
 }
 
-impl From<&UserSettings> for UserSettingsResponseDto {
-    fn from(settings: &UserSettings) -> Self {
-        let get_str = |key: &SettingKey| -> Option<String> {
-            settings
-                .get(key)
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string())
-        };
-
+impl From<&SettingsStore> for UserSettingsResponseDto {
+    fn from(settings: &SettingsStore) -> Self {
         Self {
-            default_game: get_str(&SettingKey::GameId),
+            default_game: Some(settings.default_game.clone()),
         }
     }
 }

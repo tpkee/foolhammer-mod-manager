@@ -17,25 +17,11 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         // .manage(Mutex::new())
         .setup(move |app| {
-            let mut default_state = state::app_state::State::default();
-
-            let store_default = default_state
-                .user_settings
-                .iter()
-                .map(|(k, v)| (k.get(), v.clone()))
-                .collect();
-
+            let default_state = state::app_state::State::default();
             let app_handle = app.handle();
 
-            let path = utils::path::generate_store_path(&app_handle, "settings.json");
-
-            let store = tauri_plugin_store::StoreBuilder::new(app_handle, path.as_path())
-                .defaults(store_default)
-                .auto_save(std::time::Duration::from_millis(500))
-                .build()
-                .expect("Failed to build store");
-
-            default_state.set_settings_from_store(app_handle, store.entries());
+            stores::settings::SettingsStore::new(app_handle)
+                .expect("Failed to build settings store");
 
             app.manage(Mutex::new(default_state));
 
