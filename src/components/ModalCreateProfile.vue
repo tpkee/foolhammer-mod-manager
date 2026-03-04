@@ -26,13 +26,14 @@
 
           <div class="pt-2">
             <app-checkbox
+              v-if="gameStore.getProfiles.length > 0"
               v-model="form.default"
               label="Set as default profile"
             />
           </div>
         </div>
 
-        <div v-if="gameStore.getProfiles.length" class="pt-4">
+        <div v-if="gameStore.getProfiles.length > 0" class="pt-4">
           <p class="text-sm  mb-2">
             Copy mods from existing profiles
           </p>
@@ -114,7 +115,7 @@ async function handleSubmit() {
       payload: {
         gameId: props.gameId,
         name: form.value.name,
-        default: form.value.default,
+        default: gameStore.getProfiles.length === 0 ? true : form.value.default,
         manualMode: false,
         mods: (Array.from(listMods.value) ?? []).map((name: string, index: number) => ({
           name,
