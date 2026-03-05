@@ -66,7 +66,7 @@ useHeadSafe({
     lang: locale.value,
   },
 })
-provide('refreshGame', refresh)
+provide('refreshGame', refresh) // TODO: why did i do this? Am i stupid? Yes.
 
 // Lifecycle hooks
 onUnmounted(unlistenUserSettings)
