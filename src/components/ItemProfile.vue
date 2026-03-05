@@ -1,18 +1,20 @@
 <template>
   <div>
     <button
-      class="flex items-center justify-between p-4 bg-gray-800 border border-gray-700 rounded hover:border-purple-600 transition-colors group w-full cursor-pointer"
+      class="flex items-center justify-between p-4 bg-gray-900 border border-gray-700 rounded hover:border-purple-600 transition-colors group w-full cursor-pointer"
       :class="{
         'border-purple-600 bg-gray-750': isActive,
       }"
       @click="switchProfile"
+      @click.right.prevent.stop="refDropdown?.open()"
+      @keydown.esc.prevent.stop="refDropdown?.close()"
     >
       <div class="flex items-center gap-3">
         <span class="text-lg font-medium">{{ profile.name }}</span>
-        <span v-if="profile.default" class="text-xs px-2 py-0.5 bg-purple-600 rounded">Default</span>
+        <span v-if="isDefault" class="text-xs px-2 py-0.5 bg-purple-600 rounded">Default</span>
       </div>
 
-      <app-options :options="getOptions" />
+      <app-options ref="dropdown" :options="getOptions" />
     </button>
 
     <modal-rename-profile
@@ -45,6 +47,8 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   merged: []
 }>()
+
+const refDropdown = useTemplateRef('dropdown')
 
 const gameStore = useGameStore()
 

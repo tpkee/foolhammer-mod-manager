@@ -1,6 +1,10 @@
 <template>
   <div
     class="grid grid-cols-12 p-2.5 items-center gap-2.5 text-left"
+    role="button"
+    tabindex="0"
+    @click.right.prevent.stop="refOptions?.open()"
+    @keydown.esc.prevent.stop="refOptions?.close()"
   >
     <div class="flex items-center gap-2.5 col-span-2">
       <button class="cursor-grab active:cursor-move text-left disabled:pointer-events-none" :disabled="!canReorder">
@@ -31,7 +35,7 @@
         {{ getLastUpdate }}
       </time>
     </div>
-    <app-options class="justify-self-end" :options="getOptions" />
+    <app-options ref="dropdown" class="justify-self-end" :options="getOptions" />
   </div>
 </template>
 
@@ -56,6 +60,9 @@ const emit = defineEmits<{
   order: [value: number]
   refresh: []
 }>()
+
+// template refs
+const refOptions = useTemplateRef('dropdown')
 
 // Store
 const gameStore = useGameStore()
