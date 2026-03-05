@@ -2,11 +2,11 @@
   <div class="space-y-2">
     <app-accordion
       v-for="profile in getProfiles"
-      :key="profile.name"
-      :model-value="isSelected(profile.name!)"
+      :key="profile.id"
+      :model-value="selectedProfiles.has(profile.id!)"
       :title="`${profile.name} (${profile.mods?.length})`"
       class="relative"
-      @update:model-value="toggleSelection(profile.name!)"
+      @update:model-value="toggleSelection(profile.id!)"
     >
       <ul v-if="profile.mods?.length" class="grid grid-cols-3 gap-y-1">
         <li
@@ -22,7 +22,7 @@
     </app-accordion>
 
     <app-accordion
-      v-if="selectedProfiles.length"
+      v-if="selectedProfiles.size"
       :title="`Combined Mods (${getUniqueMods.size})`"
     >
       <ul v-if="getUniqueMods.size" class="gap-y-1 grid grid-cols-3">
@@ -48,24 +48,19 @@ const emit = defineEmits<{
   change: [Set<string>]
 }>()
 
-const selectedProfiles = ref<string[]>([])
-
-function isSelected(profileId: string): boolean {
-  return selectedProfiles.value.includes(profileId)
-}
+const selectedProfiles = ref<Set<string>>(new Set())
 
 function toggleSelection(profileId: string) {
-  const index = selectedProfiles.value.indexOf(profileId)
-  if (index === -1) {
-    selectedProfiles.value.push(profileId)
+  if (selectedProfiles.value.has(profileId)) {
+    selectedProfiles.value.delete(profileId)
   }
   else {
-    selectedProfiles.value.splice(index, 1)
+    selectedProfiles.value.add(profileId)
   }
 }
 
 const getProfiles = computed(() => {
-  return props.profiles.filter(p => p && p.name)
+  return props.profiles.filter(p => p && p.id)
 })
 
 const getUniqueMods = computed(() => {
