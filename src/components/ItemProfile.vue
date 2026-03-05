@@ -66,6 +66,7 @@ const getOptions = computed(() => {
       icon: 'mi:layers',
       label: 'Merge from profiles',
       callback: openMergeModal,
+      hide: gameStore.getProfiles.length <= 1,
     },
     {
       icon: 'mi:delete',
