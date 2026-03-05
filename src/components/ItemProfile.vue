@@ -1,21 +1,30 @@
+<!-- eslint-disable vue-a11y/no-static-element-interactions -->
 <template>
-  <div>
-    <button
-      class="flex items-center justify-between p-4 bg-gray- border border-gray-700 rounded hover:border-purple-600 transition-colors group w-full cursor-pointer"
-      :class="{
-        'border-purple-600 bg-gray-750': isActive,
-      }"
-      @click="switchProfile"
-      @click.right.prevent.stop="refDropdown?.open()"
-      @keydown.esc.prevent.stop="refDropdown?.close()"
-    >
-      <div class="flex items-center gap-3">
-        <span class="text-lg font-medium">{{ profile.name }}</span>
-        <span v-if="isDefault" class="text-xs px-2 py-0.5 bg-purple-600 rounded">Default</span>
-      </div>
+  <div
+    class="grid grid-cols-12 p-2.5 items-center gap-2.5 text-left"
+    @click.right.prevent.stop="refOptions?.open()"
+    @keydown.esc.prevent.stop="refOptions?.close()"
+  >
+    <div class="col-span-1 flex justify-center">
+      <app-radio
+        :model-value="isActive"
+        :name="`profile-select-${gameId}`"
+        label="Select profile"
+        sr-only-label
+        @click="switchProfile"
+      />
+    </div>
 
-      <app-options ref="dropdown" :options="getOptions" />
-    </button>
+    <div class="col-span-6 flex items-center gap-2 min-w-0">
+      <span class="font-medium truncate">{{ profile.name }}</span>
+      <span v-if="isDefault" class="text-xs px-2 py-0.5 bg-purple-600 rounded shrink-0">Default</span>
+    </div>
+
+    <div class="col-span-4 text-sm text-gray-400">
+      {{ activeMods }}/{{ totalMods }}
+    </div>
+
+    <app-options ref="dropdown" class="justify-self-end" :options="getOptions" />
 
     <modal-rename-profile
       ref="modal"
@@ -28,7 +37,7 @@
       ref="mergeModal"
       :game-id="gameId"
       :profile="profile"
-      @merged="emit('merged')"
+      @merged="emit('refresh')"
     />
   </div>
 </template>
@@ -45,20 +54,20 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  merged: []
+  refresh: []
 }>()
 
-const refDropdown = useTemplateRef('dropdown')
+const refOptions = useTemplateRef('dropdown')
 
 const gameStore = useGameStore()
 
 const modalRef = useTemplateRef('modal')
 const mergeModalRef = useTemplateRef('mergeModal')
 
-const refreshGame = inject('refreshGame') as () => void
-
 // Computed
 const isDefault = computed(() => gameStore.currentGame?.defaultProfile && gameStore.currentGame?.defaultProfile === props.profile.id)
+const activeMods = computed(() => props.profile.mods?.filter(m => m?.enabled).length ?? 0)
+const totalMods = computed(() => props.profile.mods?.length ?? 0)
 const getOptions = computed(() => {
   const opts = [
     {
@@ -98,7 +107,7 @@ async function handleSetDefault() {
       profileId: props.profile.id,
     })
 
-    refreshGame()
+    emit('refresh')
   }
   catch (err) {
     console.error('Failed to set default profile:', err)
@@ -112,7 +121,8 @@ async function handleRename(newName: string) {
       profileId: props.profile.id,
       newName,
     })
-    refreshGame()
+
+    emit('refresh')
   }
   catch (err) {
     console.error('Failed to rename profile:', err)
@@ -132,7 +142,7 @@ async function switchProfile() {
     return
 
   gameStore.setProfile(props.profile.id)
-  refreshGame()
+  emit('refresh')
 }
 
 async function deleteProfileItem() {
@@ -142,7 +152,7 @@ async function deleteProfileItem() {
       profileId: props.profile.id,
     })
     gameStore.setProfile(null)
-    refreshGame()
+    emit('refresh')
   }
   catch (error) {
     console.error('Failed to delete profile:', error)

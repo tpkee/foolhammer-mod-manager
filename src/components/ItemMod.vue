@@ -1,8 +1,7 @@
+<!-- eslint-disable vue-a11y/no-static-element-interactions -->
 <template>
   <div
     class="grid grid-cols-12 p-2.5 items-center gap-2.5 text-left"
-    role="button"
-    tabindex="0"
     @click.right.prevent.stop="refOptions?.open()"
     @keydown.esc.prevent.stop="refOptions?.close()"
   >

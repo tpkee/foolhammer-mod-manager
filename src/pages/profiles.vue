@@ -18,17 +18,11 @@
       </app-button>
     </div>
 
-    <div class="space-y-2 max-h-[calc(100vh-12rem)] overflow-y-auto">
-      <item-profile
-        v-for="profile in gameStore.getProfiles"
-        :key="profile.name"
-        :profile="profile"
-        :is-active="profile.name === gameStore.getProfile?.name"
-        :game-id="gameStore.selectedGame!"
-        :all-profiles="gameStore.getProfiles"
-        @merged="refreshGame()"
-      />
-    </div>
+    <list-profiles
+      :profiles="gameStore.getProfiles"
+      :game-id="gameStore.selectedGame!"
+      @refresh="refreshGame()"
+    />
 
     <modal-create-profile
       ref="createModalRef"

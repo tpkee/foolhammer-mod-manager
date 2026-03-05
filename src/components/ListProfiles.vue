@@ -1,39 +1,38 @@
 <template>
-  <div class="space-y-2">
-    <app-accordion
-      v-for="profile in getProfiles"
-      :key="profile.id"
-      :model-value="selectedProfiles.has(profile.id!)"
-      :title="`${profile.name} (${profile.mods?.length})`"
-      class="relative"
-      @update:model-value="toggleSelection(profile.id!)"
-    >
-      <ul v-if="profile.mods?.length" class="grid grid-cols-3 gap-y-1">
-        <li
-          v-for="mod in profile.mods.filter(m => m && m.name)"
-          :key="mod!.name"
-        >
-          <span class="truncate" :title="mod!.name">{{ mod!.name }}</span>
-        </li>
-      </ul>
-      <p v-else class="text-sm  italic">
-        No mods in this profile
-      </p>
-    </app-accordion>
+  <div class="space-y-2.5">
+    <app-input v-model="search" placeholder="Search..." type="search" class="w-full" label="Search" />
 
-    <app-accordion
-      v-if="selectedProfiles.size"
-      :title="`Combined Mods (${getUniqueMods.size})`"
-    >
-      <ul v-if="getUniqueMods.size" class="gap-y-1 grid grid-cols-3">
-        <li
-          v-for="modName in getUniqueMods"
-          :key="modName"
-        >
-          <span class="truncate">{{ modName }}</span>
-        </li>
-      </ul>
-    </app-accordion>
+    <div class="border overflow-hidden rounded border-gray-700">
+      <div class="grid grid-cols-12 p-2.5 border-b border-gray-800 items-center gap-2.5 text-left [&>p]:whitespace-nowrap bg-gray-800">
+        <div class="col-span-1" />
+        <p class="col-span-6">
+          Name
+        </p>
+        <p class="col-span-4">
+          Active Mods
+        </p>
+        <div class="col-span-1" />
+      </div>
+
+      <div v-bind="containerProps" class="relative max-h-[80svh]">
+        <div v-bind="wrapperProps">
+          <div
+            v-for="({ data }, index) of virtualizedList"
+            :key="index"
+            class="group"
+            :style="{ height: `${ITEM_HEIGHT}px` }"
+          >
+            <item-profile
+              :profile="data"
+              :is-active="data.id === gameStore.selectedProfile"
+              :game-id="gameId"
+              @refresh="emit('refresh')"
+            />
+            <hr class="h-px mx-2.5 border-gray-800 group-last:border-none select-none" aria-hidden="true">
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -42,46 +41,26 @@ import type { ProfileResponseDto } from '~/types/dto/profiles'
 
 const props = defineProps<{
   profiles: ProfileResponseDto[]
+  gameId: string
 }>()
 
 const emit = defineEmits<{
-  change: [Set<string>]
+  refresh: []
 }>()
 
-const selectedProfiles = ref<Set<string>>(new Set())
+const gameStore = useGameStore()
 
-function toggleSelection(profileId: string) {
-  if (selectedProfiles.value.has(profileId)) {
-    selectedProfiles.value.delete(profileId)
-  }
-  else {
-    selectedProfiles.value.add(profileId)
-  }
-}
+const ITEM_HEIGHT = 56 // px
 
-const getProfiles = computed(() => {
-  return props.profiles.filter(p => p && p.id)
+const search = ref('')
+
+const filteredProfiles = computed(() => {
+  const q = search.value.toLowerCase()
+  return props.profiles.filter(p => p?.name?.toLowerCase().includes(q))
 })
 
-const getUniqueMods = computed(() => {
-  const allMods = new Set<string>()
-
-  for (const profileId of selectedProfiles.value) {
-    const profile = props.profiles.find(p => p.id === profileId)
-    const mods = profile?.mods ?? []
-    if (profile) {
-      for (const mod of mods) {
-        if (mod?.name) {
-          allMods.add(mod.name)
-        }
-      }
-    }
-  }
-
-  return allMods
-})
-
-watch(getUniqueMods, (newVal) => {
-  emit('change', newVal)
-}, { deep: true })
+const { list: virtualizedList, containerProps, wrapperProps } = useVirtualList(
+  filteredProfiles,
+  { itemHeight: ITEM_HEIGHT },
+)
 </script>
