@@ -56,11 +56,8 @@ pub async fn get_game(
     start_game_watchers(
         app_state,
         game_response.mods_path.clone(),
-        game_response.workshop_path.clone(),
-        game_response
-            .saves_path
-            .clone()
-            .unwrap_or_else(|| PathBuf::from("")),
+        &game_response.workshop_path,
+        &game_response.saves_path,
     )
     .await;
 
@@ -70,13 +67,17 @@ pub async fn get_game(
 async fn start_game_watchers(
     app_state: app_state::AppState<'_>,
     mods_folder: PathBuf,
-    workshop_folder: Option<PathBuf>,
-    saves_folder: PathBuf,
+    workshop_folder: &Option<PathBuf>,
+    saves_folder: &Option<PathBuf>,
 ) {
-    let mut folders = vec![mods_folder, saves_folder];
+    let mut folders = vec![mods_folder];
+
+    if let Some(saves) = saves_folder {
+        folders.push(saves.clone());
+    }
 
     if let Some(workshop) = workshop_folder {
-        folders.push(workshop);
+        folders.push(workshop.clone());
     }
 
     let mut state = app_state.lock().await;
