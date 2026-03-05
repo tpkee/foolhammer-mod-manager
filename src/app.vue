@@ -35,13 +35,14 @@ const { data: listSupportedGames } = await useAsyncData<string[]>(`supported-gam
   default: () => [],
 })
 
+const { data: userSettings, refresh: refreshUserSettings } = await useAsyncData<Nullable<SettingsResponseDto>>('user-settings', () => useTauriInvoke('get_user_settings'), {
+  default: () => null,
+})
+
 const { data: game, refresh } = await useAsyncData<Nullable<GameResponseDto>>(() => useTauriInvoke('get_game', { gameId: gameStore.selectedGame }), {
   default: () => null,
   watch: [() => gameStore.selectedGame],
-})
-
-const { data: userSettings, refresh: refreshUserSettings } = await useAsyncData<Nullable<SettingsResponseDto>>('user-settings', () => useTauriInvoke('get_user_settings'), {
-  default: () => null,
+  immediate: false,
 })
 
 // Watchers
