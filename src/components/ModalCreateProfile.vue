@@ -38,7 +38,7 @@
             Copy mods from existing profiles
           </p>
           <div class="max-h-60 overflow-y-auto">
-            <profile-merge-selector :profiles="gameStore.getProfiles" @change="updateSelection" />
+            <profile-merge-selector :profiles="getProfiles" @change="updateSelection" />
           </div>
         </div>
 
@@ -82,8 +82,6 @@ const gameStore = useGameStore()
 
 const modalRef = useTemplateRef('modal')
 
-const refreshGame = inject('refreshGame') as () => void
-
 const listMods = ref<Set<string>>(new Set())
 
 const form = ref<ProfileForm>({
@@ -92,6 +90,7 @@ const form = ref<ProfileForm>({
 })
 
 // Computed
+const getProfiles = computed(() => gameStore.getProfiles.filter(p => p.mods && p.mods.length > 0))
 const getErrors = computed(() => {
   const normalizedName = form.value.name.toLowerCase()
   const existsWithDifferentCase = gameStore.getProfiles.some(
@@ -126,7 +125,6 @@ async function handleSubmit() {
     })
 
     emit('created')
-    refreshGame()
     modalRef.value?.close()
   }
   catch (err) {
