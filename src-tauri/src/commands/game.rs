@@ -1,6 +1,6 @@
 use crate::commands::helpers::{get_game_response_from_store, modify_game};
 use crate::defaults::games::{DefaultGameInfo, SUPPORTED_GAMES};
-use crate::dto::games::GameResponseDto;
+use crate::dto::games::{GameRequestDto, GameResponseDto};
 use crate::state::app_state;
 use crate::utils::ErrorCode;
 use std::path::PathBuf;
@@ -62,14 +62,6 @@ pub async fn get_game(
     .await;
 
     Ok(serde_json::json!(game_response))
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct GameRequestDto {
-    saves_path: Option<PathBuf>,
-    mods_path: PathBuf,
-    game_path: PathBuf,
 }
 
 #[tauri::command]

@@ -10,6 +10,14 @@ use crate::{
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct GameRequestDto {
+    pub saves_path: Option<PathBuf>,
+    pub mods_path: PathBuf,
+    pub game_path: PathBuf,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct GameResponseDto {
     pub mods: Vec<PackResponseDto>, // populated at runtime
     pub profiles: Vec<ProfileResponseDto>,
