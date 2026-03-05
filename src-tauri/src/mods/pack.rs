@@ -17,18 +17,18 @@ pub struct Pack {
 impl Pack {
     pub fn new(path: &PathBuf, image: Option<&PathBuf>, from_steam_workshop: bool) -> Self {
         let name = path.file_stem().unwrap().to_string_lossy().to_string();
-        let metadata: std::fs::Metadata = std::fs::metadata(&path).unwrap(); // we are sure it exists since we just got it
+        let metadata: std::fs::Metadata = std::fs::metadata(path).unwrap(); // we are sure it exists since we just got it
         let last_updated: Option<String> = metadata
             .modified()
             .ok()
-            .and_then(|t| Some((chrono::DateTime::<chrono::Utc>::from(t)).to_rfc3339()));
+            .map(|t| (chrono::DateTime::<chrono::Utc>::from(t)).to_rfc3339());
 
         Self {
             name,
             path: path.clone(),
-            last_updated: last_updated,
             image: image.cloned(),
-            from_steam_workshop: from_steam_workshop,
+            last_updated,
+            from_steam_workshop,
         }
     }
 
@@ -59,7 +59,7 @@ impl Pack {
             }
         };
 
-        let mut mods: HashSet<PathBuf> = HashSet::from_iter(files.into_iter());
+        let mut mods: HashSet<PathBuf> = HashSet::from_iter(files);
 
         manifest.unwrap().0.iter().for_each(|entry| {
             // remove the vanilla packs
@@ -81,7 +81,7 @@ impl Pack {
         _game_id: &str, // TODO: we should be the one to actually build the path... somewhere!
     ) -> Result<Vec<Pack>, rpfm_lib::error::RLibError> {
         //let workshop_path = join_path!(steam_workshop_folder, game_id);
-        let workshop_files: Vec<PathBuf> = match files_from_subdir(&steam_workshop_folder, true) {
+        let workshop_files: Vec<PathBuf> = match files_from_subdir(steam_workshop_folder, true) {
             Ok(files) => files,
             Err(e) => {
                 eprintln!(
@@ -132,7 +132,7 @@ impl Pack {
         steam_workshop_path: &Option<PathBuf>,
     ) -> Vec<Pack> {
         // merge the workshop and loose mods
-        let loose_mods = Self::retrieve_loose_mods(&game_mods_path).ok();
+        let loose_mods = Self::retrieve_loose_mods(game_mods_path).ok();
         let workshop_mods = match steam_workshop_path {
             Some(path) => Self::retrieve_workshop_mods(path, "").ok(), // TODO: we should be the one to actually build the path... somewhere!
             None => Some(vec![]),
@@ -151,7 +151,7 @@ impl Pack {
         mods
     }
 
-    pub fn sort(mods: &mut Vec<Pack>) {
+    pub fn sort(mods: &mut [Pack]) {
         // mutates the original vector to avoid cloning and preserve references
         mods.sort_by(|a, b| sort::compare_mod_names(&a.name, &b.name));
     }

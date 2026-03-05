@@ -56,5 +56,5 @@ pub async fn download(
 
     emit(DownloadEvent::Success);
 
-    Ok(res?)
+    res
 }

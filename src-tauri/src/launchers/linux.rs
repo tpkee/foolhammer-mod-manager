@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::{error::Error, io::Read};
 use tauri::Manager;
@@ -47,7 +47,7 @@ impl LinuxLauncher {
     async fn update_or_install(app_handler: &tauri::AppHandle) -> Result<PathBuf, Box<dyn Error>> {
         let launcher_dir = Self::get_launcher_base_path(app_handler)?;
 
-        let launcher = Self::get_runner_release().await.or_else(|e| Err(e))?;
+        let launcher = Self::get_runner_release().await.map_err(|e| e)?;
 
         let version_file_path = launcher_dir.join("version");
 
@@ -75,7 +75,7 @@ impl LinuxLauncher {
             launcher
         );
 
-        let mut res = utils::download(&app_handler, &launcher.url, "linux-runner").await?;
+        let mut res = utils::download(app_handler, &launcher.url, "linux-runner").await?;
 
         let mut tar = tar::Archive::new(res.body_mut().as_reader());
 
@@ -94,7 +94,7 @@ impl LinuxLauncher {
             "https://api.github.com/repos/Open-Wine-Components/umu-launcher/releases/latest",
         )
         .call()
-        .or_else(|e| return Err(e))?
+        .or_else(|e| Err(e))?
         .body_mut()
         .read_json::<serde_json::Value>()?;
 
@@ -134,8 +134,8 @@ impl super::GameManager for LinuxLauncher {
     fn launch_game(
         &mut self,
         game_id: &str,
-        game_path: &PathBuf,
-        save_path: Option<&PathBuf>, //TODO:
+        game_path: &Path,
+        _save_path: Option<&PathBuf>, //TODO:
     ) -> Result<(), Box<dyn Error>> {
         let command = self.get_command();
 
@@ -144,8 +144,7 @@ impl super::GameManager for LinuxLauncher {
         if game_path
             .components()
             .into_iter()
-            .find(|cmp| cmp.as_os_str() == "Steam")
-            .is_some()
+            .any(|cmp| cmp.as_os_str() == "Steam")
         {
             let pfx_path = utils::path::retrieve_wine_pfx_path(game_id)
                 .ok_or("Failed to find wine prefix path")?;
@@ -166,9 +165,11 @@ impl super::GameManager for LinuxLauncher {
             // we have to check if there is a steam process running, otherwise umu will fail to launch the game.
             let sys = sysinfo::System::new_all();
             if sys.processes_by_name("steam".as_ref()).count() == 0 {
-                Command::new("steam")
+                let _ = Command::new("steam")
                     .spawn()
-                    .expect("Failed to launch Steam");
+                    .expect("Failed to launch Steam")
+                    .wait()
+                    .expect("Failed to wait for Steam");
 
                 std::thread::sleep(std::time::Duration::from_secs(10)); // steam is eepy, let's wait
             }
@@ -177,12 +178,12 @@ impl super::GameManager for LinuxLauncher {
         let game_preset =
             DefaultGameInfo::find_by_id(game_id).ok_or("Couldn't find game preset")?;
 
-        command.arg(&game_preset.executable_name);
+        command.arg(game_preset.executable_name);
         command.arg("used_mods.txt;");
 
         println!("Running command: {:?}", command);
 
-        command.spawn().expect("Umu failed");
+        let _ = command.spawn().expect("Umu failed").wait();
 
         self.running_exe = Some(game_preset.executable_name);
         Ok(())

@@ -52,15 +52,15 @@ impl GameResponseDto {
             mods_path: store.mods_path,
             workshop_path,
             mods: Self::mods_to_dto(&mods),
-            default_profile: store.default_profile.or(profiles
-                .first()
-                .and_then(|profile| Some(profile.id.clone()))),
+            default_profile: store
+                .default_profile
+                .or(profiles.first().and_then(|profile| Some(profile.id))),
             profiles,
         }
     }
 
     fn mods_to_dto(mods: &Vec<pack::Pack>) -> Vec<PackResponseDto> {
-        mods.into_iter()
+        mods.iter()
             .map(|pack| {
                 let pack = pack.clone();
                 PackResponseDto {

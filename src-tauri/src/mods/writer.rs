@@ -16,7 +16,7 @@ pub(crate) struct ModWriter {
 
 impl ModWriter {
     pub fn new(
-        profile_mods: &Vec<ModResponseDto>,
+        profile_mods: &[ModResponseDto],
         mods_path: &PathBuf,
         workshop_path: &Option<PathBuf>,
     ) -> Self {

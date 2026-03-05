@@ -19,7 +19,7 @@ pub fn retrieve_saves_absolute_path(game_id: &str, relative_path: &str) -> Optio
         "windows" => Some(data_dir),
         _ => {
             if let Some(steam_dir) = &*STEAMDIR_INSTANCE {
-                return Some(PathBuf::from(join_path!(
+                return Some(join_path!(
                     steam_dir.path(),
                     "steamapps",
                     "compatdata",
@@ -31,7 +31,7 @@ pub fn retrieve_saves_absolute_path(game_id: &str, relative_path: &str) -> Optio
                     "AppData",
                     "Roaming",
                     relative_path
-                )));
+                ));
             }
 
             None
@@ -52,7 +52,7 @@ pub fn retrieve_steam_workshop_path(game_id: &str) -> Option<PathBuf> {
                 return Some(p);
             }
 
-            return None;
+            None
         }
         _ => None,
     }

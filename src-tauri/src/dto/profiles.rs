@@ -17,7 +17,7 @@ impl ProfileResponseDto {
     pub fn new(mut profile: games::Profile, game_mods: &Vec<Pack>) -> Self {
         profile.mods.sort_mods(|m| &m.name);
 
-        let mapped_mods = Self::map_mods_to_dto(&mut profile, &game_mods);
+        let mapped_mods = Self::map_mods_to_dto(&mut profile, game_mods);
 
         Self {
             id: profile.id,
@@ -27,7 +27,7 @@ impl ProfileResponseDto {
         }
     }
 
-    fn map_mods_to_dto(profile: &mut games::Profile, mods: &Vec<Pack>) -> Vec<ModResponseDto> {
+    fn map_mods_to_dto(profile: &mut games::Profile, mods: &[Pack]) -> Vec<ModResponseDto> {
         if !profile.manual_mode {
             for i in 0..profile.mods.len() {
                 profile.mods[i].order = (u32::try_from(i)
@@ -41,7 +41,7 @@ impl ProfileResponseDto {
             .iter()
             .map(|mod_info| {
                 ModResponseDto::new(
-                    &mod_info,
+                    mod_info,
                     mods.iter()
                         .find(|pack: &&Pack| pack.name == mod_info.name)
                         .cloned(),
