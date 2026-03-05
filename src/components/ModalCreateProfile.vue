@@ -38,7 +38,7 @@
             Copy mods from existing profiles
           </p>
           <div class="max-h-60 overflow-y-auto">
-            <list-profiles :profiles="gameStore.getProfiles" @change="updateSelection" />
+            <profile-merge-selector :profiles="gameStore.getProfiles" @change="updateSelection" />
           </div>
         </div>
 

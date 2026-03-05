@@ -11,7 +11,7 @@
       </div>
 
       <div v-if="otherProfiles.length" class="max-h-80 overflow-y-auto">
-        <list-profiles :profiles="otherProfiles as NonNullable<ProfileResponseDto[]>" @change="updateSelection" />
+        <profile-merge-selector :profiles="otherProfiles as NonNullable<ProfileResponseDto[]>" @change="updateSelection" />
       </div>
       <p v-else class="text-sm italic text-gray-400">
         No other profiles available to merge from
