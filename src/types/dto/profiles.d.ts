@@ -9,7 +9,6 @@ export type ProfileResponseDto = RecursivePartial<{
 }>
 
 export interface ProfileRequestDto {
-  id: string
   gameId: string
   name: string
   default?: boolean | null
