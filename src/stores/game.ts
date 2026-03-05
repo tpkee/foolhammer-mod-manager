@@ -16,7 +16,7 @@ export const useGameStore = defineStore('gameStore', {
       return transformToNonNullable(state.currentGame?.profiles)
     },
     getProfile(): Nullable<ProfileResponseDto> {
-      return this.getProfiles.find(profile => profile?.id && profile?.id === this.selectedProfile)
+      return this.getProfiles.find(profile => profile?.id && profile.id === this.selectedProfile)
     },
     // returns the mods for the active profile
     getProfileMods(): ModResponseDto[] {
