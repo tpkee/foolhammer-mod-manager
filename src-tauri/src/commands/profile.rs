@@ -15,7 +15,7 @@ pub fn create_profile(
             return Err(ErrorCode::Conflict);
         }
 
-        let profile = Profile::from(payload);
+        let profile: Profile = Profile::from_dto(None, payload);
         profiles.push(profile.clone());
 
         Ok(serde_json::json!(profile))
@@ -28,7 +28,6 @@ pub fn update_profile(
     profile_id: uuid::Uuid,
     payload: ProfileRequestDto,
 ) -> Result<serde_json::Value, ErrorCode> {
-    println!("Updating profile: {:?}", payload);
     let game_id = payload.game_id.clone();
 
     modify_profiles(&app_handle, &game_id, |profiles| {
@@ -37,7 +36,7 @@ pub fn update_profile(
             .position(|p| p.id == profile_id)
             .ok_or(ErrorCode::NotFound)?;
 
-        let profile = Profile::from(payload);
+        let profile = Profile::from_dto(Some(profile_id), payload);
         profiles[idx] = profile.clone();
 
         Ok(serde_json::json!(profile))

@@ -52,10 +52,10 @@ impl From<ModRequestDto> for ModInfo {
     }
 }
 
-impl From<ProfileRequestDto> for Profile {
-    fn from(dto: ProfileRequestDto) -> Self {
+impl Profile {
+    pub fn from_dto(id: Option<uuid::Uuid>, dto: ProfileRequestDto) -> Self {
         Self {
-            id: uuid::Uuid::new_v4(),
+            id: id.unwrap_or_else(uuid::Uuid::new_v4),
             name: dto.name,
             mods: dto
                 .mods
@@ -114,21 +114,24 @@ impl GameStore {
 
         let default_profile_name = String::from("Default");
 
-        let default_profile = Profile::from(ProfileRequestDto {
-            game_id: default_game.game_id.to_string(),
-            name: default_profile_name.clone(),
-            default: Some(true),
-            manual_mode: Some(false),
-            mods, // this is the default profile so we should throw all the available mods in it
-        });
+        let default_profile = Profile::from_dto(
+            None,
+            ProfileRequestDto {
+                game_id: default_game.game_id.to_string(),
+                name: default_profile_name.clone(),
+                default: Some(true),
+                manual_mode: Some(false),
+                mods, // this is the default profile so we should throw all the available mods in it
+            },
+        );
 
         Some(Self {
             game_id: default_game.game_id.to_string(),
             game_path,
             saves_path,
             mods_path,
-            profiles: vec![default_profile.clone()],
             default_profile: Some(default_profile.id),
+            profiles: vec![default_profile],
         })
     }
 
