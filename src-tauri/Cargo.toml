@@ -26,8 +26,9 @@ lazy_static = "1.5.0"
 steamworks = "0.12.2"
 steamlocate = "2.0.1"
 rpfm_lib = "4.7.4"
-chrono = "0.4.43"
+chrono = "0.4"
 tauri-plugin-dialog = "2"
 ureq = { version = "3.2.0", features = ["json"] }
 tar = "0.4.44"
-sysinfo = { version = "0.38.2", features = []   }
+sysinfo = { version = "0.38", features = []   }
+uuid = { version = "1", features = ["v4"] }
