@@ -11,7 +11,7 @@ pub fn generate_store_path(app: &tauri::AppHandle, relative_path: &str) -> std::
         .join(format!("foolhamer-mod-manager/{}", relative_path))
 }
 
-pub fn retrieve_saves_absolute_path(game_id: &str) -> Option<PathBuf> {
+pub fn retrieve_saves_absolute_path(game_id: &str, relative_path: &str) -> Option<PathBuf> {
     // The default saves path needs to be handled differently because on Linux we have to access the wine pfx
     let data_dir = dirs::data_dir().expect("Failed to get data directory");
 
@@ -29,7 +29,8 @@ pub fn retrieve_saves_absolute_path(game_id: &str) -> Option<PathBuf> {
                     "users",
                     "steamuser",
                     "AppData",
-                    "Roaming"
+                    "Roaming",
+                    relative_path
                 )));
             }
 

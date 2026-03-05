@@ -96,7 +96,8 @@ impl GameStore {
         let default_game = DefaultGameInfo::find_by_id(game_id)?;
 
         let game_path = default_game.get_game_path()?;
-        let saves_path = retrieve_saves_absolute_path(default_game.game_id);
+        let saves_path =
+            retrieve_saves_absolute_path(default_game.game_id, default_game.saves_path);
         let mods_path = resolve_existing_path!(&game_path, default_game.mods_path)?;
 
         let workshop_path: Option<PathBuf> = retrieve_steam_workshop_path(&default_game.game_id);
