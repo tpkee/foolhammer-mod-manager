@@ -41,6 +41,7 @@ pub fn run() {
             commands::mods::start_game,
             commands::mods::stop_game,
             commands::game::get_saves,
+            commands::game::update_game,
             commands::settings::get_user_settings,
             commands::settings::set_default_game,
         ])

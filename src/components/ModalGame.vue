@@ -10,7 +10,7 @@
         </p>
       </div>
 
-      <form @submit.prevent="handleSubmit">
+      <form @submit.prevent="handleSubmit" @reset.prevent="close">
         <div class="grid grid-cols-2 gap-x-5 gap-y-2.5 items-center">
           <div class="flex gap-2 items-end">
             <app-input
@@ -24,21 +24,6 @@
             <app-button
               type="button"
               @click="pickPath('gamePath')"
-            >
-              Browse
-            </app-button>
-          </div>
-
-          <div class="flex gap-2 items-end">
-            <app-input
-              v-model="form.steamWorkshopPath"
-              label="Steam Workshop Path"
-              placeholder="Select Steam workshop directory (optional)"
-              class="w-full"
-            />
-            <app-button
-              type="button"
-              @click="pickPath('steamWorkshopPath')"
             >
               Browse
             </app-button>
@@ -104,7 +89,6 @@ import { open as openDialog } from '@tauri-apps/plugin-dialog'
 
 interface GameSettings {
   gamePath: Nullable<string>
-  steamWorkshopPath: Nullable<string>
   savesPath: Nullable<string>
   modsPath: Nullable<string>
 }
@@ -114,7 +98,7 @@ const { gameId } = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  save: [GameSettings]
+  save: []
 }>()
 
 // TODO: big todo. I forgot to add a way to load existing settings for inactive games, so this will only work for the current game.
@@ -128,7 +112,6 @@ const modalRef = ref()
 
 const form = ref<GameSettings>({
   gamePath: null,
-  steamWorkshopPath: null,
   savesPath: null,
   modsPath: null,
 })
@@ -151,22 +134,29 @@ async function pickPath(field: keyof GameSettings) {
   }
 }
 
-function handleSubmit() {
-  // todo add saving
-  emit('save', {
-    gamePath: form.value.gamePath,
-    steamWorkshopPath: form.value.steamWorkshopPath,
-    savesPath: form.value.savesPath,
-    modsPath: form.value.modsPath,
-  })
+async function handleSubmit() {
+  try {
+    await useTauriInvoke('update_game', {
+      gameId,
+      payload: {
+        gamePath: form.value.gamePath,
+        savesPath: form.value.savesPath,
+        modsPath: form.value.modsPath,
+      },
+    })
+    // todo add saving
+    emit('save')
 
-  modalRef.value?.close()
+    modalRef.value?.close()
+  }
+  catch (error) {
+    console.error('Failed to save game settings:', error)
+  }
 }
 
 function resetForm() {
   form.value = {
     gamePath: gameStore.currentGame?.gamePath ?? null,
-    steamWorkshopPath: gameStore.currentGame?.workshopPath ?? null,
     savesPath: gameStore.currentGame?.savesPath ?? null,
     modsPath: gameStore.currentGame?.modsPath ?? null,
   }

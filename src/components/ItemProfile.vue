@@ -1,7 +1,7 @@
 <template>
   <div>
     <button
-      class="flex items-center justify-between p-4 bg-gray-900 border border-gray-700 rounded hover:border-purple-600 transition-colors group w-full cursor-pointer"
+      class="flex items-center justify-between p-4 bg-gray- border border-gray-700 rounded hover:border-purple-600 transition-colors group w-full cursor-pointer"
       :class="{
         'border-purple-600 bg-gray-750': isActive,
       }"

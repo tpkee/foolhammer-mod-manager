@@ -1,9 +1,9 @@
-use std::path::PathBuf;
-
-use crate::commands::helpers::get_game_response_from_store;
+use crate::commands::helpers::{get_game_response_from_store, modify_game};
 use crate::defaults::games::{DefaultGameInfo, SUPPORTED_GAMES};
+use crate::dto::games::GameResponseDto;
 use crate::state::app_state;
 use crate::utils::ErrorCode;
+use std::path::PathBuf;
 
 #[tauri::command]
 pub fn check_path_exists(path: &str) -> bool {
@@ -62,6 +62,34 @@ pub async fn get_game(
     .await;
 
     Ok(serde_json::json!(game_response))
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GameRequestDto {
+    saves_path: Option<PathBuf>,
+    mods_path: PathBuf,
+    game_path: PathBuf,
+}
+
+#[tauri::command]
+pub async fn update_game(
+    app_handle: tauri::AppHandle,
+    app_state: app_state::AppState<'_>,
+    game_id: &str,
+    payload: GameRequestDto,
+) -> Result<(), ErrorCode> {
+    let g = modify_game(&app_handle, game_id, |game| {
+        game.saves_path = payload.saves_path;
+        game.mods_path = payload.mods_path;
+        game.game_path = payload.game_path;
+
+        Ok(GameResponseDto::from_store(game.clone()))
+    })?;
+
+    start_game_watchers(app_state, g.mods_path, &g.workshop_path, &g.saves_path).await;
+
+    Ok(())
 }
 
 async fn start_game_watchers(
