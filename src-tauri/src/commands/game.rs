@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use crate::commands::helpers::get_game_response_from_store;
 use crate::defaults::games::{DefaultGameInfo, SUPPORTED_GAMES};
+use crate::state::app_state;
 use crate::utils::ErrorCode;
 
 #[tauri::command]
@@ -44,11 +45,41 @@ pub fn get_saves(game_id: &str) -> Result<Vec<String>, ErrorCode> {
 }
 
 #[tauri::command]
-pub fn get_game(
+// getting a game will also start its watchers.
+pub async fn get_game(
     app_handle: tauri::AppHandle,
+    app_state: app_state::AppState<'_>,
     game_id: &str,
 ) -> Result<serde_json::Value, ErrorCode> {
     let game_response = get_game_response_from_store(&app_handle, game_id)?;
 
+    start_game_watchers(
+        app_state,
+        game_response.mods_path.clone(),
+        game_response.workshop_path.clone(),
+        game_response
+            .saves_path
+            .clone()
+            .unwrap_or_else(|| PathBuf::from("")),
+    )
+    .await;
+
     Ok(serde_json::json!(game_response))
+}
+
+async fn start_game_watchers(
+    app_state: app_state::AppState<'_>,
+    mods_folder: PathBuf,
+    workshop_folder: Option<PathBuf>,
+    saves_folder: PathBuf,
+) {
+    let mut folders = vec![mods_folder, saves_folder];
+
+    if let Some(workshop) = workshop_folder {
+        folders.push(workshop);
+    }
+
+    let mut state = app_state.lock().await;
+
+    state.set_watchers(&folders);
 }
