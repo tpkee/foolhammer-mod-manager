@@ -14,7 +14,7 @@ pub struct ProfileResponseDto {
 }
 
 impl ProfileResponseDto {
-    pub fn new(mut profile: games::Profile, game_mods: &Vec<Pack>) -> Self {
+    pub fn new(mut profile: games::Profile, game_mods: &[Pack]) -> Self {
         profile.mods.sort_mods(|m| &m.name);
 
         let mapped_mods = Self::map_mods_to_dto(&mut profile, game_mods);

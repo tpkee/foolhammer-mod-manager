@@ -7,7 +7,7 @@ use tauri::Emitter;
 pub async fn get_user_settings(
     app_handle: tauri::AppHandle,
 ) -> Result<UserSettingsResponseDto, ErrorCode> {
-    let store = SettingsStore::new(&app_handle)?;
+    let store = SettingsStore::get_store(&app_handle)?;
     let settings = SettingsStore::from_entries(store.entries())?;
     Ok(UserSettingsResponseDto::from(&settings))
 }
@@ -17,7 +17,7 @@ pub async fn set_default_game(
     app_handle: tauri::AppHandle,
     game_id: &str,
 ) -> Result<(), ErrorCode> {
-    let store = SettingsStore::new(&app_handle)?;
+    let store = SettingsStore::get_store(&app_handle)?;
 
     store.set(SettingsKey::DefaultGame, serde_json::json!(game_id));
     store.save().map_err(|e| {

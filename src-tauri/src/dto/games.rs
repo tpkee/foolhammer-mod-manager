@@ -34,7 +34,7 @@ impl GameResponseDto {
         let mods_path = resolve_existing_path!(&store.mods_path);
         let workshop_path = retrieve_steam_workshop_path(&store.game_id);
 
-        let mut mods = match mods_path {
+        let mods = match mods_path {
             Some(path) => pack::Pack::retrieve_mods(&path, &workshop_path),
             None => vec![],
         };
@@ -42,7 +42,7 @@ impl GameResponseDto {
         let profiles: Vec<ProfileResponseDto> = store
             .profiles
             .into_iter()
-            .map(|profile| ProfileResponseDto::new(profile, &mut mods))
+            .map(|profile| ProfileResponseDto::new(profile, &mods))
             .collect();
 
         Self {
@@ -54,12 +54,12 @@ impl GameResponseDto {
             mods: Self::mods_to_dto(&mods),
             default_profile: store
                 .default_profile
-                .or(profiles.first().and_then(|profile| Some(profile.id))),
+                .or(profiles.first().map(|profile| profile.id)),
             profiles,
         }
     }
 
-    fn mods_to_dto(mods: &Vec<pack::Pack>) -> Vec<PackResponseDto> {
+    fn mods_to_dto(mods: &[pack::Pack]) -> Vec<PackResponseDto> {
         mods.iter()
             .map(|pack| {
                 let pack = pack.clone();

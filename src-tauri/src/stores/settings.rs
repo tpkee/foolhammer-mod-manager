@@ -17,19 +17,10 @@ pub struct SettingsStore {
     pub default_game: String,
 }
 
-impl Into<String> for SettingsKey {
-    fn into(self) -> String {
-        match self {
+impl From<SettingsKey> for String {
+    fn from(val: SettingsKey) -> Self {
+        match val {
             SettingsKey::DefaultGame => "default_game".to_string(),
-        }
-    }
-}
-
-impl SettingsKey {
-    pub fn from_str(s: &str) -> Option<Self> {
-        match s {
-            "default_game" => Some(Self::DefaultGame),
-            _ => None,
         }
     }
 }
@@ -43,7 +34,7 @@ impl Default for SettingsStore {
 }
 
 impl SettingsStore {
-    pub fn new(
+    pub fn get_store(
         app_handle: &tauri::AppHandle,
     ) -> Result<Arc<tauri_plugin_store::Store<Wry>>, ErrorCode> {
         let defaults = Self::default()

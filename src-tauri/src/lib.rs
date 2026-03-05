@@ -20,7 +20,7 @@ pub fn run() {
             let default_state = state::app_state::State::default();
             let app_handle = app.handle();
 
-            stores::settings::SettingsStore::new(app_handle)
+            stores::settings::SettingsStore::get_store(app_handle)
                 .expect("Failed to build settings store");
 
             app.manage(Mutex::new(default_state));

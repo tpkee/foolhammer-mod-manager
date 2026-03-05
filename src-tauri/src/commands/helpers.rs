@@ -6,7 +6,7 @@ pub fn get_game_response_from_store(
     app_handler: &tauri::AppHandle,
     game_id: &str,
 ) -> Result<GameResponseDto, ErrorCode> {
-    let store = GameStore::new(app_handler, game_id)?;
+    let store = GameStore::get_store(app_handler, game_id)?;
 
     let game_store = GameResponseDto::from_store(GameStore::from_entries(store.entries())?);
 
@@ -21,7 +21,7 @@ pub fn modify_game<F, T>(
 where
     F: FnOnce(&mut GameStore) -> Result<T, ErrorCode>,
 {
-    let store = GameStore::new(app_handle, game_id)?;
+    let store = GameStore::get_store(app_handle, game_id)?;
     let mut game = GameStore::from_entries(store.entries())?;
 
     let result = modify_fn(&mut game)?;
@@ -59,11 +59,11 @@ where
     F: FnOnce(&mut Profile) -> Result<T, ErrorCode>,
 {
     modify_profiles(app_handle, game_id, |profiles| {
-        let mut profile = profiles
+        let profile = profiles
             .iter_mut()
             .find(|p| p.id == profile_id)
             .ok_or(ErrorCode::NotFound)?;
 
-        modify_fn(&mut profile)
+        modify_fn(profile)
     })
 }

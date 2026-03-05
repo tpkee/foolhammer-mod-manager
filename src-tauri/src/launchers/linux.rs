@@ -47,7 +47,7 @@ impl LinuxLauncher {
     async fn update_or_install(app_handler: &tauri::AppHandle) -> Result<PathBuf, Box<dyn Error>> {
         let launcher_dir = Self::get_launcher_base_path(app_handler)?;
 
-        let launcher = Self::get_runner_release().await.map_err(|e| e)?;
+        let launcher = Self::get_runner_release().await?;
 
         let version_file_path = launcher_dir.join("version");
 
@@ -93,8 +93,7 @@ impl LinuxLauncher {
         let res = ureq::get(
             "https://api.github.com/repos/Open-Wine-Components/umu-launcher/releases/latest",
         )
-        .call()
-        .or_else(|e| Err(e))?
+        .call()?
         .body_mut()
         .read_json::<serde_json::Value>()?;
 
