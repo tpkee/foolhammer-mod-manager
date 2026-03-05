@@ -26,7 +26,7 @@
       ref="mergeModal"
       :game-id="gameId"
       :profile="profile"
-      @merged="$emit('merged')"
+      @merged="emit('merged')"
     />
   </div>
 </template>
@@ -42,7 +42,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-defineEmits<{
+const emit = defineEmits<{
   merged: []
 }>()
 
@@ -137,10 +137,7 @@ async function deleteProfileItem() {
       gameId: gameStore.selectedGame,
       profileId: props.profile.id,
     })
-    if (gameStore.selectedProfile === props.profile.id) {
-      const defaultProfile = gameStore.getProfiles.find(p => p.default && p.id !== props.profile.id)
-      gameStore.setProfile(defaultProfile?.id ?? null)
-    }
+    gameStore.setProfile(null)
     refreshGame()
   }
   catch (error) {

@@ -59,7 +59,6 @@ const listMods = ref<Set<string>>(new Set())
 const otherProfiles = computed(() =>
   gameStore.getProfiles.filter(p => p && p.name !== props.profile.name),
 )
-const refreshGame = inject('refreshGame') as () => void
 const hasSelection = computed(() => listMods.value.size > 0)
 
 async function handleMerge() {
@@ -93,6 +92,7 @@ async function handleMerge() {
 
   try {
     await useTauriInvoke('update_profile', {
+      profileId: props.profile.id!,
       payload: {
         gameId: props.gameId,
         name: props.profile.name,
@@ -103,7 +103,6 @@ async function handleMerge() {
     })
 
     emit('merged')
-    refreshGame()
     close()
   }
   catch (err) {

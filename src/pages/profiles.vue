@@ -26,6 +26,7 @@
         :is-active="profile.name === gameStore.getProfile?.name"
         :game-id="gameStore.selectedGame!"
         :all-profiles="gameStore.getProfiles"
+        @merged="refreshGame()"
       />
     </div>
 
