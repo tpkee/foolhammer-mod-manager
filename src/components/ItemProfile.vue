@@ -68,6 +68,7 @@ const mergeModalRef = useTemplateRef('mergeModal')
 const isDefault = computed(() => gameStore.currentGame?.defaultProfile && gameStore.currentGame?.defaultProfile === props.profile.id)
 const activeMods = computed(() => props.profile.mods?.filter(m => m?.enabled).length ?? 0)
 const totalMods = computed(() => props.profile.mods?.length ?? 0)
+const getProfilesMinusCurrent = computed(() => gameStore.getProfiles.filter(p => p.id !== props.profile.id))
 const getOptions = computed(() => {
   const opts = [
     {
@@ -79,7 +80,7 @@ const getOptions = computed(() => {
       icon: 'mi:layers',
       label: 'Merge from profiles',
       callback: openMergeModal,
-      hide: gameStore.getProfiles.length <= 1,
+      hide: gameStore.getProfiles.length <= 1 || getProfilesMinusCurrent.value.every(p => !p.mods || p.mods.length === 0),
     },
     {
       icon: 'mi:delete',
