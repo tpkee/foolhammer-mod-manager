@@ -94,8 +94,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { ModRequestDto, ModResponseDto, ProfileRequestDto, ProfileResponseDto } from '~/types/dto'
-import { profileResponseToRequest } from '~/utils/dto'
+import type { ModResponseDto, ProfileResponseDto } from '~/types/dto'
 
 // Props
 const props = defineProps<{
@@ -213,7 +212,7 @@ function toggleAllMods() {
 
 async function saveEdits() {
   try {
-    await useTauriInvoke<ModRequestDto[]>('set_profile_mods', { mods: localList.value, profileName: props.profile!.name, gameId: props.gameId })
+    await useTauriInvoke('set_profile_mods', { mods: localList.value, profileId: props.profile!.id, gameId: props.gameId })
     commit()
     emit('refresh')
   }

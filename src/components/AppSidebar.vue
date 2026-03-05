@@ -6,9 +6,9 @@
 
     <div class="flex flex-col gap-1">
       <sidebar-play
-        v-if="gameStore.selectedGame && gameStore.selectedProfile"
+        v-if="gameStore.selectedGame && gameStore.getProfile"
         :current-game="gameStore.selectedGame"
-        :profile-name="gameStore.selectedProfile"
+        :profile="gameStore.getProfile"
       />
 
       <!-- <sidebar-button v-if="currentGame" label="Load from last save" tooltip="Load from last save" @click="playGame">

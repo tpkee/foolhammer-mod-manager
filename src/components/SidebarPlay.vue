@@ -14,11 +14,12 @@
 
 <script lang="ts" setup>
 import type { UnlistenFn } from '@tauri-apps/api/event'
+import type { ProfileResponseDto } from '~/types/dto'
 import type { GameRunnerStatus } from '~/types/GameRunnerStatus'
 
 const props = defineProps<{
   currentGame: string
-  profileName: string
+  profile: ProfileResponseDto
 }>()
 
 // Reactive state
@@ -42,7 +43,7 @@ const getLabel = computed(() => {
     case 'success':
       return `Stop ${getGameName.value}`
     default:
-      return `Play ${getGameName.value} with profile ${props.profileName}`
+      return `Play ${getGameName.value} with profile ${props.profile.name}`
   }
 })
 
@@ -72,7 +73,7 @@ async function playGame() {
   try {
     await useTauriInvoke('start_game', {
       gameId: props.currentGame,
-      profileName: props.profileName,
+      profileId: props.profile.id,
     })
 
     gameStatus.value = 'success'

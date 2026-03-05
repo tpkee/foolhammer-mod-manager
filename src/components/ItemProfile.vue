@@ -54,7 +54,7 @@ const mergeModalRef = useTemplateRef('mergeModal')
 const refreshGame = inject('refreshGame') as () => void
 
 // Computed
-const isDefault = computed(() => gameStore.currentGame?.defaultProfile && gameStore.currentGame?.defaultProfile === props.profile.name)
+const isDefault = computed(() => gameStore.currentGame?.defaultProfile && gameStore.currentGame?.defaultProfile === props.profile.id)
 const getOptions = computed(() => {
   const opts = [
     {
@@ -71,7 +71,7 @@ const getOptions = computed(() => {
     {
       icon: 'mi:delete',
       label: 'Delete',
-      callback: () => props.profile.name ? deleteProfileItem(props.profile.name) : {},
+      callback: deleteProfileItem,
       // hide: isDefault.value,
     },
   ]
@@ -91,7 +91,7 @@ async function handleSetDefault() {
   try {
     await useTauriInvoke('set_default_profile', {
       gameId: props.gameId,
-      profileName: props.profile.name,
+      profileId: props.profile.id,
     })
 
     refreshGame()
@@ -105,7 +105,7 @@ async function handleRename(newName: string) {
   try {
     await useTauriInvoke('rename_profile', {
       gameId: props.gameId,
-      oldName: props.profile.name,
+      profileId: props.profile.id,
       newName,
     })
     refreshGame()
@@ -124,22 +124,22 @@ function openMergeModal() {
 }
 
 async function switchProfile() {
-  if (props.profile.name === gameStore.selectedProfile)
+  if (props.profile.id === gameStore.selectedProfile)
     return
 
-  gameStore.setProfile(props.profile.name)
+  gameStore.setProfile(props.profile.id)
   refreshGame()
 }
 
-async function deleteProfileItem(profileName: string) {
+async function deleteProfileItem() {
   try {
     await useTauriInvoke('delete_profile', {
       gameId: gameStore.selectedGame,
-      profileName,
+      profileId: props.profile.id,
     })
-    if (gameStore.selectedProfile === profileName) {
-      const defaultProfile = gameStore.getProfiles.find(p => p.default && p.name !== profileName)
-      gameStore.setProfile(defaultProfile?.name ?? null)
+    if (gameStore.selectedProfile === props.profile.id) {
+      const defaultProfile = gameStore.getProfiles.find(p => p.default && p.id !== props.profile.id)
+      gameStore.setProfile(defaultProfile?.id ?? null)
     }
     refreshGame()
   }

@@ -122,7 +122,7 @@ function close() {
 async function onSave() {
   try {
     await useTauriInvoke<ModRequestDto[]>('add_profile_mods', {
-      profileName: gameStore.selectedProfile!,
+      profileId: gameStore.selectedProfile!,
       gameId: gameStore.selectedGame!,
       mods: Array.from(selectedMods.value).map(name => ({ name, order: null, enabled: true })),
     })

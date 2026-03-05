@@ -50,14 +50,14 @@ const emit = defineEmits<{
 
 const selectedProfiles = ref<string[]>([])
 
-function isSelected(profileName: string): boolean {
-  return selectedProfiles.value.includes(profileName)
+function isSelected(profileId: string): boolean {
+  return selectedProfiles.value.includes(profileId)
 }
 
-function toggleSelection(profileName: string) {
-  const index = selectedProfiles.value.indexOf(profileName)
+function toggleSelection(profileId: string) {
+  const index = selectedProfiles.value.indexOf(profileId)
   if (index === -1) {
-    selectedProfiles.value.push(profileName)
+    selectedProfiles.value.push(profileId)
   }
   else {
     selectedProfiles.value.splice(index, 1)
@@ -71,8 +71,8 @@ const getProfiles = computed(() => {
 const getUniqueMods = computed(() => {
   const allMods = new Set<string>()
 
-  for (const profileName of selectedProfiles.value) {
-    const profile = props.profiles.find(p => p.name === profileName)
+  for (const profileId of selectedProfiles.value) {
+    const profile = props.profiles.find(p => p.id === profileId)
     const mods = profile?.mods ?? []
     if (profile) {
       for (const mod of mods) {
