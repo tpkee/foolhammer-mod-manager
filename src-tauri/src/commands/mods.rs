@@ -12,10 +12,10 @@ use crate::utils::ErrorCode;
 pub fn set_profile_mods(
     app_handle: tauri::AppHandle,
     game_id: &str,
-    profile_name: &str,
+    profile_id: uuid::Uuid,
     mods: Vec<ModRequestDto>,
 ) -> Result<serde_json::Value, ErrorCode> {
-    modify_profile(&app_handle, game_id, profile_name, |profile| {
+    modify_profile(&app_handle, game_id, profile_id, |profile| {
         profile.mods = mods.into_iter().map(ModInfo::from).collect();
         Ok(serde_json::json!(&profile.mods))
     })
@@ -25,10 +25,10 @@ pub fn set_profile_mods(
 pub fn add_profile_mods(
     app_handle: tauri::AppHandle,
     game_id: &str,
-    profile_name: &str,
+    profile_id: uuid::Uuid,
     mods: Vec<ModRequestDto>,
 ) -> Result<serde_json::Value, ErrorCode> {
-    modify_profile(&app_handle, game_id, profile_name, |profile| {
+    modify_profile(&app_handle, game_id, profile_id, |profile| {
         if profile.manual_mode {
             let old_len = profile.mods.len();
             let new_mods: Vec<ModInfo> = mods
@@ -62,7 +62,7 @@ pub async fn start_game<'a>(
     app_handler: tauri::AppHandle,
     state: AppState<'a>,
     game_id: &str,
-    profile_name: &str,
+    profile_id: uuid::Uuid,
     save_name: Option<&str>,
 ) -> Result<(), ErrorCode> {
     let game_store = get_game_response_from_store(&app_handler, game_id)?;
@@ -70,7 +70,7 @@ pub async fn start_game<'a>(
     let profile = game_store
         .profiles
         .iter()
-        .find(|p| p.name == profile_name)
+        .find(|p| p.id == profile_id)
         .ok_or(ErrorCode::NotFound)?;
 
     let GameResponseDto {

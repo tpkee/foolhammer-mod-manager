@@ -52,7 +52,7 @@ where
 pub fn modify_profile<F, T>(
     app_handle: &tauri::AppHandle,
     game_id: &str,
-    profile_name: &str,
+    profile_id: uuid::Uuid,
     modify_fn: F,
 ) -> Result<T, ErrorCode>
 where
@@ -61,7 +61,7 @@ where
     modify_profiles(app_handle, game_id, |profiles| {
         let mut profile = profiles
             .iter_mut()
-            .find(|p| p.name == profile_name)
+            .find(|p| p.id == profile_id)
             .ok_or(ErrorCode::NotFound)?;
 
         modify_fn(&mut profile)
