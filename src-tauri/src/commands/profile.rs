@@ -25,6 +25,7 @@ pub fn create_profile(
 #[tauri::command]
 pub fn update_profile(
     app_handle: tauri::AppHandle,
+    profile_id: uuid::Uuid,
     payload: ProfileRequestDto,
 ) -> Result<serde_json::Value, ErrorCode> {
     println!("Updating profile: {:?}", payload);
@@ -33,7 +34,7 @@ pub fn update_profile(
     modify_profiles(&app_handle, &game_id, |profiles| {
         let idx = profiles
             .iter()
-            .position(|p| p.name == payload.name)
+            .position(|p| p.id == profile_id)
             .ok_or(ErrorCode::NotFound)?;
 
         let profile = Profile::from(payload);
@@ -47,7 +48,7 @@ pub fn update_profile(
 pub fn rename_profile(
     app_handle: tauri::AppHandle,
     game_id: &str,
-    old_name: &str,
+    profile_id: uuid::Uuid,
     new_name: &str,
 ) -> Result<serde_json::Value, ErrorCode> {
     modify_profiles(&app_handle, game_id, |profiles| {
@@ -57,7 +58,7 @@ pub fn rename_profile(
 
         let profile = profiles
             .iter_mut()
-            .find(|p| p.name == old_name)
+            .find(|p| p.id == profile_id)
             .ok_or(ErrorCode::NotFound)?;
 
         profile.name = new_name.to_string();
@@ -70,18 +71,18 @@ pub fn rename_profile(
 pub fn set_default_profile(
     app_handle: tauri::AppHandle,
     game_id: &str,
-    profile_name: &str,
+    profile_id: uuid::Uuid,
 ) -> Result<(), ErrorCode> {
     modify_game(&app_handle, game_id, |game| {
-        if game.default_profile.as_deref() == Some(profile_name) {
+        if game.default_profile == Some(profile_id) {
             return Ok(());
         }
 
-        if !game.profiles.iter().any(|p| p.name == profile_name) {
+        if !game.profiles.iter().any(|p| p.id == profile_id) {
             return Err(ErrorCode::NotFound);
         }
 
-        game.default_profile = Some(profile_name.to_string());
+        game.default_profile = Some(profile_id);
 
         Ok(())
     })
@@ -91,12 +92,12 @@ pub fn set_default_profile(
 pub fn delete_profile(
     app_handle: tauri::AppHandle,
     game_id: &str,
-    profile_name: &str,
+    profile_id: uuid::Uuid,
 ) -> Result<(), ErrorCode> {
     modify_profiles(&app_handle, game_id, |profiles| {
         let idx = profiles
             .iter()
-            .position(|p| p.name == profile_name)
+            .position(|p| p.id == profile_id)
             .ok_or(ErrorCode::NotFound)?;
 
         profiles.remove(idx);

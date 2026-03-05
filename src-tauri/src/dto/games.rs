@@ -13,7 +13,7 @@ use crate::{
 pub struct GameResponseDto {
     pub mods: Vec<PackResponseDto>, // populated at runtime
     pub profiles: Vec<ProfileResponseDto>,
-    pub default_profile: Option<String>,
+    pub default_profile: Option<uuid::Uuid>,
     pub game_id: String,
     pub game_path: PathBuf,
     pub saves_path: Option<PathBuf>,
@@ -46,7 +46,7 @@ impl GameResponseDto {
             mods: Self::mods_to_dto(&mods),
             default_profile: store.default_profile.or(profiles
                 .first()
-                .and_then(|profile| Some(profile.name.clone()))),
+                .and_then(|profile| Some(profile.id.clone()))),
             profiles,
         }
     }

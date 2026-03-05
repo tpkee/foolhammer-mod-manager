@@ -7,6 +7,7 @@ use crate::{
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfileResponseDto {
+    pub id: uuid::Uuid,
     pub name: String, // name must be unique across profiles, but not necessarily across games
     pub mods: Vec<ModResponseDto>,
     pub manual_mode: bool,
@@ -19,6 +20,7 @@ impl ProfileResponseDto {
         let mapped_mods = Self::map_mods_to_dto(&mut profile, &game_mods);
 
         Self {
+            id: profile.id,
             mods: mapped_mods,
             name: profile.name,
             manual_mode: profile.manual_mode,

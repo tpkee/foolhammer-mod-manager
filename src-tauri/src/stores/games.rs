@@ -22,12 +22,13 @@ pub struct GameStore {
     pub saves_path: Option<PathBuf>,
     pub mods_path: PathBuf,
     pub profiles: Vec<Profile>,
-    pub default_profile: Option<String>,
+    pub default_profile: Option<uuid::Uuid>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Profile {
+    pub id: uuid::Uuid,
     pub name: String,
     pub mods: Vec<ModInfo>,
     pub manual_mode: bool,
@@ -54,6 +55,7 @@ impl From<ModRequestDto> for ModInfo {
 impl From<ProfileRequestDto> for Profile {
     fn from(dto: ProfileRequestDto) -> Self {
         Self {
+            id: uuid::Uuid::new_v4(),
             name: dto.name,
             mods: dto
                 .mods
@@ -125,8 +127,8 @@ impl GameStore {
             game_path,
             saves_path,
             mods_path,
-            profiles: vec![default_profile],
-            default_profile: Some(default_profile_name),
+            profiles: vec![default_profile.clone()],
+            default_profile: Some(default_profile.id),
         })
     }
 
