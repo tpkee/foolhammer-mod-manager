@@ -117,6 +117,11 @@ const emit = defineEmits<{
   save: [GameSettings]
 }>()
 
+// TODO: big todo. I forgot to add a way to load existing settings for inactive games, so this will only work for the current game.
+
+// stores
+const gameStore = useGameStore()
+
 const { t } = useI18n()
 
 const modalRef = ref()
@@ -160,10 +165,10 @@ function handleSubmit() {
 
 function resetForm() {
   form.value = {
-    gamePath: null,
-    steamWorkshopPath: null,
-    savesPath: null,
-    modsPath: null,
+    gamePath: gameStore.currentGame?.gamePath ?? null,
+    steamWorkshopPath: gameStore.currentGame?.workshopPath ?? null,
+    savesPath: gameStore.currentGame?.savesPath ?? null,
+    modsPath: gameStore.currentGame?.modsPath ?? null,
   }
 }
 
