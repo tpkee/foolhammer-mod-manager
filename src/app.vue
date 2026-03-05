@@ -20,8 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import type { GameResponseDto } from './types/dto'
-import type { SettingsResponseDto } from './types/dto/settings'
+import type { GameResponseDto, SettingsResponseDto } from '~/types/dto'
 
 // Stores
 const settingsStore = useSettingsStore()
