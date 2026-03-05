@@ -37,7 +37,7 @@
             Selected mods ({{ selectedMods.size }})
           </p>
 
-          <div v-if="selectedMods.size" class="max-h-80 overflow-y-auto">
+          <div v-if="selectedMods.size" class="max-h-80 min-h-16 overflow-y-auto">
             <button
               v-for="(mod, index) in selectedMods" :key="index"
               class="w-full flex items-center justify-between gap-2.5 px-2.5 py-0.5 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800/70 transition-colors"

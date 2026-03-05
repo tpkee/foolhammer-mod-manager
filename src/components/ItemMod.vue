@@ -102,7 +102,7 @@ async function deleteFromProfile() {
       gameStore.selectedGame!,
     )
 
-    await useTauriInvoke('update_profile', { payload: profileRequest })
+    await useTauriInvoke('update_profile', { profileId: profile.id, payload: profileRequest })
     emit('refresh')
   }
   catch (err) {
