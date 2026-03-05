@@ -1,7 +1,7 @@
 use crate::commands::helpers::{get_game_response_from_store, modify_game};
 use crate::defaults::games::{DefaultGameInfo, SUPPORTED_GAMES};
 use crate::dto::games::{GameRequestDto, GameResponseDto};
-use crate::state::app_state;
+use crate::state::AppState;
 use crate::utils::ErrorCode;
 use std::path::PathBuf;
 
@@ -48,7 +48,7 @@ pub fn get_saves(game_id: &str) -> Result<Vec<String>, ErrorCode> {
 // getting a game will also start its watchers.
 pub async fn get_game(
     app_handle: tauri::AppHandle,
-    app_state: app_state::AppState<'_>,
+    app_state: AppState<'_>,
     game_id: &str,
 ) -> Result<serde_json::Value, ErrorCode> {
     let game_response = get_game_response_from_store(&app_handle, game_id)?;
@@ -67,7 +67,7 @@ pub async fn get_game(
 #[tauri::command]
 pub async fn update_game(
     app_handle: tauri::AppHandle,
-    app_state: app_state::AppState<'_>,
+    app_state: AppState<'_>,
     game_id: &str,
     payload: GameRequestDto,
 ) -> Result<(), ErrorCode> {
@@ -85,7 +85,7 @@ pub async fn update_game(
 }
 
 async fn start_game_watchers(
-    app_state: app_state::AppState<'_>,
+    app_state: AppState<'_>,
     mods_folder: PathBuf,
     workshop_folder: &Option<PathBuf>,
     saves_folder: &Option<PathBuf>,
@@ -102,5 +102,5 @@ async fn start_game_watchers(
 
     let mut state = app_state.lock().await;
 
-    state.set_watchers(&folders);
+    state.folder_watcher.set_watchers(&folders);
 }

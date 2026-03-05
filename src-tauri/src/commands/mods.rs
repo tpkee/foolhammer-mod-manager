@@ -1,12 +1,13 @@
-use crate::commands::helpers::{get_game_response_from_store, modify_profile};
-use crate::dto::games::GameResponseDto;
-use crate::dto::mods::ModRequestDto;
-use crate::join_path;
-use crate::launchers::{GameManager, linux::LinuxLauncher};
-use crate::mods;
-use crate::state::app_state::AppState;
-use crate::stores::games::ModInfo;
-use crate::utils::ErrorCode;
+use crate::{
+    commands::helpers::{get_game_response_from_store, modify_profile},
+    dto::{games::GameResponseDto, mods::ModRequestDto},
+    join_path,
+    launchers::{GameManager, linux::LinuxLauncher},
+    mods,
+    state::AppState,
+    stores::games::ModInfo,
+    utils::ErrorCode,
+};
 
 #[tauri::command]
 pub fn set_profile_mods(

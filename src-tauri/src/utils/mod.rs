@@ -2,6 +2,7 @@ use tauri::Emitter;
 use ureq::Body;
 
 pub mod custom_macro;
+pub mod folder_watcher;
 pub mod path;
 
 #[derive(Debug, serde::Serialize)]
