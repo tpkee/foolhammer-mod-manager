@@ -15,20 +15,20 @@ pub struct ProfileResponseDto {
 
 impl ProfileResponseDto {
     pub fn new(mut profile: games::Profile, game_mods: &[Pack]) -> Self {
-        profile.mods.sort_mods(|m| &m.name);
-
-        let mapped_mods = Self::map_mods_to_dto(&mut profile, game_mods);
+        let mods = Self::map_mods_to_dto(&mut profile, game_mods);
 
         Self {
             id: profile.id,
-            mods: mapped_mods,
             name: profile.name,
             manual_mode: profile.manual_mode,
+            mods,
         }
     }
 
     fn map_mods_to_dto(profile: &mut games::Profile, mods: &[Pack]) -> Vec<ModResponseDto> {
         if !profile.manual_mode {
+            profile.mods.sort_mods(|m| &m.name);
+
             for i in 0..profile.mods.len() {
                 profile.mods[i].order = (u32::try_from(i)
                     .expect("u32 overflow, it wasn't possible to convert usize to u32"))
