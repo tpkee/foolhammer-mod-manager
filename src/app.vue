@@ -38,6 +38,10 @@ const { data: userSettings, refresh: refreshUserSettings } = await useAsyncData<
   default: () => null,
 })
 
+// Non reactive state
+const unlistenUserSettings = useTauriListener('update_user_settings', _e => refreshUserSettings())
+const unlistenRefreshGame = useTauriListener('refresh_game', _e => gameStore.fetchGame())
+
 // Watchers
 watch(userSettings, (newSettings) => {
   settingsStore.setSettings(newSettings)
@@ -48,9 +52,6 @@ watch(userSettings, (newSettings) => {
 }, { immediate: true })
 
 // Misc
-const unlistenUserSettings = useTauriListener('update_user_settings', _e => refreshUserSettings())
-const unlistenRefreshGame = useTauriListener('refresh_game', _e => console.log('ciaoooooo refresheeed'))
-
 useHeadSafe({
   htmlAttrs: {
     lang: locale.value,
