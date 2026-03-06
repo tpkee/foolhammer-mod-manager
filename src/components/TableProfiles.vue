@@ -50,7 +50,7 @@ const columns: AppTableColumn[] = [
   { key: 'select', label: '', span: 1 },
   { key: 'name', label: 'Name', span: 6 },
   { key: 'activeMods', label: 'Active Mods', span: 4 },
-  { key: 'actions', label: '', span: 1 },
+  { key: 'actions', label: '', span: 1, cellClass: 'justify-self-end' },
 ]
 
 // Reactive state

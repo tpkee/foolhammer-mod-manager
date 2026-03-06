@@ -25,7 +25,7 @@
     </template>
 
     <template #actions>
-      <app-options class="justify-self-end" :options="getOptions" />
+      <app-options :options="getOptions" />
     </template>
   </table-row>
 
