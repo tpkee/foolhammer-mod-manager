@@ -24,9 +24,8 @@ impl State {
 fn watcher_sentry(event: Result<Event, notify::Error>, app_handle: &AppHandle) {
     match event {
         Ok(e) => match e.kind {
-            notify::EventKind::Create(_)
             // notify::EventKind::Modify(_)
-            | notify::EventKind::Remove(_) => {
+            notify::EventKind::Create(_) | notify::EventKind::Remove(_) => {
                 folders_governor(e, app_handle);
             }
             _ => {}
