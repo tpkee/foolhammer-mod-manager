@@ -1,7 +1,7 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::{
-    dto::{packs::PackResponseDto, profiles::ProfileResponseDto},
+    dto::{packs::PackResponseDto, profiles::ProfileResponseDto, saves::SaveResponseDto},
     mods::pack,
     resolve_existing_path,
     stores::games,
@@ -21,6 +21,7 @@ pub struct GameRequestDto {
 pub struct GameResponseDto {
     pub mods: Vec<PackResponseDto>, // populated at runtime
     pub profiles: Vec<ProfileResponseDto>,
+    pub saves: Vec<SaveResponseDto>, // TODO: implement saves
     pub default_profile: Option<uuid::Uuid>,
     pub game_id: String,
     pub game_path: PathBuf,
@@ -45,18 +46,40 @@ impl GameResponseDto {
             .map(|profile| ProfileResponseDto::new(profile, &mods))
             .collect();
 
+        let saves = match &store.saves_path {
+            Some(path) => Self::get_saves(path),
+            None => vec![],
+        };
+
         Self {
             game_id: store.game_id,
             game_path: store.game_path,
             saves_path: store.saves_path,
             mods_path: store.mods_path,
             workshop_path,
+            saves,
             mods: Self::mods_to_dto(&mods),
             default_profile: store
                 .default_profile
                 .or(profiles.first().map(|profile| profile.id)),
             profiles,
         }
+    }
+
+    fn get_saves(folder_path: &Path) -> Vec<SaveResponseDto> {
+        let Ok(paths) = std::fs::read_dir(folder_path) else {
+            eprintln!("Failed to read saves directory: {:?}", folder_path);
+            return vec![];
+        };
+
+        if let Ok(saves) = paths
+            .map(|res| res.map(|e| e.path()))
+            .collect::<Result<Vec<_>, std::io::Error>>()
+        {
+            return saves.into_iter().map(SaveResponseDto::new).collect();
+        }
+
+        vec![]
     }
 
     fn mods_to_dto(mods: &[pack::Pack]) -> Vec<PackResponseDto> {
