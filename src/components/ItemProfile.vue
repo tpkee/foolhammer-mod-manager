@@ -1,10 +1,6 @@
 <!-- eslint-disable vue-a11y/no-static-element-interactions -->
 <template>
-  <div
-    class="grid grid-cols-12 p-2.5 items-center gap-2.5 text-left"
-    @click.right.prevent.stop="refOptions?.open()"
-    @keydown.esc.prevent.stop="refOptions?.close()"
-  >
+  <div class="grid grid-cols-12 p-2.5 items-center gap-2.5 text-left">
     <div class="col-span-1 flex justify-center">
       <app-radio
         :model-value="isActive"
@@ -24,7 +20,7 @@
       {{ activeMods }}/{{ totalMods }}
     </div>
 
-    <app-options ref="dropdown" class="justify-self-end" :options="getOptions" />
+    <app-options class="justify-self-end" :options="getOptions" />
 
     <modal-rename-profile
       ref="modal"
@@ -56,8 +52,6 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   refresh: []
 }>()
-
-const refOptions = useTemplateRef('dropdown')
 
 const gameStore = useGameStore()
 
