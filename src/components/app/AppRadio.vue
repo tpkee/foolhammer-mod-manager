@@ -1,5 +1,5 @@
 <template>
-  <label :for="uid" class="flex items-center gap-1.5 cursor-pointer" :class="attrs.class">
+  <label :for="uid" class="flex items-center gap-1.5 cursor-pointer" :class="attrs.class as any">
     <input
       :id="uid"
       v-model="modelValue"

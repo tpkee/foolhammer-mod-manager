@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-2.5">
-    <app-input v-model="search" placeholder="Search..." type="search" class="w-full" label="Search" />
+    <app-input v-model="search" placeholder="Search..." type="search" class="w-full block" label="Search" />
 
     <app-table :columns="columns" :list="filteredProfiles">
       <template #default="{ columns: cols }">
