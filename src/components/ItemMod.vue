@@ -28,8 +28,8 @@
         </template>
       </app-tooltip>
     </div>
-    <div class="flex items-center gap-2.5 col-span-5">
-      <div class="size-9 rounded">
+    <div class="flex items-center gap-2.5 col-span-5 min-w-0">
+      <div class="size-9 shrink-0 rounded">
         <img v-if="getImage" :src="getImage" alt="" class="size-10 rounded-[inherit] object-contain">
         <div v-else class="size-[inherit] rounded-[inherit] bg-gray-700" />
       </div>
@@ -42,7 +42,23 @@
         {{ getLastUpdate }}
       </time>
     </div>
-    <app-options class="justify-self-end" :options="getOptions" />
+    <div class="flex items-center justify-end gap-1.5">
+      <app-tooltip v-if="errors && errors.length > 0">
+        <nuxt-icon name="mi:warning" class="size-5 shrink-0 text-red-400 align-middle block" />
+        <template #content>
+          <ul class="text-xs space-y-1 max-w-56 list-disc">
+            <li
+              v-for="error in errors"
+              :key="error.type"
+              class="flex items-start gap-1.5"
+            >
+              {{ error.message }}
+            </li>
+          </ul>
+        </template>
+      </app-tooltip>
+      <app-options :options="getOptions" />
+    </div>
   </div>
 </template>
 
@@ -58,6 +74,7 @@ const props = defineProps<{
   lastUpdated: Nullable<string>
   canEnable?: boolean
   canReorder?: boolean
+  errors?: ModError[]
 }>()
 
 // Emits

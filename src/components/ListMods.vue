@@ -71,6 +71,7 @@
                 :image="data.image"
                 :can-enable="data.canEnable"
                 :can-reorder="data.canEnable && profile?.manualMode"
+                :errors="getModErrors.get(data.name!) ?? []"
 
                 @status="changeStatus(data.name!, $event)" @order="changeOrder(data.name!, $event)"
                 @refresh="emit('refresh')"
@@ -187,6 +188,31 @@ watch(() => getList.value, (value) => {
   localList.value = value.map(m => ({ ...m })) // Shallow clone to trigger reactivity on properties
   commit()
 }, { immediate: true, deep: true })
+
+const getModErrors = computed(() => {
+  const errors = new Map<string, ModError[]>()
+
+  // Duplicate order detection
+  const orderGroups = new Map<number, string[]>()
+  for (const mod of localList.value) {
+    if (mod.order != null && mod.name) {
+      const names = orderGroups.get(mod.order) ?? []
+      names.push(mod.name)
+      orderGroups.set(mod.order, names)
+    }
+  }
+  for (const [order, names] of orderGroups) {
+    if (names.length > 1) {
+      for (const name of names) {
+        const modErrors = errors.get(name) ?? []
+        modErrors.push({ type: 'duplicate_order', message: `Duplicate order number: ${order}` })
+        errors.set(name, modErrors)
+      }
+    }
+  }
+
+  return errors
+})
 
 // Composables
 const { list: virtualizedList, containerProps, wrapperProps } = useVirtualList(
