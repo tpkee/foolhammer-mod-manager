@@ -27,6 +27,9 @@
                 <app-button @click="toggleAllMods()">
                   Toggle All mods
                 </app-button>
+                <app-button @click="toggleManualMode()">
+                  {{ profile?.manualMode ? 'Disable' : 'Enable' }} manual mode
+                </app-button>
               </div>
             </div>
           </template>
@@ -61,8 +64,14 @@
               :style="{ height: `${ITEM_HEIGHT}px` }"
             >
               <item-mod
-                :order="data.order" :enabled="Boolean(data.enabled)" :name="data.name!"
-                :last-updated="data.lastUpdated" :image="data.image" :can-enable="data.canEnable"
+                v-model:order="data.order"
+                v-model:enabled="data.enabled!"
+                :name="data.name!"
+                :last-updated="data.lastUpdated"
+                :image="data.image"
+                :can-enable="data.canEnable"
+                :can-reorder="data.canEnable && profile?.manualMode"
+
                 @status="changeStatus(data.name!, $event)" @order="changeOrder(data.name!, $event)"
                 @refresh="emit('refresh')"
               />
@@ -203,6 +212,16 @@ const getMissingMods = computed(() => {
 })
 
 // Functions
+async function toggleManualMode() {
+  try {
+    await useTauriInvoke('toggle_manual_mode', { profileId: props.profile!.id, gameId: props.gameId })
+    emit('refresh')
+  }
+  catch (error) {
+    console.error('Failed to toggle manual mode:', error)
+  }
+}
+
 function toggleAllMods() {
   const toggle = !localList.value.every(mod => mod.enabled)
   localList.value.forEach((mod: ModResponseDto) => {

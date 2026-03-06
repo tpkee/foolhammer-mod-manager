@@ -1,20 +1,28 @@
-<!-- eslint-disable vue-a11y/no-static-element-interactions -->
 <template>
-  <div
-    class="grid grid-cols-12 p-2.5 items-center gap-2.5 text-left"
-    @click.right.prevent.stop="refOptions?.open()"
-    @keydown.esc.prevent.stop="refOptions?.close()"
-  >
+  <div class="grid grid-cols-12 p-2.5 items-center gap-2.5 text-left">
     <div class="flex items-center gap-2.5 col-span-2">
       <button class="cursor-grab active:cursor-move text-left disabled:pointer-events-none" :disabled="!canReorder">
         <nuxt-icon name="mi:reorder" class="size-6" />
         <span class="sr-only">Drag</span>
       </button>
-      <app-input :model-value="order" :disabled="!canReorder" label="Order number" sr-only-label type="number" :min="1" class="w-20" @update:model-value="emit('order', $event)" />
+      <app-input
+        v-model="order"
+        :disabled="!canReorder"
+        label="Order number"
+        sr-only-label
+        type="number"
+        :min="1"
+        class="w-20"
+      />
     </div>
     <div>
       <app-tooltip :content="name" :disabled="canEnable">
-        <app-checkbox :model-value="enabled" label="Is enabled?" sr-only-label :disabled="!canEnable" @update:model-value="emit('status', $event)" />
+        <app-checkbox
+          v-model="enabled"
+          label="Is enabled?"
+          sr-only-label
+          :disabled="!canEnable"
+        />
         <template #content>
           It's not possible to enable this mod, probably the file doesn't exist in the disk anymore
         </template>
@@ -34,7 +42,7 @@
         {{ getLastUpdate }}
       </time>
     </div>
-    <app-options ref="dropdown" class="justify-self-end" :options="getOptions" />
+    <app-options class="justify-self-end" :options="getOptions" />
   </div>
 </template>
 
@@ -59,8 +67,8 @@ const emit = defineEmits<{
   refresh: []
 }>()
 
-// template refs
-const refOptions = useTemplateRef('dropdown')
+const order = defineModel<Nullable<number>>('order', { required: true })
+const enabled = defineModel<Nullable<boolean>>('enabled', { default: false })
 
 // Store
 const gameStore = useGameStore()
