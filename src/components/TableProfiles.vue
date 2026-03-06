@@ -4,7 +4,7 @@
 
     <app-table :columns="columns" :list="filteredProfiles">
       <template #default="{ columns: cols }">
-        <div v-bind="containerProps" class="relative max-h-[80svh]">
+        <div v-bind="containerProps" class="relative overflow-y-auto">
           <div v-bind="wrapperProps">
             <div
               v-for="({ data }, index) of virtualizedList"

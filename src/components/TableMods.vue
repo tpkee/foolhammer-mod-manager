@@ -39,7 +39,7 @@
 
     <app-table :columns="columns" :list="getList">
       <template #default="{ items, columns: cols }">
-        <div ref="containerList" class="relative max-h-[80svh] overflow-y-auto">
+        <div ref="containerList" class="relative overflow-y-auto">
           <div
             v-for="data of items"
             :key="data.name"

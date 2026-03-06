@@ -11,7 +11,7 @@
         class="shrink"
       >
         <app-sidebar
-          class="relative overflow-hidden"
+          class="sticky top-0 overflow-hidden"
           :games="listSupportedGames"
         />
       </div>
