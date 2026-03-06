@@ -59,6 +59,7 @@ watch(userSettings, (newSettings) => {
 
 // Misc
 const unlistenUserSettings = useTauriListener('update_user_settings', _e => refreshUserSettings())
+const unlistenRefreshGame = useTauriListener('refresh_game', _e => console.log('ciaoooooo refresheeed'))
 
 useHeadSafe({
   htmlAttrs: {
@@ -68,5 +69,10 @@ useHeadSafe({
 provide('refreshGame', refresh) // TODO: why did i do this? Am i stupid? Yes.
 
 // Lifecycle hooks
-onUnmounted(unlistenUserSettings)
+onBeforeUnmount(() => {
+  const unlisten = (promise: Promise<() => void>) => promise.then(unlisten => unlisten())
+
+  unlisten(unlistenUserSettings)
+  unlisten(unlistenRefreshGame)
+})
 </script>
