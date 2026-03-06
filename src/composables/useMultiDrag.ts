@@ -2,16 +2,21 @@ import Sortable, { MultiDrag } from 'sortablejs'
 
 Sortable.mount(new MultiDrag())
 
+interface Options {
+  enabled: MaybeRefOrGetter<boolean>
+  onDragEnd: (event: Sortable.SortableEvent) => void
+}
+
 export function useMultiDrag(
   el: MaybeRefOrGetter<Nullable<HTMLElement>>,
-  enabled: MaybeRefOrGetter<boolean>,
-  onDragEnd: (event: Sortable.SortableEvent) => void,
+  options?: Partial<Options>,
 ) {
+  const { enabled, onDragEnd } = options ?? {}
   const instance = shallowRef<Nullable<Sortable>>(null)
 
   watch(() => toValue(el), (elValue) => {
     if (elValue) {
-      instance.value = initSortable(elValue, onDragEnd)
+      instance.value = initSortable(elValue, onDragEnd ?? (() => {}))
       instance.value.option('disabled', !toValue(enabled))
     }
     else {

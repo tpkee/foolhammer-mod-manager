@@ -37,33 +37,18 @@
       </div>
     </div>
 
-    <div class="border overflow-hidden rounded border-gray-700 overflow-x-auto md:overflow-x-hidden">
-      <div
-        class="grid grid-cols-12 p-2.5 border border-gray-800 items-center gap-2.5 text-left [&>p]:whitespace-nowrap bg-gray-800 w-[400%] sm:w-[125%] md:w-full"
-      >
-        <p class="flex items-center gap-2.5 col-span-2">
-          Order
-        </p>
-        <p>
-          Enabled?
-        </p>
-        <p class="col-span-5 ml-11">
-          Pack
-        </p>
-        <p class="col-span-3">
-          Last update
-        </p>
-      </div>
-      <div>
+    <app-table :columns="columns" :list="getList">
+      <template #default="{ items, columns: cols }">
         <div ref="containerList" class="relative max-h-[80svh] overflow-y-auto">
           <div
-            v-for="data of getLocalList"
+            v-for="data of items"
             :key="data.name"
-            class="group w-[400%] sm:w-[125%] md:w-full"
+            class="group"
           >
             <item-mod
               v-model:order="data.order"
               v-model:enabled="data.enabled!"
+              :columns="cols"
               :name="data.name!"
               :last-updated="data.lastUpdated"
               :image="data.image"
@@ -71,14 +56,15 @@
               :can-reorder="data.canEnable && profile?.manualMode"
               :can-drag="isDragEnabled"
               :errors="getModErrors.get(data.name!) ?? []"
-              @status="changeStatus(data.name!, $event)" @order="changeOrder(data.name!, $event)"
+              @status="changeStatus(data.name!, $event)"
+              @order="changeOrder(data.name!, $event)"
               @refresh="emit('refresh')"
             />
-            <hr class="h-px mx-2.5 border-gray-800 group-last:border-none select-none" aria-hidden="true">
+            <div class="h-px mx-2.5 bg-gray-800 group-last:bg-transparent select-none" :aria-hidden="true" />
           </div>
         </div>
-      </div>
-    </div>
+      </template>
+    </app-table>
   </div>
 
   <!-- TODO: when adding new mods ask for confirmation if there are edits, and allow the user to undo/save em before proceedin -->
@@ -102,6 +88,7 @@
 
 <script lang="ts" setup>
 import type Sortable from 'sortablejs'
+import type { AppTableColumn } from '~/types/common/AppTable'
 import type { ModResponseDto, ProfileResponseDto } from '~/types/dto'
 
 // Props
@@ -112,16 +99,14 @@ const props = defineProps<{
 }>()
 
 // Emits
-const emit = defineEmits<{
-  refresh: []
-}>()
+const emit = defineEmits<{ refresh: [] }>()
+
+// Store
+const gameStore = useGameStore()
 
 // Template refs
 const refModalMod = useTemplateRef('modalMod')
 const refContainerList = useTemplateRef('containerList')
-
-// Stores
-const gameStore = useGameStore()
 
 // Non-reactive state
 const sortOptions = [
@@ -136,72 +121,51 @@ const orderOptions = [
 ]
 
 // Reactive state
-const filters = ref({
-  search: '',
-  sortBy: 'order',
-  sortOrder: 'desc',
-})
+const filters = ref({ search: '', sortBy: 'order', sortOrder: 'desc' })
 const localList = ref<ModResponseDto[]>([])
-const isDragEnabled = computed(() => !!(props.profile?.manualMode) && filters.value.sortBy === 'order')
-useMultiDrag(refContainerList, isDragEnabled, handleDragEnd)
-
-const {
-  snapshots,
-  undo,
-  redo,
-  commit,
-  cancel,
-  canUndo,
-  canRedo,
-} = useHistory(localList)
+const { snapshots, undo, redo, commit, cancel, canUndo, canRedo } = useHistory(localList)
 
 // Computed
-const getList = computed(() => Array.isArray(props.list) ? props.list : [])
-const getLocalList = computed(() => {
-  const search = filters.value.search.toLowerCase()
-
-  const checkTransformed = (x: string | undefined) => !x || x.toLowerCase().includes(search.replace(/ /g, '_'))
-  const checkNormal = (x: string | undefined) => !x || x.toLowerCase().includes(search)
-  const check = (x: string | undefined) => checkTransformed(x) || checkNormal(x)
-
-  const sorted = localList.value.filter(item => Boolean(item.name) && check(item.name))
-    .sort((a, b) => {
-      switch (filters.value.sortBy) {
-        case 'order':
-          return (a.order ?? 0) - (b.order ?? 0)
-        case 'name':
-          return a.name!.localeCompare(b.name!)
-        case 'lastUpdate':
-          if (!a.lastUpdated || !b.lastUpdated)
-            return 0
-
-          return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
-        default:
-          return 0
-      }
-    })
-
-  return filters.value.sortOrder === 'asc' ? sorted.reverse() : sorted
-})
 const hasEdits = computed(() => snapshots.value.length > 1)
+const isDragEnabled = computed(() => !!(props.profile?.manualMode) && filters.value.sortBy === 'order')
+const columns = computed<AppTableColumn[]>(() => [
+  { key: 'order', label: 'Order', span: isDragEnabled.value ? 2 : 1, headerClass: isDragEnabled.value ? 'ml-9' : '' },
+  { key: 'enabled', label: 'Enabled?', span: 1 },
+  { key: 'pack', label: 'Pack', span: 5 },
+  { key: 'lastUpdate', label: 'Last update', span: 3 },
+  { key: 'actions', label: '' },
+])
 const getMissingMods = computed(() => {
-  const profileModNames = new Set(
-    localList.value
-      .reduce<string[]>((acc, mod) => {
-        if (mod.name) {
-          acc.push(mod.name)
-        }
-
-        return acc
-      }, []),
-  )
-
+  const profileModNames = new Set(localList.value.flatMap(mod => mod.name ? [mod.name] : []))
   return gameStore.getGameMods.filter(mod => mod.name && !profileModNames.has(mod.name))
 })
+const getList = computed(() => {
+  const search = filters.value.search.toLowerCase()
+  const { sortBy, sortOrder } = filters.value
+  const dir = sortOrder === 'asc' ? -1 : 1
 
+  return localList.value
+    .filter((item) => {
+      if (!item.name)
+        return false
+      const name = item.name.toLowerCase()
+      return name.includes(search.replace(/ /g, '_')) || name.includes(search)
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'order': return ((a.order ?? 0) - (b.order ?? 0)) * dir
+        case 'name': return a.name!.localeCompare(b.name!) * dir
+        case 'lastUpdate': {
+          if (!a.lastUpdated || !b.lastUpdated)
+            return 0
+          return (new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()) * dir
+        }
+        default: return 0
+      }
+    })
+})
 const getModErrors = computed(() => {
   const errors = new Map<string, ModError[]>()
-
   const orderGroups = new Map<number, string[]>()
   for (const mod of localList.value) {
     if (mod.order != null && mod.name) {
@@ -219,12 +183,11 @@ const getModErrors = computed(() => {
       }
     }
   }
-
   return errors
 })
 
-// watchers
-watch(() => getList.value, (value) => {
+// Watchers
+watch(() => props.list, (value) => {
   localList.value = value.map(m => ({ ...m }))
   commit()
 }, { immediate: true, deep: true })
@@ -259,45 +222,43 @@ async function saveEdits() {
 }
 
 function changeStatus(name: string, value: boolean) {
-  const modIndex = localList.value.findIndex((m: ModResponseDto) => m.name === name)
-  if (modIndex !== -1) {
-    localList.value[modIndex]!.enabled = value
-  }
+  const mod = localList.value.find((m: ModResponseDto) => m.name === name)
+  if (mod)
+    mod.enabled = value
 }
 
 function changeOrder(name: string, value: number) {
-  const modIndex = localList.value.findIndex((m: ModResponseDto) => m.name === name)
-  if (modIndex !== -1) {
-    localList.value[modIndex]!.order = value
-  }
+  const mod = localList.value.find((m: ModResponseDto) => m.name === name)
+  if (mod)
+    mod.order = value
 }
 
-function handleDragEnd(event: Sortable.SortableEvent) {
-  const orderedNames = getLocalList.value.map(m => m.name!)
+// Misc
+useMultiDrag(refContainerList, {
+  enabled: false,
+  onDragEnd(event: Sortable.SortableEvent) {
+    const orderedNames = getList.value.map(m => m.name!)
 
-  // Normalize single/multi drag into a unified format
-  const moves = event.oldIndicies?.length
-    ? event.oldIndicies.map((old, i) => ({ oldIndex: old.index, newIndex: event.newIndicies![i]!.index }))
-    : [{ oldIndex: event.oldIndex!, newIndex: event.newIndex! }]
+    const moves = event.oldIndicies?.length
+      ? event.oldIndicies.map((old, i) => ({ oldIndex: old.index, newIndex: event.newIndicies![i]!.index }))
+      : [{ oldIndex: event.oldIndex!, newIndex: event.newIndex! }]
 
-  const movedNames = moves.map(m => orderedNames[m.oldIndex]!)
+    const movedNames = moves.map(m => orderedNames[m.oldIndex]!)
 
-  // Remove from old positions (high-to-low to preserve indices)
-  for (const { oldIndex } of [...moves].sort((a, b) => b.oldIndex - a.oldIndex))
-    orderedNames.splice(oldIndex, 1)
+    for (const { oldIndex } of [...moves].sort((a, b) => b.oldIndex - a.oldIndex))
+      orderedNames.splice(oldIndex, 1)
 
-  // Insert at new positions (low-to-high to preserve indices)
-  const insertions = movedNames.map((name, i) => ({ name, newIndex: moves[i]!.newIndex }))
-  for (const { name, newIndex } of insertions.sort((a, b) => a.newIndex - b.newIndex))
-    orderedNames.splice(newIndex, 0, name)
+    const insertions = movedNames.map((name, i) => ({ name, newIndex: moves[i]!.newIndex }))
+    for (const { name, newIndex } of insertions.sort((a, b) => a.newIndex - b.newIndex))
+      orderedNames.splice(newIndex, 0, name)
 
-  // Reassign consecutive order values (1-indexed)
-  orderedNames.forEach((name, i) => {
-    const mod = localList.value.find(m => m.name === name)
-    if (mod)
-      mod.order = i + 1
-  })
-}
+    orderedNames.forEach((name, i) => {
+      const mod = localList.value.find(m => m.name === name)
+      if (mod)
+        mod.order = i + 1
+    })
+  },
+})
 </script>
 
 <style>
