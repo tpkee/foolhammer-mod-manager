@@ -60,7 +60,6 @@
             v-for="data of getLocalList"
             :key="data.name"
             class="group w-[400%] sm:w-[125%] md:w-full"
-            :style="{ height: `${ITEM_HEIGHT}px` }"
           >
             <item-mod
               v-model:order="data.order"
@@ -125,7 +124,6 @@ const refContainerList = useTemplateRef('containerList')
 const gameStore = useGameStore()
 
 // Non-reactive state
-const ITEM_HEIGHT = 60 // px
 const sortOptions = [
   { value: '', label: 'Sort by', disabled: true, selected: true },
   { value: 'order', label: 'Order' },
