@@ -3,6 +3,7 @@ use tauri::{Manager, async_runtime::Mutex};
 pub mod commands;
 pub mod defaults;
 pub mod dto;
+pub mod events;
 pub mod launchers;
 pub mod mods;
 pub mod state;
@@ -17,10 +18,11 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         // .manage(Mutex::new())
         .setup(move |app| {
-            let app_handle = app.handle().clone();
+            let app_handle = app.handle();
+
             let default_state = state::State::new(app_handle.clone());
 
-            stores::settings::SettingsStore::get_store(&app_handle)
+            stores::settings::SettingsStore::get_store(app_handle)
                 .expect("Failed to build settings store");
 
             app.manage(Mutex::new(default_state));

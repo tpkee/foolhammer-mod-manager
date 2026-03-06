@@ -1,4 +1,5 @@
 use crate::dto::settings::UserSettingsResponseDto;
+use crate::events::AppEvent;
 use crate::stores::settings::{SettingsKey, SettingsStore};
 use crate::utils::ErrorCode;
 use tauri::Emitter;
@@ -26,7 +27,7 @@ pub async fn set_default_game(
     })?;
 
     app_handle
-        .emit("update_user_settings", ())
+        .emit(AppEvent::UpdateUserSettings.into(), ())
         .expect("Failed to emit update_user_settings event");
 
     Ok(())

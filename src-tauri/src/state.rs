@@ -1,6 +1,6 @@
-use crate::{launchers::GameManager, utils::folder_watcher};
+use crate::{events::AppEvent, launchers::GameManager, utils::folder_watcher};
 use notify::Event;
-use tauri::async_runtime::Mutex;
+use tauri::{AppHandle, Emitter, async_runtime::Mutex};
 
 pub struct State {
     pub game_runner: Option<Box<dyn GameManager>>,
@@ -10,8 +10,8 @@ pub struct State {
 pub type AppState<'a> = tauri::State<'a, Mutex<State>>;
 
 impl State {
-    pub fn new() -> Self {
-        let watcher = notify::recommended_watcher(move |event| watcher_sentry(event))
+    pub fn new(app_handle: AppHandle) -> Self {
+        let watcher = notify::recommended_watcher(move |event| watcher_sentry(event, &app_handle))
             .expect("Failed to create watcher for State");
 
         Self {
@@ -21,13 +21,13 @@ impl State {
     }
 }
 
-fn watcher_sentry(event: Result<Event, notify::Error>) {
+fn watcher_sentry(event: Result<Event, notify::Error>, app_handle: &AppHandle) {
     match event {
         Ok(e) => match e.kind {
             notify::EventKind::Create(_)
-            | notify::EventKind::Modify(_)
+            // notify::EventKind::Modify(_)
             | notify::EventKind::Remove(_) => {
-                folders_governor(e);
+                folders_governor(e, app_handle);
             }
             _ => {}
         },
@@ -37,7 +37,10 @@ fn watcher_sentry(event: Result<Event, notify::Error>) {
     }
 }
 
-fn folders_governor(event: Event) {
+fn folders_governor(event: Event, app_handle: &AppHandle) {
     // TODO: should rescan and do things based on the folder path
     println!("Folder event detected: {:?}", event);
+    app_handle
+        .emit(AppEvent::RefreshGame.into(), ())
+        .expect("It wasn't possible to emit the event");
 }
