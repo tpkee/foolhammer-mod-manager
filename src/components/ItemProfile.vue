@@ -1,47 +1,55 @@
 <!-- eslint-disable vue-a11y/no-static-element-interactions -->
 <template>
-  <div class="grid grid-cols-12 p-2.5 items-center gap-2.5 text-left">
-    <div class="col-span-1 flex justify-center">
-      <app-radio
-        :model-value="isActive"
-        :name="`profile-select-${gameId}`"
-        label="Select profile"
-        sr-only-label
-        @click="switchProfile"
-      />
-    </div>
+  <table-row :columns="columns">
+    <template #select>
+      <div class="flex justify-center">
+        <app-radio
+          :model-value="isActive"
+          :name="`profile-select-${gameId}`"
+          label="Select profile"
+          sr-only-label
+          @click="switchProfile"
+        />
+      </div>
+    </template>
 
-    <div class="col-span-6 flex items-center gap-2 min-w-0">
-      <span class="font-medium truncate">{{ profile.name }}</span>
-      <span v-if="isDefault" class="text-xs px-2 py-0.5 bg-purple-600 rounded shrink-0">Default</span>
-    </div>
+    <template #name>
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="font-medium truncate">{{ profile.name }}</span>
+        <span v-if="isDefault" class="text-xs px-2 py-0.5 bg-purple-600 rounded shrink-0">Default</span>
+      </div>
+    </template>
 
-    <div class="col-span-4 text-sm text-gray-400">
-      {{ activeMods }}/{{ totalMods }}
-    </div>
+    <template #activeMods>
+      <span class="text-sm text-gray-400">{{ activeMods }}/{{ totalMods }}</span>
+    </template>
 
-    <app-options class="justify-self-end" :options="getOptions" />
+    <template #actions>
+      <app-options class="justify-self-end" :options="getOptions" />
+    </template>
+  </table-row>
 
-    <modal-rename-profile
-      ref="modal"
-      :game-id="gameId"
-      :current-name="profile.name!"
-      @save="handleRename"
-    />
+  <modal-rename-profile
+    ref="modal"
+    :game-id="gameId"
+    :current-name="profile.name!"
+    @save="handleRename"
+  />
 
-    <modal-merge-profile
-      ref="mergeModal"
-      :game-id="gameId"
-      :profile="profile"
-      @merged="emit('refresh')"
-    />
-  </div>
+  <modal-merge-profile
+    ref="mergeModal"
+    :game-id="gameId"
+    :profile="profile"
+    @merged="emit('refresh')"
+  />
 </template>
 
 <script lang="ts" setup>
+import type { AppTableColumn } from '~/types/common/AppTable'
 import type { ProfileResponseDto } from '~/types/dto/profiles'
 
 interface Props {
+  columns: AppTableColumn[]
   profile: ProfileResponseDto
   isActive: boolean
   gameId: string

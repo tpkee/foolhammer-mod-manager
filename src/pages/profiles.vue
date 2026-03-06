@@ -18,7 +18,7 @@
       </app-button>
     </div>
 
-    <list-profiles
+    <table-profiles
       :profiles="gameStore.getProfiles"
       :game-id="gameStore.selectedGame!"
       @refresh="gameStore.fetchGame"
