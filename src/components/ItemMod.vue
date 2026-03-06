@@ -40,7 +40,6 @@
 
 <script lang="ts" setup>
 import { convertFileSrc } from '@tauri-apps/api/core'
-import { profileResponseToRequest } from '~/utils/dto'
 
 // Props
 const props = defineProps<{
@@ -94,21 +93,8 @@ const getOptions = computed(() => {
 })
 
 async function deleteFromProfile() {
-  const profile = gameStore.getProfile
-  const profileMods = gameStore.getProfileMods
-
-  if (!profile)
-    return
-
   try {
-    const updatedMods = profileMods.filter(m => m.name !== props.name)
-
-    const profileRequest = profileResponseToRequest(
-      { ...profile, mods: updatedMods },
-      gameStore.selectedGame!,
-    )
-
-    await useTauriInvoke('update_profile', { profileId: profile.id, payload: profileRequest })
+    await useTauriInvoke('remove_profile_mods', { gameId: gameStore.selectedGame, profileId: gameStore.selectedProfile, mods: [props.name] })
     emit('refresh')
   }
   catch (err) {
