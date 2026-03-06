@@ -21,14 +21,14 @@
     <list-profiles
       :profiles="gameStore.getProfiles"
       :game-id="gameStore.selectedGame!"
-      @refresh="refreshGame()"
+      @refresh="gameStore.fetchGame"
     />
 
     <modal-create-profile
       ref="createModalRef"
       :game-id="gameStore.selectedGame!"
       :existing-profile-names="getProfileNames"
-      @created="refreshGame()"
+      @created="gameStore.fetchGame"
     />
   </div>
 </template>
@@ -39,6 +39,4 @@ const gameStore = useGameStore()
 const createModalRef = useTemplateRef('createModalRef')
 
 const getProfileNames = computed(() => gameStore.getProfiles.map(p => p.name))
-
-const refreshGame = inject('refreshGame') as () => void
 </script>
