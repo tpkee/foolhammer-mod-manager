@@ -1,11 +1,11 @@
 import Sortable, { MultiDrag } from 'sortablejs'
 
-Sortable.mount(new MultiDrag())
-
 interface Options {
   enabled: MaybeRefOrGetter<boolean>
   onDragEnd: (event: Sortable.SortableEvent) => void
 }
+
+Sortable.mount(new MultiDrag())
 
 export function useMultiDrag(
   el: MaybeRefOrGetter<Nullable<HTMLElement>>,
