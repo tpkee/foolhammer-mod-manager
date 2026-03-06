@@ -81,3 +81,16 @@ pub fn delete_profile(
         Ok(())
     })
 }
+
+#[tauri::command]
+pub fn toggle_manual_mode(
+    app_handle: tauri::AppHandle,
+    game_id: &str,
+    profile_id: uuid::Uuid,
+) -> Result<(), ErrorCode> {
+    modify_profile(&app_handle, game_id, profile_id, |profile| {
+        profile.manual_mode = !profile.manual_mode;
+
+        Ok(())
+    })
+}
