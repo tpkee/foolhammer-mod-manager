@@ -181,3 +181,24 @@ async fn start_game_watchers(
 
     state.folder_watcher.set_watchers(&folders);
 }
+
+#[tauri::command]
+pub fn set_default_profile(
+    app_handle: tauri::AppHandle,
+    game_id: &str,
+    profile_id: uuid::Uuid,
+) -> Result<(), ErrorCode> {
+    modify_game(&app_handle, game_id, |game| {
+        if game.default_profile == Some(profile_id) {
+            return Ok(());
+        }
+
+        if !game.profiles.iter().any(|p| p.id == profile_id) {
+            return Err(ErrorCode::NotFound);
+        }
+
+        game.default_profile = Some(profile_id);
+
+        Ok(())
+    })
+}

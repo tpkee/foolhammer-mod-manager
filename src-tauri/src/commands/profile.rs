@@ -1,4 +1,4 @@
-use crate::commands::helpers::{modify_game, modify_profiles};
+use crate::commands::helpers::{modify_profile, modify_profiles};
 use crate::dto::profiles::ProfileRequestDto;
 use crate::stores::games::Profile;
 use crate::utils::ErrorCode;
@@ -30,14 +30,12 @@ pub fn update_profile(
 ) -> Result<serde_json::Value, ErrorCode> {
     let game_id = payload.game_id.clone();
 
-    modify_profiles(&app_handle, &game_id, |profiles| {
-        let idx = profiles
-            .iter()
-            .position(|p| p.id == profile_id)
-            .ok_or(ErrorCode::NotFound)?;
+    modify_profile(&app_handle, &game_id, profile_id, |profile| {
+        if profile.name != payload.name {
+            return Err(ErrorCode::Conflict);
+        }
 
-        let profile = Profile::from_dto(Some(profile_id), payload);
-        profiles[idx] = profile.clone();
+        *profile = Profile::from_dto(Some(profile_id), payload);
 
         Ok(serde_json::json!(profile))
     })
@@ -63,27 +61,6 @@ pub fn rename_profile(
         profile.name = new_name.to_string();
 
         Ok(serde_json::json!(&*profile))
-    })
-}
-
-#[tauri::command]
-pub fn set_default_profile(
-    app_handle: tauri::AppHandle,
-    game_id: &str,
-    profile_id: uuid::Uuid,
-) -> Result<(), ErrorCode> {
-    modify_game(&app_handle, game_id, |game| {
-        if game.default_profile == Some(profile_id) {
-            return Ok(());
-        }
-
-        if !game.profiles.iter().any(|p| p.id == profile_id) {
-            return Err(ErrorCode::NotFound);
-        }
-
-        game.default_profile = Some(profile_id);
-
-        Ok(())
     })
 }
 

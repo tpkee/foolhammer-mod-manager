@@ -36,7 +36,7 @@ pub fn run() {
             commands::game::get_game,
             commands::profile::update_profile,
             commands::profile::rename_profile,
-            commands::profile::set_default_profile,
+            commands::game::set_default_profile,
             commands::profile::delete_profile,
             commands::mods::set_profile_mods,
             commands::mods::add_profile_mods,
