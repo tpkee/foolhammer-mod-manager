@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import type { GameResponseDto, SettingsResponseDto } from '~/types/dto'
+import type { SettingsResponseDto } from '~/types/dto'
 
 // Stores
 const settingsStore = useSettingsStore()
@@ -38,17 +38,7 @@ const { data: userSettings, refresh: refreshUserSettings } = await useAsyncData<
   default: () => null,
 })
 
-const { data: game, refresh } = await useAsyncData<Nullable<GameResponseDto>>(() => useTauriInvoke('get_game', { gameId: gameStore.selectedGame }), {
-  default: () => null,
-  watch: [() => gameStore.selectedGame],
-  immediate: false,
-})
-
 // Watchers
-watch(game, () => {
-  gameStore.setGame(game.value)
-}, { immediate: true })
-
 watch(userSettings, (newSettings) => {
   settingsStore.setSettings(newSettings)
 
@@ -66,7 +56,6 @@ useHeadSafe({
     lang: locale.value,
   },
 })
-provide('refreshGame', refresh) // TODO: why did i do this? Am i stupid? Yes.
 
 // Lifecycle hooks
 onBeforeUnmount(() => {

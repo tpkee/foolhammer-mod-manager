@@ -1,55 +1,82 @@
 import type { GameResponseDto, ModResponseDto, PackResponseDto, ProfileResponseDto } from '~/types/dto'
 
-interface GameStore {
-  selectedGame: Nullable<string> // TODO: Potentially refactor this, there shouldn't be a need to store the gameId separately from the game object (maybe for background updates and stuff? idk)
-  selectedProfile: Nullable<string>
-  currentGame: Nullable<GameResponseDto>
-}
-export const useGameStore = defineStore('gameStore', {
-  state: (): GameStore => ({
-    selectedGame: null,
-    selectedProfile: null,
-    currentGame: null,
-  }),
-  getters: {
-    getProfiles(state): ProfileResponseDto[] {
-      return transformToNonNullable(state.currentGame?.profiles)
-    },
-    getProfile(): Nullable<ProfileResponseDto> {
-      return this.getProfiles.find(profile => profile?.id && profile.id === this.selectedProfile)
-    },
-    // returns the mods for the active profile
-    getProfileMods(): ModResponseDto[] {
-      return transformToNonNullable(this.getProfile?.mods)
-    },
-    // returns all the mods available for the current game
-    getGameMods(state): PackResponseDto[] {
-      return transformToNonNullable(state.currentGame?.mods)
-    },
-  },
-  actions: {
-    setGameId(gameId: Nullable<string>) {
-      if (!gameId) {
-        this.setGame(null)
-        return
-      }
-      this.selectedGame = gameId
-    },
-    setProfile(profileId: Nullable<string>) {
-      this.selectedProfile = profileId
-    },
-    setGame(game: Nullable<GameResponseDto>) {
-      this.currentGame = game
+export const useGameStore = defineStore('gameStore', () => {
+  const selectedGame = ref<Nullable<string>>(null)
+  const selectedProfile = ref<Nullable<string>>(null)
+  const currentGame = ref<Nullable<GameResponseDto>>(null)
 
-      if (!game) {
-        this.selectedProfile = null
-        return
-      }
+  // Getters
+  const getProfiles = computed<ProfileResponseDto[]>(() =>
+    transformToNonNullable(currentGame.value?.profiles),
+  )
 
-      this.setProfile(this.selectedProfile ?? game.defaultProfile ?? null)
-    },
-  },
+  const getProfile = computed<Nullable<ProfileResponseDto>>(() =>
+    getProfiles.value.find(profile => profile?.id && profile.id === selectedProfile.value),
+  )
+
+  const getProfileMods = computed<ModResponseDto[]>(() =>
+    transformToNonNullable(getProfile.value?.mods),
+  )
+
+  const getGameMods = computed<PackResponseDto[]>(() =>
+    transformToNonNullable(currentGame.value?.mods),
+  )
+
+  // Actions
+  function setProfile(profileId: Nullable<string>) {
+    selectedProfile.value = profileId
+  }
+
+  function setGame(game: Nullable<GameResponseDto>) {
+    currentGame.value = game
+
+    if (!game) {
+      selectedProfile.value = null
+      return
+    }
+
+    setProfile(selectedProfile.value ?? game.defaultProfile ?? null)
+  }
+
+  async function fetchGame() {
+    try {
+      const game = await useTauriInvoke<Nullable<GameResponseDto>>('get_game', { gameId: selectedGame.value })
+      setGame(game)
+    }
+    catch (e) {
+      setGame(null)
+      console.error(e)
+    }
+  }
+
+  function setGameId(gameId: Nullable<string>) {
+    selectedGame.value = gameId
+  }
+
+  watch(selectedGame, (gameId) => {
+    if (gameId) {
+      fetchGame()
+    }
+    else {
+      setGame(null)
+    }
+  })
+
+  return {
+    selectedGame,
+    selectedProfile,
+    currentGame,
+    getProfiles,
+    getProfile,
+    getProfileMods,
+    getGameMods,
+    setGameId,
+    setProfile,
+    setGame,
+    fetchGame,
+  }
 })
+
 
 function transformToNonNullable<T>(array: Nullable<T[]>): NonNullable<T>[] {
   if (!array)
