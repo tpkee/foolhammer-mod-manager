@@ -4,24 +4,19 @@
       <sidebar-game v-for="(item, index) of games" :id="item" :key="index" :current-game="gameStore.selectedGame" />
     </div>
 
-    <div class="flex flex-col gap-1">
+    <div v-if="gameStore.selectedGame && gameStore.getProfile" class="flex flex-col gap-1">
       <sidebar-play
-        v-if="gameStore.selectedGame && gameStore.getProfile"
         :current-game="gameStore.selectedGame"
         :profile="gameStore.getProfile"
       />
-
-      <!-- <sidebar-button v-if="currentGame" label="Load from last save" tooltip="Load from last save" @click="playGame">
-        <nuxt-icon name="mi:next" class="size-10" />
-      </sidebar-button> -->
+      <sidebar-continue v-if="gameStore.getSaves.length" :saves="gameStore.getSaves" />
     </div>
 
+    <!--
     <div class="grid gap-2.5">
-      <sidebar-profile
-        v-if="gameStore.selectedGame"
-        :current-profile="gameStore.getProfile"
-      />
+      TODO: add settings and shit
     </div>
+    -->
   </div>
 </template>
 

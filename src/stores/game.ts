@@ -1,4 +1,4 @@
-import type { GameResponseDto, ModResponseDto, PackResponseDto, ProfileResponseDto } from '~/types/dto'
+import type { GameResponseDto, ModResponseDto, PackResponseDto, ProfileResponseDto, SaveResponseDto } from '~/types/dto'
 
 export const useGameStore = defineStore('gameStore', () => {
   const selectedGame = ref<Nullable<string>>(null)
@@ -20,6 +20,10 @@ export const useGameStore = defineStore('gameStore', () => {
 
   const getGameMods = computed<PackResponseDto[]>(() =>
     transformToNonNullable(currentGame.value?.mods),
+  )
+
+  const getSaves = computed<SaveResponseDto[]>(() =>
+    transformToNonNullable(currentGame.value?.saves),
   )
 
   // Actions
@@ -70,13 +74,13 @@ export const useGameStore = defineStore('gameStore', () => {
     getProfile,
     getProfileMods,
     getGameMods,
+    getSaves,
     setGameId,
     setProfile,
     setGame,
     fetchGame,
   }
 })
-
 
 function transformToNonNullable<T>(array: Nullable<T[]>): NonNullable<T>[] {
   if (!array)
