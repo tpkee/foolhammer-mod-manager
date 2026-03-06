@@ -91,15 +91,10 @@ async function handleMerge() {
   }
 
   try {
-    await useTauriInvoke('update_profile', {
+    await useTauriInvoke('set_profile_mods', {
       profileId: props.profile.id!,
-      payload: {
-        gameId: props.gameId,
-        name: props.profile.name,
-        default: props.profile.default,
-        manualMode: props.profile.manualMode,
-        mods,
-      },
+      gameId: props.gameId,
+      mods,
     })
 
     emit('merged')
