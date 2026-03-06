@@ -1,8 +1,10 @@
 use crate::commands::helpers::{get_game_response_from_store, modify_game};
 use crate::defaults::games::{DefaultGameInfo, SUPPORTED_GAMES};
 use crate::dto::games::{GameRequestDto, GameResponseDto};
+use crate::launchers::{GameManager, linux::LinuxLauncher};
 use crate::state::AppState;
 use crate::utils::ErrorCode;
+use crate::{join_path, mods};
 use std::path::PathBuf;
 
 #[tauri::command]
@@ -42,6 +44,81 @@ pub fn get_saves(game_id: &str) -> Result<Vec<String>, ErrorCode> {
         .collect();
 
     Ok(entries)
+}
+
+#[tauri::command]
+pub async fn stop_game<'a>(state: AppState<'a>) -> Result<(), ErrorCode> {
+    let mut local_state = state.lock().await;
+    local_state.game_runner.take().unwrap().kill_game().unwrap();
+
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn start_game<'a>(
+    app_handler: tauri::AppHandle,
+    state: AppState<'a>,
+    game_id: &str,
+    profile_id: uuid::Uuid,
+    save_name: Option<&str>,
+) -> Result<(), ErrorCode> {
+    let game_store = get_game_response_from_store(&app_handler, game_id)?;
+
+    let profile = game_store
+        .profiles
+        .iter()
+        .find(|p| p.id == profile_id)
+        .ok_or(ErrorCode::NotFound)?;
+
+    let GameResponseDto {
+        game_path,
+        saves_path,
+        mods_path,
+        workshop_path,
+        game_id,
+        ..
+    } = game_store;
+
+    let savegame_path = save_name
+        .zip(saves_path.as_ref())
+        .map(|(name, saves)| saves.join(name))
+        .filter(|path| {
+            if !path.exists() {
+                eprintln!(
+                    "Save game '{}' not found in saves directory. Ignoring save name.",
+                    path.display()
+                );
+            }
+            path.exists()
+        });
+
+    let txt_path = join_path!(&game_path, "used_mods.txt");
+
+    println!("TODO: Using save game path: {:?}", savegame_path);
+
+    if !game_path.exists() {
+        return Err(ErrorCode::InternalError);
+    }
+
+    let mod_writer = mods::writer::ModWriter::new(&profile.mods, &mods_path, &workshop_path);
+
+    mod_writer
+        .write(txt_path)
+        .expect("It wasn't possible to write the mod file");
+
+    let mut runner = if cfg!(target_os = "linux") {
+        LinuxLauncher::new(&app_handler).await
+    } else {
+        unimplemented!("Game launching is only implemented for Linux at the moment");
+    };
+
+    let _ = runner.launch_game(&game_id, &game_path, savegame_path.as_ref());
+
+    let mut state = state.lock().await;
+
+    state.game_runner = Some(Box::new(runner));
+
+    Ok(())
 }
 
 #[tauri::command]
