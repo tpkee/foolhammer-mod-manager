@@ -43,3 +43,16 @@ pub fn add_profile_mods(
         Ok(serde_json::json!(&profile.mods))
     })
 }
+
+#[tauri::command]
+pub fn remove_profile_mods(
+    app_handle: tauri::AppHandle,
+    game_id: &str,
+    profile_id: uuid::Uuid,
+    mods: Vec<String>,
+) -> Result<serde_json::Value, ErrorCode> {
+    modify_profile(&app_handle, game_id, profile_id, |profile| {
+        profile.mods.retain(|m| !mods.contains(&m.name));
+        Ok(serde_json::json!(&profile.mods))
+    })
+}

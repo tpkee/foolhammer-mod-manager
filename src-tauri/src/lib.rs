@@ -40,6 +40,7 @@ pub fn run() {
             commands::profile::delete_profile,
             commands::mods::set_profile_mods,
             commands::mods::add_profile_mods,
+            commands::mods::remove_profile_mods,
             commands::game::start_game,
             commands::game::stop_game,
             commands::game::get_saves,
