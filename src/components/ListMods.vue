@@ -18,9 +18,9 @@
             <div class="p-2.5">
               <div class="grid gap-1.5">
                 <app-button
-                  v-if="modalModRef"
+                  v-if="refModalMod"
                   v-show="getMissingMods.length"
-                  @click="modalModRef.open()"
+                  @click="refModalMod.open()"
                 >
                   Add mods to profile
                 </app-button>
@@ -41,11 +41,9 @@
       <div
         class="grid grid-cols-12 p-2.5 border border-gray-800 items-center gap-2.5 text-left [&>p]:whitespace-nowrap bg-gray-800 w-[400%] sm:w-[125%] md:w-full"
       >
-        <div class="flex items-center gap-2.5 col-span-2">
-          <p class="ml-9">
-            Order
-          </p>
-        </div>
+        <p class="flex items-center gap-2.5 col-span-2">
+          Order
+        </p>
         <p>
           Enabled?
         </p>
@@ -57,27 +55,27 @@
         </p>
       </div>
       <div>
-        <div v-bind="containerProps" class="relative max-h-[80svh]">
-          <div v-bind="wrapperProps">
-            <div
-              v-for="({ data }, index) of virtualizedList" :key="index" class="group w-[400%] sm:w-[125%] md:w-full"
-              :style="{ height: `${ITEM_HEIGHT}px` }"
-            >
-              <item-mod
-                v-model:order="data.order"
-                v-model:enabled="data.enabled!"
-                :name="data.name!"
-                :last-updated="data.lastUpdated"
-                :image="data.image"
-                :can-enable="data.canEnable"
-                :can-reorder="data.canEnable && profile?.manualMode"
-                :errors="getModErrors.get(data.name!) ?? []"
-
-                @status="changeStatus(data.name!, $event)" @order="changeOrder(data.name!, $event)"
-                @refresh="emit('refresh')"
-              />
-              <hr class="h-px mx-2.5 border-gray-800 group-last:border-none select-none" aria-hidden="true">
-            </div>
+        <div ref="containerList" class="relative max-h-[80svh] overflow-y-auto">
+          <div
+            v-for="data of getLocalList"
+            :key="data.name"
+            class="group w-[400%] sm:w-[125%] md:w-full"
+            :style="{ height: `${ITEM_HEIGHT}px` }"
+          >
+            <item-mod
+              v-model:order="data.order"
+              v-model:enabled="data.enabled!"
+              :name="data.name!"
+              :last-updated="data.lastUpdated"
+              :image="data.image"
+              :can-enable="data.canEnable"
+              :can-reorder="data.canEnable && profile?.manualMode"
+              :can-drag="isDragEnabled"
+              :errors="getModErrors.get(data.name!) ?? []"
+              @status="changeStatus(data.name!, $event)" @order="changeOrder(data.name!, $event)"
+              @refresh="emit('refresh')"
+            />
+            <hr class="h-px mx-2.5 border-gray-800 group-last:border-none select-none" aria-hidden="true">
           </div>
         </div>
       </div>
@@ -86,7 +84,7 @@
 
   <!-- TODO: when adding new mods ask for confirmation if there are edits, and allow the user to undo/save em before proceedin -->
   <modal-mod
-    ref="modalModRef"
+    ref="modalMod"
     :mods="getMissingMods"
     @save="emit('refresh')"
   />
@@ -104,6 +102,7 @@
 </template>
 
 <script lang="ts" setup>
+import type Sortable from 'sortablejs'
 import type { ModResponseDto, ProfileResponseDto } from '~/types/dto'
 
 // Props
@@ -119,7 +118,8 @@ const emit = defineEmits<{
 }>()
 
 // Template refs
-const modalModRef = useTemplateRef('modalModRef')
+const refModalMod = useTemplateRef('modalMod')
+const refContainerList = useTemplateRef('containerList')
 
 // Stores
 const gameStore = useGameStore()
@@ -144,6 +144,8 @@ const filters = ref({
   sortOrder: 'desc',
 })
 const localList = ref<ModResponseDto[]>([])
+const isDragEnabled = computed(() => !!(props.profile?.manualMode) && filters.value.sortBy === 'order')
+useMultiDrag(refContainerList, isDragEnabled, handleDragEnd)
 
 const {
   snapshots,
@@ -183,16 +185,25 @@ const getLocalList = computed(() => {
 
   return filters.value.sortOrder === 'asc' ? sorted.reverse() : sorted
 })
+const hasEdits = computed(() => snapshots.value.length > 1)
+const getMissingMods = computed(() => {
+  const profileModNames = new Set(
+    localList.value
+      .reduce<string[]>((acc, mod) => {
+        if (mod.name) {
+          acc.push(mod.name)
+        }
 
-watch(() => getList.value, (value) => {
-  localList.value = value.map(m => ({ ...m })) // Shallow clone to trigger reactivity on properties
-  commit()
-}, { immediate: true, deep: true })
+        return acc
+      }, []),
+  )
+
+  return gameStore.getGameMods.filter(mod => mod.name && !profileModNames.has(mod.name))
+})
 
 const getModErrors = computed(() => {
   const errors = new Map<string, ModError[]>()
 
-  // Duplicate order detection
   const orderGroups = new Map<number, string[]>()
   for (const mod of localList.value) {
     if (mod.order != null && mod.name) {
@@ -214,28 +225,11 @@ const getModErrors = computed(() => {
   return errors
 })
 
-// Composables
-const { list: virtualizedList, containerProps, wrapperProps } = useVirtualList(
-  getLocalList,
-  {
-    itemHeight: ITEM_HEIGHT,
-  },
-)
-const hasEdits = computed(() => snapshots.value.length > 1)
-const getMissingMods = computed(() => {
-  const profileModNames = new Set(
-    localList.value
-      .reduce<string[]>((acc, mod) => {
-        if (mod.name) {
-          acc.push(mod.name)
-        }
-
-        return acc
-      }, []),
-  )
-
-  return gameStore.getGameMods.filter(mod => mod.name && !profileModNames.has(mod.name))
-})
+// watchers
+watch(() => getList.value, (value) => {
+  localList.value = value.map(m => ({ ...m }))
+  commit()
+}, { immediate: true, deep: true })
 
 // Functions
 async function toggleManualMode() {
@@ -279,4 +273,55 @@ function changeOrder(name: string, value: number) {
     localList.value[modIndex]!.order = value
   }
 }
+
+function handleDragEnd(event: Sortable.SortableEvent) {
+  const orderedNames = getLocalList.value.map(m => m.name!)
+
+  // Normalize single/multi drag into a unified format
+  const moves = event.oldIndicies?.length
+    ? event.oldIndicies.map((old, i) => ({ oldIndex: old.index, newIndex: event.newIndicies![i]!.index }))
+    : [{ oldIndex: event.oldIndex!, newIndex: event.newIndex! }]
+
+  const movedNames = moves.map(m => orderedNames[m.oldIndex]!)
+
+  // Remove from old positions (high-to-low to preserve indices)
+  for (const { oldIndex } of [...moves].sort((a, b) => b.oldIndex - a.oldIndex))
+    orderedNames.splice(oldIndex, 1)
+
+  // Insert at new positions (low-to-high to preserve indices)
+  const insertions = movedNames.map((name, i) => ({ name, newIndex: moves[i]!.newIndex }))
+  for (const { name, newIndex } of insertions.sort((a, b) => a.newIndex - b.newIndex))
+    orderedNames.splice(newIndex, 0, name)
+
+  // Reassign consecutive order values (1-indexed)
+  orderedNames.forEach((name, i) => {
+    const mod = localList.value.find(m => m.name === name)
+    if (mod)
+      mod.order = i + 1
+  })
+}
 </script>
+
+<style>
+.drag-highlight {
+  border-left: 2px solid var(--color-purple-600);
+}
+
+.sortable-fallback {
+  display: none !important;
+}
+
+.is-dragging,
+.is-dragging * {
+  cursor: grabbing !important;
+}
+
+.is-dragging input,
+.is-dragging button,
+.is-dragging label,
+.is-dragging a,
+.is-dragging [role='checkbox'] {
+  pointer-events: none;
+  user-select: none;
+}
+</style>

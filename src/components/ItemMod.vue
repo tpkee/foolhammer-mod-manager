@@ -1,19 +1,25 @@
 <template>
   <div class="grid grid-cols-12 p-2.5 items-center gap-2.5 text-left">
-    <div class="flex items-center gap-2.5 col-span-2">
-      <button class="cursor-grab active:cursor-move text-left disabled:pointer-events-none" :disabled="!canReorder">
+    <div class="flex items-center col-span-2">
+      <span
+        class="drag-handle cursor-grab active:cursor-move overflow-hidden transition-all duration-300 ease-in-out"
+        :class="canDrag ? 'max-w-8 opacity-100 mr-2.5' : 'max-w-0 opacity-0 pointer-events-none'"
+      >
         <nuxt-icon name="mi:reorder" class="size-6" />
         <span class="sr-only">Drag</span>
-      </button>
+      </span>
       <app-input
+        v-if="canReorder"
         v-model="order"
-        :disabled="!canReorder"
         label="Order number"
         sr-only-label
         type="number"
         :min="1"
         class="w-20"
       />
+      <strong v-else class="inline-flex items-center gap-1 tabular-nums text-gray-400">
+        <span class="text-gray-600 text-xs select-none font-light" aria-hidden>#</span>{{ order }}
+      </strong>
     </div>
     <div>
       <app-tooltip :content="name" :disabled="canEnable">
@@ -74,6 +80,7 @@ const props = defineProps<{
   lastUpdated: Nullable<string>
   canEnable?: boolean
   canReorder?: boolean
+  canDrag?: boolean
   errors?: ModError[]
 }>()
 
