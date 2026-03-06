@@ -1,10 +1,14 @@
-use crate::commands::helpers::{get_game_response_from_store, modify_game};
-use crate::defaults::games::{DefaultGameInfo, SUPPORTED_GAMES};
-use crate::dto::games::{GameRequestDto, GameResponseDto};
-use crate::launchers::{GameManager, linux::LinuxLauncher};
-use crate::state::AppState;
-use crate::utils::ErrorCode;
-use crate::{join_path, mods};
+use crate::{
+    commands::helpers::{get_game_response_from_store, modify_game, modify_profile},
+    defaults::games::{DefaultGameInfo, SUPPORTED_GAMES},
+    dto::games::{GameRequestDto, GameResponseDto},
+    join_path,
+    launchers::{GameManager, linux::LinuxLauncher},
+    mods,
+    state::AppState,
+    utils::ErrorCode,
+};
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 #[tauri::command]
@@ -129,6 +133,30 @@ pub async fn get_game(
     game_id: &str,
 ) -> Result<serde_json::Value, ErrorCode> {
     let game_response = get_game_response_from_store(&app_handle, game_id)?;
+
+    if let Some(profile_id) = game_response.default_profile {
+        let response_mods: HashMap<&String, u32> = game_response
+            .profiles
+            .iter()
+            .find(|p| p.id == profile_id)
+            .ok_or(ErrorCode::NotFound)?
+            .mods
+            .iter()
+            .map(|m| (&m.name, m.order))
+            .collect();
+
+        modify_profile(&app_handle, game_id, profile_id, |profile| {
+            if !profile.manual_mode {
+                for profile_mod in &mut profile.mods {
+                    if let Some(order) = response_mods.get(&profile_mod.name) {
+                        profile_mod.order = *order;
+                    }
+                }
+            }
+
+            Ok(())
+        })?;
+    }
 
     start_game_watchers(
         app_state,
