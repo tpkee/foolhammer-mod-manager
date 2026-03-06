@@ -35,5 +35,5 @@ pub const SUPPORTED_GAMES: [DefaultGameInfo; 1] = [DefaultGameInfo {
     game_id: "1142710",
     executable_name: "Warhammer3.exe",
     mods_path: "data/",
-    saves_path: "/The Creative Assembly/save_games/",
+    saves_path: "/The Creative Assembly/Warhammer3/save_games/",
 }];
