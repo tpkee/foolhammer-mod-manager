@@ -49,6 +49,10 @@ pub fn run() {
             commands::mods::remove_profile_mods,
             commands::settings::get_user_settings,
             commands::settings::set_default_game,
+            commands::groups::create_group,
+            commands::groups::update_group,
+            commands::groups::rename_group,
+            commands::groups::delete_group,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
