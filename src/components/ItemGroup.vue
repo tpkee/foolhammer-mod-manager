@@ -5,7 +5,7 @@
     </template>
 
     <template #mods>
-      <span class="text-sm text-gray-400">{{ group.mods?.length ?? 0 }} mod{{ (group.mods?.length ?? 0) !== 1 ? 's' : '' }}</span>
+      <span class="text-sm text-gray-400">{{ group.mods?.length ?? 0 }}</span>
     </template>
 
     <template #actions>
