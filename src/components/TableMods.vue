@@ -236,7 +236,7 @@ function changeOrder(name: string, value: number) {
 
 // Misc
 useMultiDrag(refContainerList, {
-  enabled: false,
+  enabled: isDragEnabled,
   onDragEnd(event: Sortable.SortableEvent) {
     const orderedNames = getList.value.map(m => m.name!)
 
