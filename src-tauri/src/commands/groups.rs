@@ -81,8 +81,20 @@ pub async fn delete_group(
     Profile::get_all(&app_handle, game_id, |profiles| {
         for profile in profiles.iter_mut() {
             profile.groups.retain(|g| g != &group_id);
-        }
 
+            // we also need to remove the group reference from the profile mods
+            profile.mods.retain_mut(|m| {
+                if let Some(groups) = &mut m.groups {
+                    groups.retain(|g| g != &group_id);
+
+                    if groups.is_empty() {
+                        return false;
+                    }
+                }
+
+                true
+            });
+        }
         Ok(())
     })
     .await?;
@@ -211,7 +223,6 @@ pub async fn remove_group_profile(
                 groups.retain(|g| g != &group_id);
 
                 if groups.is_empty() {
-                    m.groups = None;
                     return false;
                 }
             }
