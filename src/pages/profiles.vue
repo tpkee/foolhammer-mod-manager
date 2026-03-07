@@ -13,7 +13,7 @@
           Manage your game profiles
         </p>
       </div>
-      <app-button class="px-4 py-2" @click="createModalRef?.open()">
+      <app-button @click="createModalRef?.open()">
         Create New Profile
       </app-button>
     </div>

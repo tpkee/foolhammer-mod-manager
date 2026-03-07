@@ -28,6 +28,12 @@
     :loading="isSavingMods"
     @save="onSaveGroupMods"
   />
+
+  <modal-add-group-to-profiles
+    ref="addToProfilesModalRef"
+    :group="group"
+    :game-id="gameId"
+  />
 </template>
 
 <script lang="ts" setup>
@@ -44,11 +50,13 @@ const gameStore = useGameStore()
 
 const renameModalRef = useTemplateRef('renameModalRef')
 const modsModalRef = useTemplateRef('modsModalRef')
+const addToProfilesModalRef = useTemplateRef('addToProfilesModalRef')
 const isSavingMods = ref(false)
 
 const getOptions = computed(() => [
   { icon: 'mi:edit', label: 'Rename', callback: openRenameModal },
   { icon: 'mi:layers', label: 'Manage Mods', callback: openModsModal },
+  { icon: 'mi:add', label: 'Add to profile', callback: () => addToProfilesModalRef.value?.open() },
   { icon: 'mi:delete', label: 'Delete', callback: deleteGroup },
 ])
 

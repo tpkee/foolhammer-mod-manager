@@ -13,7 +13,7 @@
           Manage your mod groups
         </p>
       </div>
-      <app-button class="px-4 py-2" @click="createModalRef?.open()">
+      <app-button @click="createModalRef?.open()">
         Create New Group
       </app-button>
     </div>
