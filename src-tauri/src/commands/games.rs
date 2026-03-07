@@ -127,6 +127,7 @@ pub async fn start_game<'a>(
 
 #[tauri::command]
 // getting a game will also start its watchers.
+// TODO: heavy, too heavy... gotta trim it down or optimise it somehow. it's not the watchers
 pub async fn get_game(
     app_handle: tauri::AppHandle,
     app_state: AppState<'_>,
