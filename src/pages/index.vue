@@ -23,8 +23,11 @@
         </div>
       </div>
 
-      <div>
-        <app-button @click="navigateTo('/profiles')">
+      <div class="flex gap-1">
+        <app-button variant="secondary" class="block" @click="navigateTo('/groups')">
+          Manage Groups
+        </app-button>
+        <app-button class="block" @click="navigateTo('/profiles')">
           Manage Profiles
         </app-button>
       </div>

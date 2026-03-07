@@ -125,6 +125,7 @@ async function deleteFromProfile() {
       profileId: gameStore.selectedProfile,
       mods: [props.name],
     })
+    await gameStore.fetchGame()
     emit('refresh')
   }
   catch (err) {

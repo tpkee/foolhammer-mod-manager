@@ -41,6 +41,13 @@
     :game-id="gameId"
     :profile="profile"
   />
+
+  <modal-profile-groups
+    ref="groupsModal"
+    :game-id="gameId"
+    :profile="profile"
+    @save="emit('refresh')"
+  />
 </template>
 
 <script lang="ts" setup>
@@ -64,6 +71,7 @@ const gameStore = useGameStore()
 
 const modalRef = useTemplateRef('modal')
 const mergeModalRef = useTemplateRef('mergeModal')
+const groupsModalRef = useTemplateRef('groupsModal')
 
 // Computed
 const isDefault = computed(() => gameStore.currentGame?.defaultProfile && gameStore.currentGame?.defaultProfile === props.profile.id)
@@ -82,6 +90,12 @@ const getOptions = computed(() => {
       label: 'Merge from profiles',
       callback: openMergeModal,
       hide: gameStore.getProfiles.length <= 1 || getProfilesMinusCurrent.value.every(p => !p.mods || p.mods.length === 0),
+    },
+    {
+      icon: 'mi:group',
+      label: 'Manage Groups',
+      callback: openGroupsModal,
+      hide: gameStore.getGroups.length === 0,
     },
     {
       icon: 'mi:delete',
@@ -122,6 +136,10 @@ function openEditModal() {
 
 function openMergeModal() {
   mergeModalRef.value?.open()
+}
+
+function openGroupsModal() {
+  groupsModalRef.value?.open()
 }
 
 async function switchProfile() {

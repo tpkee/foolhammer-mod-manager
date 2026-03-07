@@ -66,6 +66,7 @@
 
         <app-button
           :disabled="!selectedMods.size"
+          :loading="props.loading"
           class="px-4 py-2"
           type="submit"
         >
@@ -83,9 +84,11 @@ const props = withDefaults(defineProps<{
   mods: ModResponseDto[]
   title?: string
   description?: string
+  loading?: boolean
 }>(), {
   title: 'Add Mods',
   description: 'Select one or more mods',
+  loading: false,
 })
 
 const emit = defineEmits<{
@@ -122,8 +125,10 @@ function close() {
 }
 
 function onSave() {
+  if (props.loading)
+    return
+
   emit('save', [...selectedMods.value])
-  close()
 }
 
 defineExpose({ open, close })

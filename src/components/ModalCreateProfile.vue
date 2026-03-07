@@ -69,6 +69,7 @@
 interface ProfileForm {
   name: string
   default: boolean
+  groups: string[]
 }
 
 const props = defineProps<{
@@ -88,6 +89,7 @@ const listMods = ref<Set<string>>(new Set())
 const form = ref<ProfileForm>({
   name: '',
   default: false,
+  groups: [],
 })
 
 // Computed
@@ -125,6 +127,7 @@ async function handleSubmit() {
           enabled: false,
           order: index + 1,
         })),
+        groups: form.value.groups,
       },
     })
 
@@ -144,6 +147,7 @@ function resetForm() {
   form.value = {
     name: '',
     default: false,
+    groups: [],
   }
 }
 

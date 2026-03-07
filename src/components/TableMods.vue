@@ -71,6 +71,7 @@
   <modal-mod
     ref="modalMod"
     :mods="getMissingMods"
+    :loading="isAddingMods"
     @save="onAddMods"
   />
 
@@ -103,6 +104,8 @@ const props = defineProps<{
 // Emits
 const emit = defineEmits<{ refresh: [] }>()
 
+const SPACE_PATTERN = / /g
+
 // Store
 const gameStore = useGameStore()
 
@@ -127,6 +130,7 @@ const filters = ref({ search: '', sortBy: 'order', sortOrder: 'desc' })
 const localList = ref<ModResponseDto[]>([])
 const isSaving = ref(false)
 const isTogglingManualMode = ref(false)
+const isAddingMods = ref(false)
 const { snapshots, undo, redo, commit, cancel, canUndo, canRedo } = useHistory(localList)
 
 // Computed
@@ -153,7 +157,7 @@ const getList = computed(() => {
       if (!item.name)
         return false
       const name = item.name.toLowerCase()
-      return name.includes(search.replace(/ /g, '_')) || name.includes(search)
+      return name.includes(search.replace(SPACE_PATTERN, '_')) || name.includes(search)
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -214,6 +218,7 @@ async function saveEdits() {
 }
 
 async function onAddMods(mods: string[]) {
+  isAddingMods.value = true
   try {
     await useTauriInvoke('add_profile_mods', {
       profileId: props.profile!.id,
@@ -221,9 +226,13 @@ async function onAddMods(mods: string[]) {
       mods: mods.map(name => ({ name, order: null, enabled: true })),
     })
     await gameStore.fetchGame()
+    refModalMod.value?.close()
   }
   catch (error) {
     console.error('Failed to add mods:', error)
+  }
+  finally {
+    isAddingMods.value = false
   }
 }
 
