@@ -15,7 +15,7 @@
 
     <div
       :class="{
-        'underline cursor-pointer': isEnabled,
+        'underline cursor-pointer': isEnabled && !disableUnderline,
       }"
     >
       <slot />
@@ -26,6 +26,7 @@
 <script lang="ts" setup>
 const props = defineProps<{
   disabled?: boolean
+  disableUnderline?: boolean
 }>()
 
 // Refs

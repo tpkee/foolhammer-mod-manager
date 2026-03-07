@@ -56,6 +56,22 @@
       </span>
     </template>
 
+    <template #groups>
+      <div v-if="groups && groups.length > 0" class="text-gray-400 text-xs">
+        <span v-if="groups.length === 1">{{ groups.at(0) }}</span>
+        <app-tooltip v-else disable-underline>
+          <span>{{ groups.length }}</span>
+          <template #content>
+            <ul class="text-xs space-y-1 max-w-56">
+              <li v-for="group in groups" :key="group" class="truncate">
+                {{ group }}
+              </li>
+            </ul>
+          </template>
+        </app-tooltip>
+      </div>
+    </template>
+
     <template #actions>
       <div class="flex items-center justify-end gap-1.5">
         <app-tooltip v-if="errors && errors.length > 0">
@@ -93,6 +109,7 @@ const props = defineProps<{
   canReorder?: boolean
   canDrag?: boolean
   errors?: ModError[]
+  groups?: string[]
 }>()
 
 const emit = defineEmits<{

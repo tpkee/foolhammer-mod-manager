@@ -56,6 +56,7 @@
               :can-reorder="data.canEnable && profile?.manualMode"
               :can-drag="isDragEnabled"
               :errors="getModErrors.get(data.name!) ?? []"
+              :groups="getModGroups.get(data.name!) ?? []"
               @status="changeStatus(data.name!, $event)"
               @order="changeOrder(data.name!, $event)"
               @refresh="emit('refresh')"
@@ -141,6 +142,7 @@ const columns = computed<AppTableColumn[]>(() => [
   { key: 'enabled', label: 'Enabled?', span: 1 },
   { key: 'pack', label: 'Pack', span: 5 },
   { key: 'lastUpdate', label: 'Last update', span: 3 },
+  { key: 'groups', label: 'Groups', span: 1 },
   { key: 'actions', label: '' },
 ])
 const getMissingMods = computed(() => {
@@ -173,6 +175,21 @@ const getList = computed(() => {
     })
 })
 const getModErrors = useModErrors(localList)
+const getModGroups = computed(() => {
+  const map = new Map<string, string[]>()
+  for (const group of gameStore.getGroups) {
+    if (!group.name || !group.mods)
+      continue
+    for (const modName of group.mods) {
+      if (!modName)
+        continue
+      const existing = map.get(modName) ?? []
+      existing.push(group.name)
+      map.set(modName, existing)
+    }
+  }
+  return map
+})
 
 // Watchers
 watch(() => props.list, (value) => {
