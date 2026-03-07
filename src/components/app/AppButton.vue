@@ -1,8 +1,10 @@
 <template>
   <button
-    class="px-1.5 py-1 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed h-fit"
+    class="relative px-1.5 py-1 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed h-fit inline-flex items-center gap-1.5"
     :class="variantClasses"
+    :disabled="disabled || loading"
   >
+    <app-spinner v-if="loading" class="size-4 animate-spin" />
     <slot />
   </button>
 </template>
@@ -13,6 +15,8 @@ type ButtonVariant = 'primary' | 'secondary' | 'tertiary'
 const props = withDefaults(
   defineProps<{
     variant?: ButtonVariant
+    disabled?: boolean
+    loading?: boolean
   }>(),
   {
     variant: 'primary',
