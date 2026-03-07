@@ -53,7 +53,10 @@ pub async fn rename_group(
     new_name: &str,
 ) -> Result<serde_json::Value, ErrorCode> {
     Group::get_all(&app_handle, game_id, |groups| {
-        if groups.iter().any(|g| g.name == new_name) {
+        if groups
+            .iter()
+            .any(|g| g.name == new_name && g.id != group_id)
+        {
             return Err(ErrorCode::Conflict);
         }
 
@@ -75,37 +78,18 @@ pub async fn delete_group(
     game_id: SupportedGames,
     group_id: uuid::Uuid,
 ) -> Result<(), ErrorCode> {
-    // TODO: if B fails we should revert the changes made by A,
-    // but this is a bit tricky to implement so for now
-    // yes, I still regret not using sql thank you very much
-    Profile::get_all(&app_handle, game_id, |profiles| {
-        for profile in profiles.iter_mut() {
-            profile.groups.retain(|g| g != &group_id);
-
-            // we also need to remove the group reference from the profile mods
-            profile.mods.retain_mut(|m| {
-                if let Some(groups) = &mut m.groups {
-                    groups.retain(|g| g != &group_id);
-
-                    if groups.is_empty() {
-                        return false;
-                    }
-                }
-
-                true
-            });
-        }
-        Ok(())
-    })
-    .await?;
-
-    Group::get_all(&app_handle, game_id, |groups| {
-        let idx = groups
+    GameStore::get(&app_handle, game_id, |game| {
+        let idx = game
+            .groups
             .iter()
             .position(|g| g.id == group_id)
             .ok_or(ErrorCode::NotFound)?;
 
-        groups.remove(idx);
+        for profile in game.profiles.iter_mut() {
+            profile_unlink_group(profile, group_id);
+        }
+
+        game.groups.remove(idx);
 
         Ok(())
     })
@@ -119,8 +103,52 @@ pub async fn set_group_mods(
     group_id: uuid::Uuid,
     mods: Vec<String>,
 ) -> Result<serde_json::Value, ErrorCode> {
-    Group::get(&app_handle, game_id, group_id, |group| {
-        group.mods = mods;
+    GameStore::get(&app_handle, game_id, |game| {
+        let group = game
+            .groups
+            .iter_mut()
+            .find(|g| g.id == group_id)
+            .ok_or(ErrorCode::NotFound)?;
+
+        let old_mods = std::mem::replace(&mut group.mods, mods.clone());
+        let added: Vec<String> = mods
+            .iter()
+            .filter(|m| !old_mods.contains(*m))
+            .cloned()
+            .collect();
+        let removed: Vec<String> = old_mods.into_iter().filter(|m| !mods.contains(m)).collect();
+
+        if added.is_empty() && removed.is_empty() {
+            return Ok(serde_json::json!(&group.mods));
+        }
+
+        let available_mod_names: HashSet<String> = if !added.is_empty() {
+            let workshop_path = retrieve_steam_workshop_path(game_id);
+            let available_mods = pack::ModPack::retrieve_mods(&game.mods_path, &workshop_path);
+            available_mods.into_iter().map(|m| m.name).collect()
+        } else {
+            HashSet::new()
+        };
+
+        for profile in game.profiles.iter_mut() {
+            if !profile.groups.contains(&group_id) {
+                continue;
+            }
+
+            for mod_name in &added {
+                if available_mod_names.contains(mod_name) {
+                    profile_link_mod(profile, mod_name, group_id);
+                }
+            }
+
+            profile_unlink_mods(profile, group_id, &removed);
+        }
+
+        let group = game
+            .groups
+            .iter()
+            .find(|g| g.id == group_id)
+            .ok_or(ErrorCode::NotFound)?;
         Ok(serde_json::json!(&group.mods))
     })
     .await
@@ -133,8 +161,44 @@ pub async fn add_group_mods(
     group_id: uuid::Uuid,
     mods: Vec<String>,
 ) -> Result<serde_json::Value, ErrorCode> {
-    Group::get(&app_handle, game_id, group_id, |group| {
-        group.mods.extend(mods);
+    GameStore::get(&app_handle, game_id, |game| {
+        let group = game
+            .groups
+            .iter_mut()
+            .find(|g| g.id == group_id)
+            .ok_or(ErrorCode::NotFound)?;
+
+        let added: Vec<String> = mods
+            .iter()
+            .filter(|m| !group.mods.contains(*m))
+            .cloned()
+            .collect();
+
+        if added.is_empty() {
+            return Ok(serde_json::json!(&group.mods));
+        }
+
+        let workshop_path = retrieve_steam_workshop_path(game.game_id);
+        let available_mods = pack::ModPack::retrieve_mods(&game.mods_path, &workshop_path);
+        let available_mod_names: HashSet<String> =
+            available_mods.into_iter().map(|m| m.name).collect();
+
+        for profile in &mut game.profiles {
+            if !profile.groups.contains(&group_id) {
+                continue;
+            }
+            for mod_name in &added {
+                if available_mod_names.contains(mod_name) {
+                    profile_link_mod(profile, mod_name, group_id);
+                }
+            }
+        }
+
+        // Re-borrow group after profiles mutation
+        let group = game.groups.iter_mut().find(|g| g.id == group_id).unwrap();
+
+        group.mods.extend(added);
+
         Ok(serde_json::json!(&group.mods))
     })
     .await
@@ -147,8 +211,28 @@ pub async fn remove_group_mods(
     group_id: uuid::Uuid,
     mods: Vec<String>,
 ) -> Result<serde_json::Value, ErrorCode> {
-    Group::get(&app_handle, game_id, group_id, |group| {
-        group.mods.retain(|m| !mods.contains(m));
+    GameStore::get(&app_handle, game_id, |game| {
+        let group = game
+            .groups
+            .iter_mut()
+            .find(|g| g.id == group_id)
+            .ok_or(ErrorCode::NotFound)?;
+
+        let removed: Vec<String> = mods
+            .iter()
+            .filter(|m| group.mods.contains(*m))
+            .cloned()
+            .collect();
+
+        for profile in &mut game.profiles {
+            if !profile.groups.contains(&group_id) {
+                continue;
+            }
+            profile_unlink_mods(profile, group_id, &removed);
+        }
+
+        group.mods.retain(|m| !removed.contains(m));
+
         Ok(serde_json::json!(&group.mods))
     })
     .await
@@ -162,42 +246,34 @@ pub async fn add_group_profile(
     profile_id: uuid::Uuid,
 ) -> Result<serde_json::Value, ErrorCode> {
     GameStore::get(&app_handle, game_id, |game| {
-        let profile = game // we need the mut reference
+        let group = game
+            .groups
+            .iter()
+            .find(|g| g.id == group_id)
+            .ok_or(ErrorCode::NotFound)?;
+
+        let group_mods = group.mods.clone();
+
+        let profile = game
             .profiles
             .iter_mut()
             .find(|p| p.id == profile_id)
             .ok_or(ErrorCode::NotFound)?;
 
-        let group = Group::find_by_id(&app_handle, game_id, group_id).ok_or(ErrorCode::NotFound)?;
-
         if profile.groups.contains(&group_id) {
             return Ok(serde_json::json!(&*profile));
-        } else {
-            profile.groups.push(group_id);
         }
+        profile.groups.push(group_id);
 
         let workshop_path = retrieve_steam_workshop_path(game.game_id);
         let available_mods = pack::ModPack::retrieve_mods(&game.mods_path, &workshop_path);
-
         let available_mod_names: HashSet<String> =
-            HashSet::from_iter(available_mods.iter().map(|m| m.name.clone()));
+            available_mods.iter().map(|m| m.name.clone()).collect();
 
-        for mod_name in &group.mods {
-            if let Some(existing_mod) = profile.mods.iter_mut().find(|m| &m.name == mod_name) {
-                if let Some(groups) = &mut existing_mod.groups {
-                    if !groups.contains(&group_id) {
-                        groups.push(group_id);
-                    }
-                } else {
-                    existing_mod.groups = Some(vec![group_id]);
-                }
-            } else if available_mod_names.contains(mod_name) {
-                profile.mods.push(ProfileModInfo {
-                    name: mod_name.clone(),
-                    enabled: false,
-                    groups: Some(vec![group_id]),
-                    order: 0,
-                });
+        for mod_name in &group_mods {
+            let in_profile = profile.mods.iter().any(|m| &m.name == mod_name);
+            if in_profile || available_mod_names.contains(mod_name) {
+                profile_link_mod(profile, mod_name, group_id);
             }
         }
 
@@ -218,19 +294,7 @@ pub async fn remove_group_profile(
             return Ok(serde_json::json!(&*profile));
         }
 
-        profile.mods.retain_mut(|m| {
-            if let Some(groups) = &mut m.groups {
-                groups.retain(|g| g != &group_id);
-
-                if groups.is_empty() {
-                    return false;
-                }
-            }
-
-            true
-        });
-
-        profile.groups.retain(|g| g != &group_id);
+        profile_unlink_group(profile, group_id);
 
         Ok(serde_json::json!(&*profile))
     })
@@ -244,22 +308,115 @@ pub async fn set_groups_profile(
     profile_id: uuid::Uuid,
     groups: Vec<uuid::Uuid>,
 ) -> Result<serde_json::Value, ErrorCode> {
-    let profile =
-        Profile::find_by_id(&app_handle, game_id, profile_id).ok_or(ErrorCode::NotFound)?;
+    GameStore::get(&app_handle, game_id, |game| {
+        let profile = game
+            .profiles
+            .iter()
+            .find(|p| p.id == profile_id)
+            .ok_or(ErrorCode::NotFound)?;
 
-    let old_groups = &profile.groups;
+        let old_groups = profile.groups.clone();
+        let groups_to_add: Vec<uuid::Uuid> = groups
+            .iter()
+            .filter(|g| !old_groups.contains(g))
+            .copied()
+            .collect();
+        let groups_to_remove: Vec<uuid::Uuid> = old_groups
+            .iter()
+            .filter(|g| !groups.contains(g))
+            .copied()
+            .collect();
 
-    for group_id in &groups {
-        if !old_groups.contains(group_id) {
-            add_group_profile(app_handle.clone(), game_id, *group_id, profile_id).await?;
+        let workshop_path = retrieve_steam_workshop_path(game.game_id);
+        let available_mod_names: HashSet<String> = if !groups_to_add.is_empty() {
+            let available_mods = pack::ModPack::retrieve_mods(&game.mods_path, &workshop_path);
+            available_mods.into_iter().map(|m| m.name).collect()
+        } else {
+            HashSet::new()
+        };
+
+        // Link new groups
+        for &group_id in &groups_to_add {
+            let group_mods: Vec<String> = game
+                .groups
+                .iter()
+                .find(|g| g.id == group_id)
+                .ok_or(ErrorCode::NotFound)?
+                .mods
+                .clone();
+
+            let profile = game
+                .profiles
+                .iter_mut()
+                .find(|p| p.id == profile_id)
+                .unwrap();
+
+            if !profile.groups.contains(&group_id) {
+                profile.groups.push(group_id);
+            }
+
+            for mod_name in &group_mods {
+                let in_profile = profile.mods.iter().any(|m| &m.name == mod_name);
+                if in_profile || available_mod_names.contains(mod_name) {
+                    profile_link_mod(profile, mod_name, group_id);
+                }
+            }
+        }
+
+        // Unlink removed groups
+        for &group_id in &groups_to_remove {
+            let profile = game
+                .profiles
+                .iter_mut()
+                .find(|p| p.id == profile_id)
+                .unwrap();
+            profile_unlink_group(profile, group_id);
+        }
+
+        let profile = game.profiles.iter().find(|p| p.id == profile_id).unwrap();
+        Ok(serde_json::json!(profile))
+    })
+    .await
+}
+
+fn profile_link_mod(profile: &mut Profile, mod_name: &str, group_id: uuid::Uuid) {
+    if let Some(existing) = profile.mods.iter_mut().find(|m| m.name == mod_name) {
+        let groups = existing.groups.get_or_insert_with(Vec::new);
+        if !groups.contains(&group_id) {
+            groups.push(group_id);
+        }
+    } else {
+        profile.mods.push(ProfileModInfo {
+            name: mod_name.to_owned(),
+            enabled: false,
+            groups: Some(vec![group_id]),
+            order: 0,
+        });
+    }
+}
+
+fn profile_unlink_mods(profile: &mut Profile, group_id: uuid::Uuid, mod_names: &[String]) {
+    for m in profile.mods.iter_mut() {
+        if !mod_names.contains(&m.name) {
+            continue;
+        }
+        if let Some(groups) = &mut m.groups {
+            groups.retain(|g| g != &group_id);
+            if groups.is_empty() {
+                m.groups = None;
+            }
         }
     }
+}
 
-    for group_id in old_groups {
-        if !groups.contains(group_id) {
-            remove_group_profile(app_handle.clone(), game_id, *group_id, profile_id).await?;
+fn profile_unlink_group(profile: &mut Profile, group_id: uuid::Uuid) {
+    profile.groups.retain(|g| g != &group_id);
+    for m in profile.mods.iter_mut() {
+        if let Some(groups) = &mut m.groups {
+            groups.retain(|g| g != &group_id);
+            if groups.is_empty() {
+                m.groups = None;
+            }
         }
     }
-
-    Ok(serde_json::json!(profile))
 }
