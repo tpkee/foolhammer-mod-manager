@@ -9,7 +9,13 @@
         :current-game="gameStore.selectedGame"
         :profile="gameStore.getProfile"
       />
-      <sidebar-continue v-if="gameStore.getSaves.length" :saves="gameStore.getSaves" />
+      <sidebar-play
+        v-if="gameStore.getSaves.length"
+        variant="continue"
+        :current-game="gameStore.selectedGame"
+        :profile="gameStore.getProfile"
+        :saves="gameStore.getSaves"
+      />
     </div>
 
     <!--
