@@ -1,7 +1,5 @@
 use std::fmt;
 
-/// A simple enumeration of games that are supported by the manager.
-///
 /// This type is used throughout the application as the canonical representation
 /// of a game identifier. It serializes to the Steam App ID (e.g. `1142710`) and
 /// implements conversions to/from numeric and string forms.
