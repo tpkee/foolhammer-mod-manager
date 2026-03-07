@@ -1,5 +1,5 @@
 use crate::dto::games::GameResponseDto;
-use crate::stores::games::{GameStore, Profile};
+use crate::stores::games::{GameStore, Group, Profile};
 use crate::supported_games::SupportedGames;
 use crate::utils::ErrorCode;
 
@@ -37,6 +37,37 @@ where
     })?;
 
     Ok(result)
+}
+
+pub async fn modify_groups<F, T>(
+    app_handle: &tauri::AppHandle,
+    game_id: SupportedGames,
+    modify_fn: F,
+) -> Result<T, ErrorCode>
+where
+    F: FnOnce(&mut Vec<Group>) -> Result<T, ErrorCode>,
+{
+    modify_game(app_handle, game_id, |game| modify_fn(&mut game.groups)).await
+}
+
+pub async fn modify_group<F, T>(
+    app_handle: &tauri::AppHandle,
+    game_id: SupportedGames,
+    group_id: uuid::Uuid,
+    modify_fn: F,
+) -> Result<T, ErrorCode>
+where
+    F: FnOnce(&mut Group) -> Result<T, ErrorCode>,
+{
+    modify_groups(app_handle, game_id, |groups| {
+        let group = groups
+            .iter_mut()
+            .find(|g| g.id == group_id)
+            .ok_or(ErrorCode::NotFound)?;
+
+        modify_fn(group)
+    })
+    .await
 }
 
 pub async fn modify_profiles<F, T>(
