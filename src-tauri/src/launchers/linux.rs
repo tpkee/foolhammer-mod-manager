@@ -6,8 +6,8 @@ use std::process::Command;
 use std::{error::Error, io::Read};
 use tauri::Manager;
 
-use crate::defaults::games::{DefaultGameInfo, SupportedGames};
 use crate::utils;
+use crate::{defaults::games::DefaultGameInfo, games::SupportedGames};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 

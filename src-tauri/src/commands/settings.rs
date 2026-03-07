@@ -1,4 +1,4 @@
-use crate::defaults::games::SupportedGames;
+use crate::games::SupportedGames;
 use crate::dto::settings::UserSettingsResponseDto;
 use crate::events::AppEvent;
 use crate::stores::settings::{SettingsKey, SettingsStore};

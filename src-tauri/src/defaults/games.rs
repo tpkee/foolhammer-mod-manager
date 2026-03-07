@@ -1,43 +1,6 @@
 use crate::defaults::system::STEAMDIR_INSTANCE;
-use std::fmt;
+use crate::games::SupportedGames;
 use std::path::PathBuf;
-
-#[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
-pub enum SupportedGames {
-    Warhammer3,
-}
-
-impl fmt::Display for SupportedGames {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let id: u32 = (*self).into();
-        write!(f, "{}", id)
-    }
-}
-
-impl From<SupportedGames> for String {
-    fn from(value: SupportedGames) -> Self {
-        value.to_string()
-    }
-}
-
-impl From<SupportedGames> for u32 {
-    fn from(value: SupportedGames) -> Self {
-        match value {
-            SupportedGames::Warhammer3 => 1142710,
-        }
-    }
-}
-
-impl TryFrom<u64> for SupportedGames {
-    type Error = String;
-
-    fn try_from(value: u64) -> Result<Self, Self::Error> {
-        match value {
-            1142710 => Ok(SupportedGames::Warhammer3),
-            _ => Err(format!("Unsupported game id: {}", value)),
-        }
-    }
-}
 
 #[derive(Debug)]
 pub struct DefaultGameInfo {

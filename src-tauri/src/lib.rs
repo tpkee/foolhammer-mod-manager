@@ -4,6 +4,7 @@ pub mod commands;
 pub mod defaults;
 pub mod dto;
 pub mod events;
+pub mod games;
 pub mod launchers;
 pub mod mods;
 pub mod state;

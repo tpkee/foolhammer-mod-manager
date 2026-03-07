@@ -1,4 +1,4 @@
-use crate::{defaults::games::SupportedGames, stores::settings::SettingsStore};
+use crate::{games::SupportedGames, stores::settings::SettingsStore};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]

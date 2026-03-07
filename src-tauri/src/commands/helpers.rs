@@ -1,5 +1,5 @@
-use crate::defaults::games::SupportedGames;
 use crate::dto::games::GameResponseDto;
+use crate::games::SupportedGames;
 use crate::stores::games::{GameStore, Profile};
 use crate::utils::ErrorCode;
 

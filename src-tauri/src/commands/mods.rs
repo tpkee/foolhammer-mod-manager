@@ -1,5 +1,5 @@
 use crate::{
-    commands::helpers::modify_profile, defaults::games::SupportedGames, dto::mods::ModRequestDto,
+    commands::helpers::modify_profile, games::SupportedGames, dto::mods::ModRequestDto,
     stores::games::ModInfo, utils::ErrorCode,
 };
 

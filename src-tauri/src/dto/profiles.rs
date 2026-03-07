@@ -1,5 +1,5 @@
 use crate::{
-    defaults::games::SupportedGames,
+    games::SupportedGames,
     dto::mods::{ModRequestDto, ModResponseDto},
     mods::{pack::ModPack, sort::SortMods},
     stores::games,
