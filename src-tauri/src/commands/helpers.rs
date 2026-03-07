@@ -14,7 +14,7 @@ pub fn get_game_response_from_store(
     Ok(game_store)
 }
 
-pub fn modify_game<F, T>(
+pub async fn modify_game<F, T>(
     app_handle: &tauri::AppHandle,
     game_id: SupportedGames,
     modify_fn: F,
@@ -39,7 +39,7 @@ where
     Ok(result)
 }
 
-pub fn modify_profiles<F, T>(
+pub async fn modify_profiles<F, T>(
     app_handle: &tauri::AppHandle,
     game_id: SupportedGames,
     modify_fn: F,
@@ -47,10 +47,10 @@ pub fn modify_profiles<F, T>(
 where
     F: FnOnce(&mut Vec<Profile>) -> Result<T, ErrorCode>,
 {
-    modify_game(app_handle, game_id, |game| modify_fn(&mut game.profiles))
+    modify_game(app_handle, game_id, |game| modify_fn(&mut game.profiles)).await
 }
 
-pub fn modify_profile<F, T>(
+pub async fn modify_profile<F, T>(
     app_handle: &tauri::AppHandle,
     game_id: SupportedGames,
     profile_id: uuid::Uuid,
@@ -67,4 +67,5 @@ where
 
         modify_fn(profile)
     })
+    .await
 }

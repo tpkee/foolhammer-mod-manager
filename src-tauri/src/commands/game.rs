@@ -154,7 +154,8 @@ pub async fn get_game(
             }
 
             Ok(())
-        })?;
+        })
+        .await?;
     }
 
     start_game_watchers(
@@ -181,7 +182,8 @@ pub async fn update_game(
         game.game_path = payload.game_path;
 
         Ok(GameResponseDto::from_store(game.clone()))
-    })?;
+    })
+    .await?;
 
     start_game_watchers(app_state, g.mods_path, &g.workshop_path, &g.saves_path).await;
 
@@ -210,7 +212,7 @@ async fn start_game_watchers(
 }
 
 #[tauri::command]
-pub fn set_default_profile(
+pub async fn set_default_profile(
     app_handle: tauri::AppHandle,
     game_id: SupportedGames,
     profile_id: uuid::Uuid,
@@ -228,4 +230,5 @@ pub fn set_default_profile(
 
         Ok(())
     })
+    .await
 }

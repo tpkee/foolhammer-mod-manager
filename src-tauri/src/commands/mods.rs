@@ -1,10 +1,10 @@
 use crate::{
-    commands::helpers::modify_profile, supported_games::SupportedGames, dto::mods::ModRequestDto,
-    stores::games::ModInfo, utils::ErrorCode,
+    commands::helpers::modify_profile, dto::mods::ModRequestDto, stores::games::ModInfo,
+    supported_games::SupportedGames, utils::ErrorCode,
 };
 
 #[tauri::command]
-pub fn set_profile_mods(
+pub async fn set_profile_mods(
     app_handle: tauri::AppHandle,
     game_id: SupportedGames,
     profile_id: uuid::Uuid,
@@ -14,10 +14,11 @@ pub fn set_profile_mods(
         profile.mods = mods.into_iter().map(ModInfo::from).collect();
         Ok(serde_json::json!(&profile.mods))
     })
+    .await
 }
 
 #[tauri::command]
-pub fn add_profile_mods(
+pub async fn add_profile_mods(
     app_handle: tauri::AppHandle,
     game_id: SupportedGames,
     profile_id: uuid::Uuid,
@@ -42,10 +43,11 @@ pub fn add_profile_mods(
         }
         Ok(serde_json::json!(&profile.mods))
     })
+    .await
 }
 
 #[tauri::command]
-pub fn remove_profile_mods(
+pub async fn remove_profile_mods(
     app_handle: tauri::AppHandle,
     game_id: SupportedGames,
     profile_id: uuid::Uuid,
@@ -55,4 +57,5 @@ pub fn remove_profile_mods(
         profile.mods.retain(|m| !mods.contains(&m.name));
         Ok(serde_json::json!(&profile.mods))
     })
+    .await
 }

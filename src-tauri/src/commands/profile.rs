@@ -1,11 +1,11 @@
 use crate::commands::helpers::{modify_profile, modify_profiles};
-use crate::supported_games::SupportedGames;
 use crate::dto::profiles::ProfileRequestDto;
 use crate::stores::games::Profile;
+use crate::supported_games::SupportedGames;
 use crate::utils::ErrorCode;
 
 #[tauri::command]
-pub fn create_profile(
+pub async fn create_profile(
     app_handle: tauri::AppHandle,
     payload: ProfileRequestDto,
 ) -> Result<serde_json::Value, ErrorCode> {
@@ -21,10 +21,11 @@ pub fn create_profile(
 
         Ok(serde_json::json!(profile))
     })
+    .await
 }
 
 #[tauri::command]
-pub fn update_profile(
+pub async fn update_profile(
     app_handle: tauri::AppHandle,
     profile_id: uuid::Uuid,
     payload: ProfileRequestDto,
@@ -40,10 +41,11 @@ pub fn update_profile(
 
         Ok(serde_json::json!(profile))
     })
+    .await
 }
 
 #[tauri::command]
-pub fn rename_profile(
+pub async fn rename_profile(
     app_handle: tauri::AppHandle,
     game_id: SupportedGames,
     profile_id: uuid::Uuid,
@@ -63,10 +65,11 @@ pub fn rename_profile(
 
         Ok(serde_json::json!(&*profile))
     })
+    .await
 }
 
 #[tauri::command]
-pub fn delete_profile(
+pub async fn delete_profile(
     app_handle: tauri::AppHandle,
     game_id: SupportedGames,
     profile_id: uuid::Uuid,
@@ -81,10 +84,11 @@ pub fn delete_profile(
 
         Ok(())
     })
+    .await
 }
 
 #[tauri::command]
-pub fn toggle_manual_mode(
+pub async fn toggle_manual_mode(
     app_handle: tauri::AppHandle,
     game_id: SupportedGames,
     profile_id: uuid::Uuid,
@@ -94,4 +98,5 @@ pub fn toggle_manual_mode(
 
         Ok(())
     })
+    .await
 }
