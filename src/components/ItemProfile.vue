@@ -122,7 +122,7 @@ async function handleSetDefault() {
       profileId: props.profile.id,
     })
 
-    emit('refresh')
+    await gameStore.fetchGame()
   }
   catch (err) {
     console.error('Failed to set default profile:', err)
@@ -152,8 +152,10 @@ async function deleteProfileItem() {
       gameId: gameStore.selectedGame,
       profileId: props.profile.id,
     })
-    gameStore.setProfile(null)
-    emit('refresh')
+    if (gameStore.selectedProfile === props.profile.id) {
+      gameStore.setProfile(null)
+    }
+    await gameStore.fetchGame()
   }
   catch (error) {
     console.error('Failed to delete profile:', error)

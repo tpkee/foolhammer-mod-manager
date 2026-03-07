@@ -16,7 +16,6 @@
               :is-active="data.id === gameStore.selectedProfile"
               :game-id="gameId"
               :columns="cols"
-              @refresh="emit('refresh')"
             />
             <div class="h-px mx-2.5 bg-gray-800 group-last:bg-transparent select-none" :aria-hidden="true" />
           </div>
@@ -35,9 +34,6 @@ const props = defineProps<{
   profiles: ProfileResponseDto[]
   gameId: string
 }>()
-
-// Emits
-const emit = defineEmits<{ refresh: [] }>()
 
 // Stores
 const gameStore = useGameStore()
