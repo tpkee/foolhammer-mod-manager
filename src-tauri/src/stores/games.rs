@@ -1,6 +1,6 @@
 use crate::{
     defaults::games::DefaultGameInfo,
-    dto::{groups::GroupResponseDto, mods::ModRequestDto, profiles::ProfileRequestDto},
+    dto::{groups::GroupRequestDto, mods::ModRequestDto, profiles::ProfileRequestDto},
     mods::pack,
     resolve_existing_path,
     supported_games::SupportedGames,
@@ -22,7 +22,6 @@ pub struct GameStore {
     pub saves_path: Option<PathBuf>,
     pub mods_path: PathBuf,
     pub profiles: Vec<Profile>,
-    pub groups: Vec<GroupResponseDto>,
     pub default_profile: Option<uuid::Uuid>,
 }
 
@@ -41,7 +40,7 @@ pub struct Profile {
 pub struct ModInfo {
     pub name: String,
     pub enabled: bool,
-    pub order: u32,
+    pub order: u32, // TODO: this should be an option
 }
 
 impl From<ModRequestDto> for ModInfo {
@@ -54,10 +53,10 @@ impl From<ModRequestDto> for ModInfo {
     }
 }
 
-impl Profile {
-    pub fn from_dto(id: Option<uuid::Uuid>, dto: ProfileRequestDto) -> Self {
+impl From<ProfileRequestDto> for Profile {
+    fn from(dto: ProfileRequestDto) -> Self {
         Self {
-            id: id.unwrap_or_else(uuid::Uuid::new_v4),
+            id: dto.id.unwrap_or_else(uuid::Uuid::new_v4),
             name: dto.name,
             mods: dto
                 .mods
@@ -115,17 +114,15 @@ impl GameStore {
 
         let default_profile_name = String::from("Default");
 
-        let default_profile = Profile::from_dto(
-            None,
-            ProfileRequestDto {
-                game_id: default_game.game_id,
-                name: default_profile_name.clone(),
-                default: Some(true),
-                manual_mode: Some(false),
-                groups: vec![],
-                mods, // this is the default profile so we should throw all the available mods in it
-            },
-        );
+        let default_profile = Profile::from(ProfileRequestDto {
+            id: None,
+            game_id: default_game.game_id,
+            name: default_profile_name.clone(),
+            default: Some(true),
+            manual_mode: Some(false),
+            groups: vec![],
+            mods, // this is the default profile so we should throw all the available mods in it
+        });
 
         Some(Self {
             game_id: default_game.game_id,
@@ -134,7 +131,6 @@ impl GameStore {
             mods_path,
             default_profile: Some(default_profile.id),
             profiles: vec![default_profile],
-            groups: vec![],
         })
     }
 

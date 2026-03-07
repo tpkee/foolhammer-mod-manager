@@ -16,7 +16,7 @@ pub async fn create_profile(
             return Err(ErrorCode::Conflict);
         }
 
-        let profile: Profile = Profile::from_dto(None, payload);
+        let profile: Profile = Profile::from(payload);
         profiles.push(profile.clone());
 
         Ok(serde_json::json!(profile))
@@ -28,7 +28,7 @@ pub async fn create_profile(
 pub async fn update_profile(
     app_handle: tauri::AppHandle,
     profile_id: uuid::Uuid,
-    payload: ProfileRequestDto,
+    mut payload: ProfileRequestDto,
 ) -> Result<serde_json::Value, ErrorCode> {
     let game_id = payload.game_id;
 
@@ -37,7 +37,9 @@ pub async fn update_profile(
             return Err(ErrorCode::Conflict);
         }
 
-        *profile = Profile::from_dto(Some(profile_id), payload);
+        payload.id = Some(profile_id);
+
+        *profile = Profile::from(payload);
 
         Ok(serde_json::json!(profile))
     })

@@ -8,6 +8,7 @@ use crate::{
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfileRequestDto {
+    pub id: Option<uuid::Uuid>,
     pub game_id: SupportedGames,
     pub name: String,
     pub default: Option<bool>,
