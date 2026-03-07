@@ -53,6 +53,8 @@ pub fn run() {
             commands::groups::update_group,
             commands::groups::rename_group,
             commands::groups::delete_group,
+            commands::groups::add_group_profile,
+            commands::groups::remove_group_profile,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

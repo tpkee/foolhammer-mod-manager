@@ -1,7 +1,6 @@
 use crate::{
-    commands::helpers::{modify_profile, modify_profiles},
     dto::{mods::ModRequestDto, profiles::ProfileRequestDto},
-    stores::games::{Profile, ProfileModInfo},
+    stores::games::{Profile, ProfileModInfo, Store},
     supported_games::SupportedGames,
     utils::ErrorCode,
 };
@@ -13,7 +12,7 @@ pub async fn create_profile(
 ) -> Result<serde_json::Value, ErrorCode> {
     let game_id = payload.game_id;
 
-    modify_profiles(&app_handle, game_id, |profiles| {
+    Profile::get_all(&app_handle, game_id, |profiles| {
         if profiles.iter().any(|p| p.name == payload.name) {
             return Err(ErrorCode::Conflict);
         }
@@ -34,7 +33,7 @@ pub async fn update_profile(
 ) -> Result<serde_json::Value, ErrorCode> {
     let game_id = payload.game_id;
 
-    modify_profile(&app_handle, game_id, profile_id, |profile| {
+    Profile::get(&app_handle, game_id, profile_id, |profile| {
         payload.id = Some(profile_id);
 
         *profile = Profile::from(payload);
@@ -51,7 +50,7 @@ pub async fn rename_profile(
     profile_id: uuid::Uuid,
     new_name: &str,
 ) -> Result<serde_json::Value, ErrorCode> {
-    modify_profiles(&app_handle, game_id, |profiles| {
+    Profile::get_all(&app_handle, game_id, |profiles| {
         if profiles.iter().any(|p| p.name == new_name) {
             return Err(ErrorCode::Conflict);
         }
@@ -74,7 +73,7 @@ pub async fn delete_profile(
     game_id: SupportedGames,
     profile_id: uuid::Uuid,
 ) -> Result<(), ErrorCode> {
-    modify_profiles(&app_handle, game_id, |profiles| {
+    Profile::get_all(&app_handle, game_id, |profiles| {
         let idx = profiles
             .iter()
             .position(|p| p.id == profile_id)
@@ -93,7 +92,7 @@ pub async fn toggle_manual_mode(
     game_id: SupportedGames,
     profile_id: uuid::Uuid,
 ) -> Result<(), ErrorCode> {
-    modify_profile(&app_handle, game_id, profile_id, |profile| {
+    Profile::get(&app_handle, game_id, profile_id, |profile| {
         profile.manual_mode = !profile.manual_mode;
 
         Ok(())
@@ -108,7 +107,7 @@ pub async fn set_profile_mods(
     profile_id: uuid::Uuid,
     mods: Vec<ModRequestDto>,
 ) -> Result<serde_json::Value, ErrorCode> {
-    modify_profile(&app_handle, game_id, profile_id, |profile| {
+    Profile::get(&app_handle, game_id, profile_id, |profile| {
         profile.mods = mods.into_iter().map(ProfileModInfo::from).collect();
         Ok(serde_json::json!(&profile.mods))
     })
@@ -122,7 +121,7 @@ pub async fn add_profile_mods(
     profile_id: uuid::Uuid,
     mods: Vec<ModRequestDto>,
 ) -> Result<serde_json::Value, ErrorCode> {
-    modify_profile(&app_handle, game_id, profile_id, |profile| {
+    Profile::get(&app_handle, game_id, profile_id, |profile| {
         if profile.manual_mode {
             let old_len = profile.mods.len();
             let new_mods: Vec<ProfileModInfo> = mods
@@ -154,7 +153,7 @@ pub async fn remove_profile_mods(
     profile_id: uuid::Uuid,
     mods: Vec<String>,
 ) -> Result<serde_json::Value, ErrorCode> {
-    modify_profile(&app_handle, game_id, profile_id, |profile| {
+    Profile::get(&app_handle, game_id, profile_id, |profile| {
         profile.mods.retain(|m| !mods.contains(&m.name));
         Ok(serde_json::json!(&profile.mods))
     })

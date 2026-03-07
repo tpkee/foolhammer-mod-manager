@@ -1,11 +1,12 @@
 use crate::{
-    commands::helpers::{get_game_response_from_store, modify_game, modify_profile},
+    commands::helpers::get_game_response_from_store,
     defaults::games::{DefaultGameInfo, SUPPORTED_GAMES},
     dto::games::{GameRequestDto, GameResponseDto},
     join_path,
     launchers::{GameManager, linux::LinuxLauncher},
     mods,
     state::AppState,
+    stores::games::{GameStore, Profile, Store},
     supported_games::SupportedGames,
     utils::ErrorCode,
 };
@@ -144,7 +145,7 @@ pub async fn get_game(
             .map(|m| (&m.name, m.order))
             .collect();
 
-        modify_profile(&app_handle, game_id, profile_id, |profile| {
+        Profile::get(&app_handle, game_id, profile_id, |profile| {
             if !profile.manual_mode {
                 for profile_mod in &mut profile.mods {
                     if let Some(order) = response_mods.get(&profile_mod.name) {
@@ -176,7 +177,7 @@ pub async fn update_game(
     game_id: SupportedGames,
     payload: GameRequestDto,
 ) -> Result<(), ErrorCode> {
-    let g = modify_game(&app_handle, game_id, |game| {
+    let g = GameStore::get(&app_handle, game_id, |game| {
         game.saves_path = payload.saves_path;
         game.mods_path = payload.mods_path;
         game.game_path = payload.game_path;
@@ -217,7 +218,7 @@ pub async fn set_default_profile(
     game_id: SupportedGames,
     profile_id: uuid::Uuid,
 ) -> Result<(), ErrorCode> {
-    modify_game(&app_handle, game_id, |game| {
+    GameStore::get(&app_handle, game_id, |game| {
         if game.default_profile == Some(profile_id) {
             return Ok(());
         }

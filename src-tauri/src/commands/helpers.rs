@@ -1,5 +1,5 @@
 use crate::dto::games::GameResponseDto;
-use crate::stores::games::{GameStore, Group, Profile};
+use crate::stores::games::GameStore;
 use crate::supported_games::SupportedGames;
 use crate::utils::ErrorCode;
 
@@ -12,91 +12,4 @@ pub fn get_game_response_from_store(
     let game_store = GameResponseDto::from_store(GameStore::from_entries(store.entries())?);
 
     Ok(game_store)
-}
-
-pub async fn modify_game<F, T>(
-    app_handle: &tauri::AppHandle,
-    game_id: SupportedGames,
-    modify_fn: F,
-) -> Result<T, ErrorCode>
-where
-    F: FnOnce(&mut GameStore) -> Result<T, ErrorCode>,
-{
-    let store = GameStore::get_store(app_handle, game_id)?;
-    let mut game = GameStore::from_entries(store.entries())?;
-
-    let result = modify_fn(&mut game)?;
-
-    for (k, v) in game.to_hashmap().or(Err(ErrorCode::InternalError))? {
-        store.set(k, v);
-    }
-
-    store.save().map_err(|e| {
-        eprintln!("Failed to save game: {:?}", e);
-        ErrorCode::InternalError
-    })?;
-
-    Ok(result)
-}
-
-pub async fn modify_groups<F, T>(
-    app_handle: &tauri::AppHandle,
-    game_id: SupportedGames,
-    modify_fn: F,
-) -> Result<T, ErrorCode>
-where
-    F: FnOnce(&mut Vec<Group>) -> Result<T, ErrorCode>,
-{
-    modify_game(app_handle, game_id, |game| modify_fn(&mut game.groups)).await
-}
-
-pub async fn modify_group<F, T>(
-    app_handle: &tauri::AppHandle,
-    game_id: SupportedGames,
-    group_id: uuid::Uuid,
-    modify_fn: F,
-) -> Result<T, ErrorCode>
-where
-    F: FnOnce(&mut Group) -> Result<T, ErrorCode>,
-{
-    modify_groups(app_handle, game_id, |groups| {
-        let group = groups
-            .iter_mut()
-            .find(|g| g.id == group_id)
-            .ok_or(ErrorCode::NotFound)?;
-
-        modify_fn(group)
-    })
-    .await
-}
-
-pub async fn modify_profiles<F, T>(
-    app_handle: &tauri::AppHandle,
-    game_id: SupportedGames,
-    modify_fn: F,
-) -> Result<T, ErrorCode>
-where
-    F: FnOnce(&mut Vec<Profile>) -> Result<T, ErrorCode>,
-{
-    modify_game(app_handle, game_id, |game| modify_fn(&mut game.profiles)).await
-}
-
-pub async fn modify_profile<F, T>(
-    app_handle: &tauri::AppHandle,
-    game_id: SupportedGames,
-    profile_id: uuid::Uuid,
-    modify_fn: F,
-) -> Result<T, ErrorCode>
-where
-    F: FnOnce(&mut Profile) -> Result<T, ErrorCode>,
-{
-    modify_profiles(app_handle, game_id, |profiles| {
-        let profile = profiles
-            .iter_mut()
-            .find(|p| p.id == profile_id)
-            .ok_or(ErrorCode::NotFound)?;
-
-        modify_fn(profile)
-    })
-    .await
 }

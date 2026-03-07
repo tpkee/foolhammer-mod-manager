@@ -14,6 +14,47 @@ use serde_json::Value;
 use std::{collections::HashMap, path::PathBuf, sync::Arc};
 use tauri::Wry;
 
+pub(crate) trait Store<T> {
+    fn find_by_id(
+        app_handle: &tauri::AppHandle,
+        game_id: SupportedGames,
+        lookup_id: uuid::Uuid,
+    ) -> Option<T>;
+
+    fn id(item: &T) -> uuid::Uuid;
+    fn collection_mut(game: &mut GameStore) -> &mut Vec<T>;
+
+    async fn get_all<F, R>(
+        app_handle: &tauri::AppHandle,
+        game_id: SupportedGames,
+        f: F,
+    ) -> Result<R, ErrorCode>
+    where
+        F: FnOnce(&mut Vec<T>) -> Result<R, ErrorCode>,
+    {
+        GameStore::get(app_handle, game_id, |game| f(Self::collection_mut(game))).await
+    }
+
+    async fn get<F, R>(
+        app_handle: &tauri::AppHandle,
+        game_id: SupportedGames,
+        lookup_id: uuid::Uuid,
+        f: F,
+    ) -> Result<R, ErrorCode>
+    where
+        F: FnOnce(&mut T) -> Result<R, ErrorCode>,
+    {
+        Self::get_all(app_handle, game_id, |items| {
+            items
+                .iter_mut()
+                .find(|item| Self::id(item) == lookup_id)
+                .ok_or(ErrorCode::NotFound)
+                .and_then(f)
+        })
+        .await
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct GameStore {
@@ -95,6 +136,48 @@ impl From<GroupRequestDto> for Group {
     }
 }
 
+impl Store<Group> for Group {
+    fn find_by_id(
+        app_handle: &tauri::AppHandle,
+        game_id: SupportedGames,
+        lookup_id: uuid::Uuid,
+    ) -> Option<Group> {
+        let store = GameStore::get_store(app_handle, game_id).ok()?;
+        let game = GameStore::from_entries(store.entries()).ok()?;
+
+        game.groups.iter().find(|g| g.id == lookup_id).cloned()
+    }
+
+    fn id(item: &Group) -> uuid::Uuid {
+        item.id
+    }
+
+    fn collection_mut(game: &mut GameStore) -> &mut Vec<Group> {
+        &mut game.groups
+    }
+}
+
+impl Store<Profile> for Profile {
+    fn find_by_id(
+        app_handle: &tauri::AppHandle,
+        game_id: SupportedGames,
+        lookup_id: uuid::Uuid,
+    ) -> Option<Profile> {
+        let store = GameStore::get_store(app_handle, game_id).ok()?;
+        let game = GameStore::from_entries(store.entries()).ok()?;
+
+        game.profiles.iter().find(|p| p.id == lookup_id).cloned()
+    }
+
+    fn id(item: &Profile) -> uuid::Uuid {
+        item.id
+    }
+
+    fn collection_mut(game: &mut GameStore) -> &mut Vec<Profile> {
+        &mut game.profiles
+    }
+}
+
 impl GameStore {
     pub fn get_store(
         app_handle: &tauri::AppHandle,
@@ -164,5 +247,30 @@ impl GameStore {
     pub fn from_entries(entries: Vec<(String, Value)>) -> Result<Self, ErrorCode> {
         let hm: HashMap<String, Value> = entries.into_iter().collect();
         serde_json::from_value(serde_json::json!(hm)).or(Err(ErrorCode::InternalError))
+    }
+
+    pub async fn get<F, R>(
+        app_handle: &tauri::AppHandle,
+        game_id: SupportedGames,
+        f: F,
+    ) -> Result<R, ErrorCode>
+    where
+        F: FnOnce(&mut GameStore) -> Result<R, ErrorCode>,
+    {
+        let store = GameStore::get_store(app_handle, game_id)?;
+        let mut game = GameStore::from_entries(store.entries())?;
+
+        let result = f(&mut game)?;
+
+        for (k, v) in game.to_hashmap().or(Err(ErrorCode::InternalError))? {
+            store.set(k, v);
+        }
+
+        store.save().map_err(|e| {
+            eprintln!("Failed to save game: {:?}", e);
+            ErrorCode::InternalError
+        })?;
+
+        Ok(result)
     }
 }
