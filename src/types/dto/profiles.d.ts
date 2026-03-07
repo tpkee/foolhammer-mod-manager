@@ -6,6 +6,7 @@ export type ProfileResponseDto = RecursivePartial<{
   mods: ModResponseDto[]
   default: boolean
   manualMode: boolean
+  groups: string[]
 }>
 
 export interface ProfileRequestDto {
