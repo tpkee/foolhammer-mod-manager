@@ -1,11 +1,14 @@
 use std::path::{Path, PathBuf};
 
 use crate::{
-    supported_games::SupportedGames,
-    dto::{packs::PackResponseDto, profiles::ProfileResponseDto, saves::SaveResponseDto},
+    dto::{
+        groups::GroupResponseDto, packs::PackResponseDto, profiles::ProfileResponseDto,
+        saves::SaveResponseDto,
+    },
     mods::pack,
     resolve_existing_path,
     stores::games,
+    supported_games::SupportedGames,
     utils::path::retrieve_steam_workshop_path,
 };
 
@@ -22,6 +25,7 @@ pub struct GameRequestDto {
 pub struct GameResponseDto {
     pub mods: Vec<PackResponseDto>, // populated at runtime
     pub profiles: Vec<ProfileResponseDto>,
+    pub groups: Vec<GroupResponseDto>,
     pub saves: Vec<SaveResponseDto>, // TODO: implement saves
     pub default_profile: Option<uuid::Uuid>,
     pub game_id: SupportedGames,
@@ -64,6 +68,7 @@ impl GameResponseDto {
                 .default_profile
                 .or(profiles.first().map(|profile| profile.id)),
             profiles,
+            groups: vec![],
         }
     }
 

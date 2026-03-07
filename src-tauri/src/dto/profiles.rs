@@ -12,6 +12,7 @@ pub struct ProfileRequestDto {
     pub name: String,
     pub default: Option<bool>,
     pub manual_mode: Option<bool>,
+    pub groups: Vec<uuid::Uuid>,
     pub mods: Vec<ModRequestDto>,
 }
 
@@ -22,6 +23,7 @@ pub struct ProfileResponseDto {
     pub name: String, // name must be unique across profiles, but not necessarily across games
     pub mods: Vec<ModResponseDto>,
     pub manual_mode: bool,
+    pub groups: Vec<uuid::Uuid>,
 }
 
 impl ProfileResponseDto {
@@ -33,6 +35,7 @@ impl ProfileResponseDto {
             name: profile.name,
             manual_mode: profile.manual_mode,
             mods,
+            groups: profile.groups,
         }
     }
 

@@ -1,9 +1,9 @@
 use crate::{
     defaults::games::DefaultGameInfo,
-    supported_games::SupportedGames,
-    dto::{mods::ModRequestDto, profiles::ProfileRequestDto},
+    dto::{groups::GroupResponseDto, mods::ModRequestDto, profiles::ProfileRequestDto},
     mods::pack,
     resolve_existing_path,
+    supported_games::SupportedGames,
     utils::{
         self, ErrorCode,
         path::{retrieve_saves_absolute_path, retrieve_steam_workshop_path},
@@ -18,11 +18,11 @@ use tauri::Wry;
 #[serde(rename_all = "camelCase")]
 pub struct GameStore {
     pub game_id: SupportedGames,
-
     pub game_path: PathBuf,
     pub saves_path: Option<PathBuf>,
     pub mods_path: PathBuf,
     pub profiles: Vec<Profile>,
+    pub groups: Vec<GroupResponseDto>,
     pub default_profile: Option<uuid::Uuid>,
 }
 
@@ -33,6 +33,7 @@ pub struct Profile {
     pub name: String,
     pub mods: Vec<ModInfo>,
     pub manual_mode: bool,
+    pub groups: Vec<uuid::Uuid>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -68,6 +69,7 @@ impl Profile {
                 })
                 .collect(),
             manual_mode: dto.manual_mode.unwrap_or(false),
+            groups: dto.groups,
         }
     }
 }
@@ -120,6 +122,7 @@ impl GameStore {
                 name: default_profile_name.clone(),
                 default: Some(true),
                 manual_mode: Some(false),
+                groups: vec![],
                 mods, // this is the default profile so we should throw all the available mods in it
             },
         );
@@ -131,6 +134,7 @@ impl GameStore {
             mods_path,
             default_profile: Some(default_profile.id),
             profiles: vec![default_profile],
+            groups: vec![],
         })
     }
 
