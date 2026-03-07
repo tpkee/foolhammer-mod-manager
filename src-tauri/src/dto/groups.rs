@@ -1,14 +1,11 @@
-use crate::{
-    dto::mods::{ModRequestDto, ModResponseDto},
-    supported_games::SupportedGames,
-};
+use crate::supported_games::SupportedGames;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GroupResponseDto {
     pub id: uuid::Uuid,
     pub name: String,
-    pub mods: Vec<ModResponseDto>,
+    pub mods: Vec<String>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -16,6 +13,6 @@ pub struct GroupResponseDto {
 pub struct GroupRequestDto {
     pub id: Option<uuid::Uuid>,
     pub name: String,
-    pub mods: Vec<ModRequestDto>,
+    pub mods: Vec<String>,
     pub game_id: SupportedGames,
 }

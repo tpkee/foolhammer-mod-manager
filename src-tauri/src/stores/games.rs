@@ -31,7 +31,7 @@ pub struct GameStore {
 pub struct Group {
     pub id: uuid::Uuid,
     pub name: String,
-    pub mods: Vec<ModInfo>,
+    pub mods: Vec<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -39,20 +39,20 @@ pub struct Group {
 pub struct Profile {
     pub id: uuid::Uuid,
     pub name: String,
-    pub mods: Vec<ModInfo>,
+    pub mods: Vec<ProfileModInfo>,
     pub manual_mode: bool,
     pub groups: Vec<uuid::Uuid>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ModInfo {
+pub struct ProfileModInfo {
     pub name: String,
     pub enabled: bool,
     pub order: u32, // TODO: this should be an option
 }
 
-impl From<ModRequestDto> for ModInfo {
+impl From<ModRequestDto> for ProfileModInfo {
     fn from(dto: ModRequestDto) -> Self {
         Self {
             name: dto.name,
@@ -70,7 +70,7 @@ impl From<ProfileRequestDto> for Profile {
             mods: dto
                 .mods
                 .into_iter()
-                .map(|m| ModInfo {
+                .map(|m| ProfileModInfo {
                     name: m.name,
                     enabled: m.enabled,
                     order: m.order.unwrap_or(0),
@@ -87,15 +87,7 @@ impl From<GroupRequestDto> for Group {
         Self {
             id: dto.id.unwrap_or_else(uuid::Uuid::new_v4),
             name: dto.name,
-            mods: dto
-                .mods
-                .into_iter()
-                .map(|m| ModInfo {
-                    name: m.name,
-                    enabled: m.enabled,
-                    order: m.order.unwrap_or(0),
-                })
-                .collect(),
+            mods: dto.mods,
         }
     }
 }

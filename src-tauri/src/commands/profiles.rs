@@ -1,7 +1,7 @@
 use crate::{
     commands::helpers::{modify_profile, modify_profiles},
     dto::{mods::ModRequestDto, profiles::ProfileRequestDto},
-    stores::games::{ModInfo, Profile},
+    stores::games::{Profile, ProfileModInfo},
     supported_games::SupportedGames,
     utils::ErrorCode,
 };
@@ -109,7 +109,7 @@ pub async fn set_profile_mods(
     mods: Vec<ModRequestDto>,
 ) -> Result<serde_json::Value, ErrorCode> {
     modify_profile(&app_handle, game_id, profile_id, |profile| {
-        profile.mods = mods.into_iter().map(ModInfo::from).collect();
+        profile.mods = mods.into_iter().map(ProfileModInfo::from).collect();
         Ok(serde_json::json!(&profile.mods))
     })
     .await
@@ -125,10 +125,10 @@ pub async fn add_profile_mods(
     modify_profile(&app_handle, game_id, profile_id, |profile| {
         if profile.manual_mode {
             let old_len = profile.mods.len();
-            let new_mods: Vec<ModInfo> = mods
+            let new_mods: Vec<ProfileModInfo> = mods
                 .into_iter()
                 .enumerate()
-                .map(|(i, m)| ModInfo {
+                .map(|(i, m)| ProfileModInfo {
                     name: m.name,
                     enabled: m.enabled,
                     order: m.order.unwrap_or(u32::try_from(old_len + i).unwrap_or(0)),
@@ -137,7 +137,9 @@ pub async fn add_profile_mods(
 
             profile.mods.extend(new_mods);
         } else {
-            profile.mods.extend(mods.into_iter().map(ModInfo::from));
+            profile
+                .mods
+                .extend(mods.into_iter().map(ProfileModInfo::from));
         }
         Ok(serde_json::json!(&profile.mods))
     })
