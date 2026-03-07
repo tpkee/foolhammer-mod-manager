@@ -172,14 +172,18 @@ pub async fn add_group_profile(
 
         for mod_name in &group.mods {
             if let Some(existing_mod) = profile.mods.iter_mut().find(|m| &m.name == mod_name) {
-                if !existing_mod.groups.contains(&group_id) {
-                    existing_mod.groups.push(group_id);
+                if let Some(groups) = &mut existing_mod.groups {
+                    if !groups.contains(&group_id) {
+                        groups.push(group_id);
+                    }
+                } else {
+                    existing_mod.groups = Some(vec![group_id]);
                 }
             } else if available_mod_names.contains(mod_name) {
                 profile.mods.push(ProfileModInfo {
                     name: mod_name.clone(),
                     enabled: false,
-                    groups: vec![group_id],
+                    groups: Some(vec![group_id]),
                     order: 0,
                 });
             }
@@ -203,10 +207,13 @@ pub async fn remove_group_profile(
         }
 
         profile.mods.retain_mut(|m| {
-            m.groups.retain(|g| g != &group_id);
+            if let Some(groups) = &mut m.groups {
+                groups.retain(|g| g != &group_id);
 
-            if m.groups.is_empty() {
-                return false;
+                if groups.is_empty() {
+                    m.groups = None;
+                    return false;
+                }
             }
 
             true

@@ -130,7 +130,7 @@ pub async fn add_profile_mods(
                 .map(|(i, m)| ProfileModInfo {
                     name: m.name,
                     enabled: m.enabled,
-                    groups: vec![],
+                    groups: None,
                     order: m.order.unwrap_or(u32::try_from(old_len + i).unwrap_or(0)),
                 })
                 .collect();

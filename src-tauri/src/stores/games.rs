@@ -90,8 +90,8 @@ pub struct Profile {
 pub struct ProfileModInfo {
     pub name: String,
     pub enabled: bool,
-    pub groups: Vec<uuid::Uuid>, // if a mod belongs to a group we need to keep a reference in the profile itself
-    pub order: u32,              // TODO: this should be an option
+    pub groups: Option<Vec<uuid::Uuid>>, // if a mod belongs to a group we need to keep a reference in the profile itself
+    pub order: u32,                      // TODO: this should be an option
 }
 
 impl From<ModRequestDto> for ProfileModInfo {
@@ -99,7 +99,7 @@ impl From<ModRequestDto> for ProfileModInfo {
         Self {
             name: dto.name,
             enabled: dto.enabled,
-            groups: vec![],
+            groups: None,
             order: dto.order.unwrap_or(0),
         }
     }
@@ -116,7 +116,7 @@ impl From<ProfileRequestDto> for Profile {
                 .map(|m| ProfileModInfo {
                     name: m.name,
                     enabled: m.enabled,
-                    groups: vec![],
+                    groups: None,
                     order: m.order.unwrap_or(0),
                 })
                 .collect(),
