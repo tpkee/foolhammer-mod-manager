@@ -1,6 +1,6 @@
 use crate::{
     dto::{mods::ModRequestDto, profiles::ProfileRequestDto},
-    stores::games::{Profile, ProfileModInfo, Store},
+    stores::games::{GameStore, Profile, ProfileModInfo, Store},
     supported_games::SupportedGames,
     utils::ErrorCode,
 };
@@ -73,13 +73,14 @@ pub async fn delete_profile(
     game_id: SupportedGames,
     profile_id: uuid::Uuid,
 ) -> Result<(), ErrorCode> {
-    Profile::get_all(&app_handle, game_id, |profiles| {
-        let idx = profiles
-            .iter()
-            .position(|p| p.id == profile_id)
-            .ok_or(ErrorCode::NotFound)?;
+    GameStore::get(&app_handle, game_id, |game| {
+        if let Some(default_id) = game.default_profile
+            && default_id == profile_id
+        {
+            game.default_profile = None;
+        }
 
-        profiles.remove(idx);
+        game.profiles.retain(|p| p.id != profile_id);
 
         Ok(())
     })
