@@ -396,27 +396,34 @@ fn profile_link_mod(profile: &mut Profile, mod_name: &str, group_id: uuid::Uuid)
 }
 
 fn profile_unlink_mods(profile: &mut Profile, group_id: uuid::Uuid, mod_names: &[String]) {
-    for m in profile.mods.iter_mut() {
-        if !mod_names.contains(&m.name) {
-            continue;
-        }
-        if let Some(groups) = &mut m.groups {
+    profile.mods.retain_mut(|m| {
+        if mod_names.contains(&m.name)
+            && let Some(groups) = &mut m.groups
+        {
             groups.retain(|g| g != &group_id);
             if groups.is_empty() {
                 m.groups = None;
+                return false;
             }
         }
-    }
+
+        true
+    })
 }
 
 fn profile_unlink_group(profile: &mut Profile, group_id: uuid::Uuid) {
     profile.groups.retain(|g| g != &group_id);
-    for m in profile.mods.iter_mut() {
+
+    profile.mods.retain_mut(|m| {
         if let Some(groups) = &mut m.groups {
             groups.retain(|g| g != &group_id);
+
             if groups.is_empty() {
                 m.groups = None;
+                return false;
             }
         }
-    }
+
+        true
+    })
 }
