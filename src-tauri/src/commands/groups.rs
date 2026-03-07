@@ -96,3 +96,45 @@ pub async fn delete_group(
     })
     .await
 }
+
+#[tauri::command]
+pub async fn set_group_mods(
+    app_handle: tauri::AppHandle,
+    game_id: SupportedGames,
+    group_id: uuid::Uuid,
+    mods: Vec<String>,
+) -> Result<serde_json::Value, ErrorCode> {
+    modify_group(&app_handle, game_id, group_id, |group| {
+        group.mods = mods;
+        Ok(serde_json::json!(&group.mods))
+    })
+    .await
+}
+
+#[tauri::command]
+pub async fn add_group_mods(
+    app_handle: tauri::AppHandle,
+    game_id: SupportedGames,
+    group_id: uuid::Uuid,
+    mods: Vec<String>,
+) -> Result<serde_json::Value, ErrorCode> {
+    modify_group(&app_handle, game_id, group_id, |group| {
+        group.mods.extend(mods);
+        Ok(serde_json::json!(&group.mods))
+    })
+    .await
+}
+
+#[tauri::command]
+pub async fn remove_group_mods(
+    app_handle: tauri::AppHandle,
+    game_id: SupportedGames,
+    group_id: uuid::Uuid,
+    mods: Vec<String>,
+) -> Result<serde_json::Value, ErrorCode> {
+    modify_group(&app_handle, game_id, group_id, |group| {
+        group.mods.retain(|m| !mods.contains(m));
+        Ok(serde_json::json!(&group.mods))
+    })
+    .await
+}
