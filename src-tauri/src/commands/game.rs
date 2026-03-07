@@ -98,8 +98,6 @@ pub async fn start_game<'a>(
 
     let txt_path = join_path!(&game_path, "used_mods.txt");
 
-    println!("TODO: Using save game path: {:?}", savegame_path);
-
     if !game_path.exists() {
         return Err(ErrorCode::InternalError);
     }
