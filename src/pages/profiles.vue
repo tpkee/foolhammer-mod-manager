@@ -28,7 +28,6 @@
       ref="createModalRef"
       :game-id="gameStore.selectedGame!"
       :existing-profile-names="getProfileNames"
-      @created="gameStore.fetchGame"
     />
   </div>
 </template>

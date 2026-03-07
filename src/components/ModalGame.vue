@@ -75,6 +75,7 @@
             type="submit"
             class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="!form.gamePath"
+            :loading="isLoading"
           >
             Save Settings
           </app-button>
@@ -109,6 +110,7 @@ const gameStore = useGameStore()
 const { t } = useI18n()
 
 const modalRef = ref()
+const isLoading = ref(false)
 
 const form = ref<GameSettings>({
   gamePath: null,
@@ -135,6 +137,7 @@ async function pickPath(field: keyof GameSettings) {
 }
 
 async function handleSubmit() {
+  isLoading.value = true
   try {
     await useTauriInvoke('update_game', {
       gameId,
@@ -144,13 +147,16 @@ async function handleSubmit() {
         modsPath: form.value.modsPath,
       },
     })
-    // todo add saving
+    await gameStore.fetchGame()
     emit('save')
 
     modalRef.value?.close()
   }
   catch (error) {
     console.error('Failed to save game settings:', error)
+  }
+  finally {
+    isLoading.value = false
   }
 }
 

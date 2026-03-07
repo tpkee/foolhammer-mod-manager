@@ -27,7 +27,7 @@
                 <app-button @click="toggleAllMods()">
                   Toggle All mods
                 </app-button>
-                <app-button @click="toggleManualMode()">
+                <app-button :loading="isTogglingManualMode" @click="toggleManualMode()">
                   {{ profile?.manualMode ? 'Disable' : 'Enable' }} manual mode
                 </app-button>
               </div>
@@ -71,13 +71,13 @@
   <modal-mod
     ref="modalMod"
     :mods="getMissingMods"
-    @save="emit('refresh')"
   />
 
   <mods-edit-bar
     :visible="hasEdits"
     :can-undo="canUndo"
     :can-redo="canRedo"
+    :loading="isSaving"
 
     @cancel="cancel()"
     @save="saveEdits"
@@ -124,6 +124,8 @@ const orderOptions = [
 // Reactive state
 const filters = ref({ search: '', sortBy: 'order', sortOrder: 'desc' })
 const localList = ref<ModResponseDto[]>([])
+const isSaving = ref(false)
+const isTogglingManualMode = ref(false)
 const { snapshots, undo, redo, commit, cancel, canUndo, canRedo } = useHistory(localList)
 
 // Computed
@@ -195,12 +197,16 @@ watch(() => props.list, (value) => {
 
 // Functions
 async function toggleManualMode() {
+  isTogglingManualMode.value = true
   try {
     await useTauriInvoke('toggle_manual_mode', { profileId: props.profile!.id, gameId: props.gameId })
-    emit('refresh')
+    await gameStore.fetchGame()
   }
   catch (error) {
     console.error('Failed to toggle manual mode:', error)
+  }
+  finally {
+    isTogglingManualMode.value = false
   }
 }
 
@@ -212,13 +218,17 @@ function toggleAllMods() {
 }
 
 async function saveEdits() {
+  isSaving.value = true
   try {
     await useTauriInvoke('set_profile_mods', { mods: localList.value, profileId: props.profile!.id, gameId: props.gameId })
     commit()
-    emit('refresh')
+    await gameStore.fetchGame()
   }
   catch (error) {
     console.error('Failed to save edits:', error)
+  }
+  finally {
+    isSaving.value = false
   }
 }
 

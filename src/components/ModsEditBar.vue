@@ -9,7 +9,7 @@
           <app-button variant="secondary" @click="emit('cancel')">
             Cancel
           </app-button>
-          <app-button @click="emit('save')">
+          <app-button :loading="loading" @click="emit('save')">
             Save
           </app-button>
           <app-button variant="secondary" :disabled="!canUndo" @click="emit('undo')">
@@ -25,10 +25,11 @@
 </template>
 
 <script lang="ts" setup>
-const props = defineProps<{
+defineProps<{
   visible: boolean
   canUndo: boolean
   canRedo: boolean
+  loading?: boolean
 }>()
 
 const emit = defineEmits<{

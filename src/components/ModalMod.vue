@@ -66,6 +66,7 @@
 
         <app-button
           :disabled="!selectedMods.size"
+          :loading="isLoading"
           class="px-4 py-2"
           type="submit"
         >
@@ -94,6 +95,7 @@ const modalRef = useTemplateRef('modalRef')
 
 const search = ref('')
 const selectedMods = ref<Set<string>>(new Set())
+const isLoading = ref(false)
 
 const filteredMods = computed(() => {
   const query = search.value.toLowerCase().trim()
@@ -120,18 +122,23 @@ function close() {
 }
 
 async function onSave() {
+  isLoading.value = true
   try {
     await useTauriInvoke<ModRequestDto[]>('add_profile_mods', {
       profileId: gameStore.selectedProfile!,
       gameId: gameStore.selectedGame!,
-      mods: Array.from(selectedMods.value).map(name => ({ name, order: null, enabled: true })),
+      mods: Array.from(selectedMods.value, name => ({ name, order: null, enabled: true })),
     })
 
+    await gameStore.fetchGame()
     emit('save')
     close()
   }
   catch (err) {
     console.error(err)
+  }
+  finally {
+    isLoading.value = false
   }
 }
 

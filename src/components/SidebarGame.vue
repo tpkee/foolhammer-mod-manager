@@ -32,7 +32,6 @@
   <modal-game
     ref="gameSettingsModal"
     :game-id="id"
-    @save="emit('onRefresh')"
   />
 </template>
 
@@ -43,11 +42,6 @@ import { useGameImage } from '~/composables/gameImage'
 const props = defineProps<{
   id: string
   currentGame: Nullable<string>
-}>()
-
-// Emits
-const emit = defineEmits<{
-  onRefresh: []
 }>()
 
 // Template refs

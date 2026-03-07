@@ -55,11 +55,12 @@ interface ProfileForm {
 
 const props = defineProps<{
   gameId: string
+  profileId: string
   currentName: string
 }>()
 
 const emit = defineEmits<{
-  save: [newName: string]
+  save: []
 }>()
 
 const modalRef = useTemplateRef('modal')
@@ -69,7 +70,7 @@ const gameStore = useGameStore()
 const form = ref<ProfileForm>({
   name: '',
 })
-
+const isLoading = ref(false)
 const error = ref<string>('')
 
 function validateName(name: string): string {
@@ -95,15 +96,34 @@ function validateName(name: string): string {
   return ''
 }
 
-function handleSubmit() {
+async function handleSubmit() {
   const validationError = validateName(form.value.name)
+
   if (validationError) {
     error.value = validationError
     return
   }
 
-  emit('save', form.value.name)
-  modalRef.value?.close()
+  isLoading.value = true
+
+  try {
+    await useTauriInvoke('rename_profile', {
+      gameId: props.gameId,
+      profileId: props.profileId,
+      newName: form.value.name,
+    })
+
+    await gameStore.fetchGame()
+
+    emit('save')
+    modalRef.value?.close()
+  }
+  catch (err) {
+    console.error('Failed to rename profile:', err)
+  }
+  finally {
+    isLoading.value = false
+  }
 }
 
 function resetForm() {

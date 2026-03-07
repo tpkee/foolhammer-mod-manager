@@ -55,6 +55,7 @@
             type="submit"
             class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="!!getErrors"
+            :loading="isLoading"
           >
             Create
           </app-button>
@@ -104,11 +105,14 @@ const getErrors = computed(() => {
   return ''
 })
 
+const isLoading = ref(false)
+
 async function handleSubmit() {
   if (getErrors.value) {
     return
   }
 
+  isLoading.value = true
   try {
     await useTauriInvoke('create_profile', {
       payload: {
@@ -116,7 +120,7 @@ async function handleSubmit() {
         name: form.value.name,
         default: gameStore.getProfiles.length === 0 ? true : form.value.default,
         manualMode: false,
-        mods: (Array.from(listMods.value) ?? []).map((name: string, index: number) => ({
+        mods: Array.from(listMods.value, (name: string, index: number) => ({
           name,
           enabled: false,
           order: index + 1,
@@ -124,11 +128,15 @@ async function handleSubmit() {
       },
     })
 
+    await gameStore.fetchGame()
     emit('created')
     modalRef.value?.close()
   }
   catch (err) {
     console.error('Failed to create profile:', err)
+  }
+  finally {
+    isLoading.value = false
   }
 }
 

@@ -32,15 +32,14 @@
   <modal-rename-profile
     ref="modal"
     :game-id="gameId"
+    :profile-id="profile.id!"
     :current-name="profile.name!"
-    @save="handleRename"
   />
 
   <modal-merge-profile
     ref="mergeModal"
     :game-id="gameId"
     :profile="profile"
-    @merged="emit('refresh')"
   />
 </template>
 
@@ -114,21 +113,6 @@ async function handleSetDefault() {
   }
   catch (err) {
     console.error('Failed to set default profile:', err)
-  }
-}
-
-async function handleRename(newName: string) {
-  try {
-    await useTauriInvoke('rename_profile', {
-      gameId: props.gameId,
-      profileId: props.profile.id,
-      newName,
-    })
-
-    emit('refresh')
-  }
-  catch (err) {
-    console.error('Failed to rename profile:', err)
   }
 }
 

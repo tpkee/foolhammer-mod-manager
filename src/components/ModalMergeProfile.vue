@@ -30,6 +30,7 @@
           type="button"
           class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           :disabled="!hasSelection"
+          :loading="isLoading"
           @click="handleMerge"
         >
           Merge
@@ -55,6 +56,7 @@ const gameStore = useGameStore()
 
 const modalRef = useTemplateRef('modal')
 const listMods = ref<Set<string>>(new Set())
+const isLoading = ref(false)
 
 const otherProfiles = computed(() =>
   gameStore.getProfiles.filter(p => p && p.name !== props.profile.name),
@@ -64,6 +66,8 @@ const hasSelection = computed(() => listMods.value.size > 0)
 async function handleMerge() {
   if (!listMods.value.size)
     return
+
+  isLoading.value = true
 
   const existingMods = (props.profile.mods ?? []).filter(m => m && m.name)
   const existingNames = new Set(existingMods.map(m => m!.name))
@@ -97,11 +101,15 @@ async function handleMerge() {
       mods,
     })
 
+    await gameStore.fetchGame()
     emit('merged')
     close()
   }
   catch (err) {
     console.error('Failed to merge profiles:', err)
+  }
+  finally {
+    isLoading.value = false
   }
 }
 
