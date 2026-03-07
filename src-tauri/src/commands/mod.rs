@@ -1,5 +1,5 @@
-pub mod game;
+pub mod games;
 pub mod helpers;
 pub mod mods;
-pub mod profile;
+pub mod profiles;
 pub mod settings;
