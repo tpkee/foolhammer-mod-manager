@@ -35,12 +35,18 @@ const modalRef = useTemplateRef('modalRef')
 const isOpen = ref(false)
 
 function open() {
+  document.body.classList.add('overflow-hidden')
   isOpen.value = true
 }
 
 function close() {
+  document.body.classList.remove('overflow-hidden')
   isOpen.value = false
 }
+
+onUnmounted(() => {
+  document.body.classList.remove('overflow-hidden')
+})
 
 function closeOnBackdrop() {
   if (props.closeOnBackdrop) {
