@@ -1,6 +1,6 @@
 use crate::{
     defaults::{self},
-    games::SupportedGames,
+    supported_games::SupportedGames,
     utils::{self, ErrorCode},
 };
 use serde::{Deserialize, Serialize};

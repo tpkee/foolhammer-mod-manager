@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use crate::{
-    games::SupportedGames,
+    supported_games::SupportedGames,
     dto::{packs::PackResponseDto, profiles::ProfileResponseDto, saves::SaveResponseDto},
     mods::pack,
     resolve_existing_path,

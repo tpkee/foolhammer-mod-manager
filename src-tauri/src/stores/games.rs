@@ -1,6 +1,6 @@
 use crate::{
     defaults::games::DefaultGameInfo,
-    games::SupportedGames,
+    supported_games::SupportedGames,
     dto::{mods::ModRequestDto, profiles::ProfileRequestDto},
     mods::pack,
     resolve_existing_path,

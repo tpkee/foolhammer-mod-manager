@@ -1,5 +1,5 @@
 use crate::defaults::system::STEAMDIR_INSTANCE;
-use crate::games::SupportedGames;
+use crate::supported_games::SupportedGames;
 use std::path::PathBuf;
 
 #[derive(Debug)]

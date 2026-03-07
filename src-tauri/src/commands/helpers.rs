@@ -1,6 +1,6 @@
 use crate::dto::games::GameResponseDto;
-use crate::games::SupportedGames;
 use crate::stores::games::{GameStore, Profile};
+use crate::supported_games::SupportedGames;
 use crate::utils::ErrorCode;
 
 pub fn get_game_response_from_store(

@@ -1,5 +1,5 @@
 use crate::commands::helpers::{modify_profile, modify_profiles};
-use crate::games::SupportedGames;
+use crate::supported_games::SupportedGames;
 use crate::dto::profiles::ProfileRequestDto;
 use crate::stores::games::Profile;
 use crate::utils::ErrorCode;

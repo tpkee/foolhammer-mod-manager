@@ -4,7 +4,7 @@ use std::{
     process::Command,
 };
 
-use crate::games::SupportedGames;
+use crate::supported_games::SupportedGames;
 
 #[cfg(target_os = "linux")]
 pub mod linux;

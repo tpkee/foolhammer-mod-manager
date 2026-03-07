@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use tauri::Manager;
 
 use crate::{
-    games::SupportedGames,
+    supported_games::SupportedGames,
     defaults::system::STEAMDIR_INSTANCE,
     join_path, resolve_existing_path,
 };

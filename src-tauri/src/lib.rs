@@ -4,11 +4,11 @@ pub mod commands;
 pub mod defaults;
 pub mod dto;
 pub mod events;
-pub mod games;
 pub mod launchers;
 pub mod mods;
 pub mod state;
 pub mod stores;
+pub mod supported_games;
 pub mod utils;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

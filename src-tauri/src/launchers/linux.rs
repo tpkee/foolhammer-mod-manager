@@ -7,7 +7,7 @@ use std::{error::Error, io::Read};
 use tauri::Manager;
 
 use crate::utils;
-use crate::{defaults::games::DefaultGameInfo, games::SupportedGames};
+use crate::{defaults::games::DefaultGameInfo, supported_games::SupportedGames};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 

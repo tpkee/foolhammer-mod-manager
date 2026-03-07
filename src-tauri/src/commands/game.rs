@@ -2,11 +2,11 @@ use crate::{
     commands::helpers::{get_game_response_from_store, modify_game, modify_profile},
     defaults::games::{DefaultGameInfo, SUPPORTED_GAMES},
     dto::games::{GameRequestDto, GameResponseDto},
-    games::SupportedGames,
     join_path,
     launchers::{GameManager, linux::LinuxLauncher},
     mods,
     state::AppState,
+    supported_games::SupportedGames,
     utils::ErrorCode,
 };
 use std::collections::HashMap;
