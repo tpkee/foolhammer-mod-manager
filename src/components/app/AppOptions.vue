@@ -17,7 +17,7 @@
           class="p-2 text-sm"
           :icon="option.icon"
           :label="option.label"
-          @click="handleOption(option.callback)"
+          :callback="wrapCallback(option.callback)"
         />
       </div>
     </template>
@@ -30,7 +30,7 @@ const props = defineProps<{
   options: {
     icon?: string
     label: string
-    callback?: () => void
+    callback?: () => void | Promise<void>
     hide?: boolean
   }[]
 }>()
@@ -54,9 +54,11 @@ function toggle() {
   refDropdown.value?.toggle()
 }
 
-function handleOption(callback: (() => void) | undefined) {
-  callback?.()
-  close()
+function wrapCallback(callback: (() => void | Promise<void>) | undefined) {
+  return async () => {
+    await callback?.()
+    close()
+  }
 }
 
 defineExpose({
