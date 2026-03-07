@@ -7,10 +7,10 @@
     >
       <div>
         <h2 class="text-lg font-semibold">
-          Add Mods
+          {{ title }}
         </h2>
         <p class="text-sm text-gray-400">
-          Select one or more mods to add to this profile
+          {{ description }}
         </p>
       </div>
 
@@ -66,11 +66,10 @@
 
         <app-button
           :disabled="!selectedMods.size"
-          :loading="isLoading"
           class="px-4 py-2"
           type="submit"
         >
-          Add selected
+          Save
         </app-button>
       </div>
     </form>
@@ -78,24 +77,25 @@
 </template>
 
 <script lang="ts" setup>
-import type { ModRequestDto, ModResponseDto } from '~/types/dto'
+import type { ModResponseDto } from '~/types/dto'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   mods: ModResponseDto[]
-}>()
+  title?: string
+  description?: string
+}>(), {
+  title: 'Add Mods',
+  description: 'Select one or more mods',
+})
 
 const emit = defineEmits<{
-  save: []
+  save: [mods: string[]]
 }>()
-
-// Stores
-const gameStore = useGameStore()
 
 const modalRef = useTemplateRef('modalRef')
 
 const search = ref('')
 const selectedMods = ref<Set<string>>(new Set())
-const isLoading = ref(false)
 
 const filteredMods = computed(() => {
   const query = search.value.toLowerCase().trim()
@@ -111,9 +111,9 @@ const filteredMods = computed(() => {
   })
 })
 
-function open() {
+function open(preselected?: string[]) {
   search.value = ''
-  selectedMods.value.clear()
+  selectedMods.value = new Set(preselected ?? [])
   modalRef.value?.open()
 }
 
@@ -121,25 +121,9 @@ function close() {
   modalRef.value?.close()
 }
 
-async function onSave() {
-  isLoading.value = true
-  try {
-    await useTauriInvoke<ModRequestDto[]>('add_profile_mods', {
-      profileId: gameStore.selectedProfile!,
-      gameId: gameStore.selectedGame!,
-      mods: Array.from(selectedMods.value, name => ({ name, order: null, enabled: true })),
-    })
-
-    await gameStore.fetchGame()
-    emit('save')
-    close()
-  }
-  catch (err) {
-    console.error(err)
-  }
-  finally {
-    isLoading.value = false
-  }
+function onSave() {
+  emit('save', [...selectedMods.value])
+  close()
 }
 
 defineExpose({ open, close })

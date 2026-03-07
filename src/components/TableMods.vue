@@ -71,6 +71,7 @@
   <modal-mod
     ref="modalMod"
     :mods="getMissingMods"
+    @save="onAddMods"
   />
 
   <mods-edit-bar
@@ -209,6 +210,20 @@ async function saveEdits() {
   }
   finally {
     isSaving.value = false
+  }
+}
+
+async function onAddMods(mods: string[]) {
+  try {
+    await useTauriInvoke('add_profile_mods', {
+      profileId: props.profile!.id,
+      gameId: props.gameId,
+      mods: mods.map(name => ({ name, order: null, enabled: true })),
+    })
+    await gameStore.fetchGame()
+  }
+  catch (error) {
+    console.error('Failed to add mods:', error)
   }
 }
 
