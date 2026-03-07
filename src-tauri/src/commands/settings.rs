@@ -1,3 +1,4 @@
+use crate::supported_games::SupportedGames;
 use crate::dto::settings::UserSettingsResponseDto;
 use crate::events::AppEvent;
 use crate::stores::settings::{SettingsKey, SettingsStore};
@@ -16,7 +17,7 @@ pub async fn get_user_settings(
 #[tauri::command]
 pub async fn set_default_game(
     app_handle: tauri::AppHandle,
-    game_id: &str,
+    game_id: SupportedGames,
 ) -> Result<(), ErrorCode> {
     let store = SettingsStore::get_store(&app_handle)?;
 

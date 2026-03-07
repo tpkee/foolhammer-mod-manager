@@ -1,4 +1,5 @@
 use crate::commands::helpers::{modify_profile, modify_profiles};
+use crate::supported_games::SupportedGames;
 use crate::dto::profiles::ProfileRequestDto;
 use crate::stores::games::Profile;
 use crate::utils::ErrorCode;
@@ -8,9 +9,9 @@ pub fn create_profile(
     app_handle: tauri::AppHandle,
     payload: ProfileRequestDto,
 ) -> Result<serde_json::Value, ErrorCode> {
-    let game_id = payload.game_id.clone();
+    let game_id = payload.game_id;
 
-    modify_profiles(&app_handle, &game_id, |profiles| {
+    modify_profiles(&app_handle, game_id, |profiles| {
         if profiles.iter().any(|p| p.name == payload.name) {
             return Err(ErrorCode::Conflict);
         }
@@ -28,9 +29,9 @@ pub fn update_profile(
     profile_id: uuid::Uuid,
     payload: ProfileRequestDto,
 ) -> Result<serde_json::Value, ErrorCode> {
-    let game_id = payload.game_id.clone();
+    let game_id = payload.game_id;
 
-    modify_profile(&app_handle, &game_id, profile_id, |profile| {
+    modify_profile(&app_handle, game_id, profile_id, |profile| {
         if profile.name != payload.name {
             return Err(ErrorCode::Conflict);
         }
@@ -44,7 +45,7 @@ pub fn update_profile(
 #[tauri::command]
 pub fn rename_profile(
     app_handle: tauri::AppHandle,
-    game_id: &str,
+    game_id: SupportedGames,
     profile_id: uuid::Uuid,
     new_name: &str,
 ) -> Result<serde_json::Value, ErrorCode> {
@@ -67,7 +68,7 @@ pub fn rename_profile(
 #[tauri::command]
 pub fn delete_profile(
     app_handle: tauri::AppHandle,
-    game_id: &str,
+    game_id: SupportedGames,
     profile_id: uuid::Uuid,
 ) -> Result<(), ErrorCode> {
     modify_profiles(&app_handle, game_id, |profiles| {
@@ -85,7 +86,7 @@ pub fn delete_profile(
 #[tauri::command]
 pub fn toggle_manual_mode(
     app_handle: tauri::AppHandle,
-    game_id: &str,
+    game_id: SupportedGames,
     profile_id: uuid::Uuid,
 ) -> Result<(), ErrorCode> {
     modify_profile(&app_handle, game_id, profile_id, |profile| {

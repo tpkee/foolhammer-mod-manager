@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use crate::{
+    supported_games::SupportedGames,
     dto::{packs::PackResponseDto, profiles::ProfileResponseDto, saves::SaveResponseDto},
     mods::pack,
     resolve_existing_path,
@@ -23,7 +24,7 @@ pub struct GameResponseDto {
     pub profiles: Vec<ProfileResponseDto>,
     pub saves: Vec<SaveResponseDto>, // TODO: implement saves
     pub default_profile: Option<uuid::Uuid>,
-    pub game_id: String,
+    pub game_id: SupportedGames,
     pub game_path: PathBuf,
     pub saves_path: Option<PathBuf>,
     pub mods_path: PathBuf,
@@ -33,7 +34,7 @@ pub struct GameResponseDto {
 impl GameResponseDto {
     pub fn from_store(store: games::GameStore) -> Self {
         let mods_path = resolve_existing_path!(&store.mods_path);
-        let workshop_path = retrieve_steam_workshop_path(&store.game_id);
+        let workshop_path = retrieve_steam_workshop_path(store.game_id);
 
         let mods = match mods_path {
             Some(path) => pack::ModPack::retrieve_mods(&path, &workshop_path),

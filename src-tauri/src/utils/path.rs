@@ -2,7 +2,11 @@ use std::path::PathBuf;
 
 use tauri::Manager;
 
-use crate::{defaults::system::STEAMDIR_INSTANCE, join_path, resolve_existing_path};
+use crate::{
+    supported_games::SupportedGames,
+    defaults::system::STEAMDIR_INSTANCE,
+    join_path, resolve_existing_path,
+};
 
 pub fn generate_store_path(app: &tauri::AppHandle, relative_path: &str) -> std::path::PathBuf {
     app.path()
@@ -11,9 +15,13 @@ pub fn generate_store_path(app: &tauri::AppHandle, relative_path: &str) -> std::
         .join(format!("foolhamer-mod-manager/{}", relative_path))
 }
 
-pub fn retrieve_saves_absolute_path(game_id: &str, relative_path: &str) -> Option<PathBuf> {
+pub fn retrieve_saves_absolute_path(
+    game_id: SupportedGames,
+    relative_path: &str,
+) -> Option<PathBuf> {
     // The default saves path needs to be handled differently because on Linux we have to access the wine pfx
     let data_dir = dirs::data_dir().expect("Failed to get data directory");
+    let game_id_str: String = game_id.into();
 
     match std::env::consts::OS {
         "windows" => Some(data_dir),
@@ -23,7 +31,7 @@ pub fn retrieve_saves_absolute_path(game_id: &str, relative_path: &str) -> Optio
                     steam_dir.path(),
                     "steamapps",
                     "compatdata",
-                    game_id,
+                    &game_id_str,
                     "pfx",
                     "drive_c",
                     "users",
@@ -39,7 +47,8 @@ pub fn retrieve_saves_absolute_path(game_id: &str, relative_path: &str) -> Optio
     }
 }
 
-pub fn retrieve_steam_workshop_path(game_id: &str) -> Option<PathBuf> {
+pub fn retrieve_steam_workshop_path(game_id: SupportedGames) -> Option<PathBuf> {
+    let game_id_str: String = game_id.into();
     match &*STEAMDIR_INSTANCE {
         Some(steam_dir) => {
             if let Some(p) = resolve_existing_path!(
@@ -47,7 +56,7 @@ pub fn retrieve_steam_workshop_path(game_id: &str) -> Option<PathBuf> {
                 "steamapps",
                 "workshop",
                 "content",
-                game_id,
+                &game_id_str,
             ) {
                 return Some(p);
             }
@@ -58,9 +67,10 @@ pub fn retrieve_steam_workshop_path(game_id: &str) -> Option<PathBuf> {
     }
 }
 
-pub fn retrieve_wine_pfx_path(game_id: &str) -> Option<PathBuf> {
+pub fn retrieve_wine_pfx_path(game_id: SupportedGames) -> Option<PathBuf> {
+    let game_id_str: String = game_id.into();
     if let Some(steam_dir) = &*STEAMDIR_INSTANCE {
-        return resolve_existing_path!(steam_dir.path(), "steamapps", "compatdata", game_id);
+        return resolve_existing_path!(steam_dir.path(), "steamapps", "compatdata", &game_id_str);
     }
     None
 }

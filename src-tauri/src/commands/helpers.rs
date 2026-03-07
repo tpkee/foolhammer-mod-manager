@@ -1,10 +1,11 @@
 use crate::dto::games::GameResponseDto;
 use crate::stores::games::{GameStore, Profile};
+use crate::supported_games::SupportedGames;
 use crate::utils::ErrorCode;
 
 pub fn get_game_response_from_store(
     app_handler: &tauri::AppHandle,
-    game_id: &str,
+    game_id: SupportedGames,
 ) -> Result<GameResponseDto, ErrorCode> {
     let store = GameStore::get_store(app_handler, game_id)?;
 
@@ -15,7 +16,7 @@ pub fn get_game_response_from_store(
 
 pub fn modify_game<F, T>(
     app_handle: &tauri::AppHandle,
-    game_id: &str,
+    game_id: SupportedGames,
     modify_fn: F,
 ) -> Result<T, ErrorCode>
 where
@@ -40,7 +41,7 @@ where
 
 pub fn modify_profiles<F, T>(
     app_handle: &tauri::AppHandle,
-    game_id: &str,
+    game_id: SupportedGames,
     modify_fn: F,
 ) -> Result<T, ErrorCode>
 where
@@ -51,7 +52,7 @@ where
 
 pub fn modify_profile<F, T>(
     app_handle: &tauri::AppHandle,
-    game_id: &str,
+    game_id: SupportedGames,
     profile_id: uuid::Uuid,
     modify_fn: F,
 ) -> Result<T, ErrorCode>

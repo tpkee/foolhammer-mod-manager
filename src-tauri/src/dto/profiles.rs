@@ -1,4 +1,5 @@
 use crate::{
+    supported_games::SupportedGames,
     dto::mods::{ModRequestDto, ModResponseDto},
     mods::{pack::ModPack, sort::SortMods},
     stores::games,
@@ -54,7 +55,7 @@ impl ProfileResponseDto {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfileRequestDto {
-    pub game_id: String,
+    pub game_id: SupportedGames,
     pub name: String,
     pub default: Option<bool>,
     pub manual_mode: Option<bool>,
