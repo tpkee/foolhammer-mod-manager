@@ -80,6 +80,7 @@ async function handleMerge() {
     mods.push({
       name: mod!.name, // we checked for name above, so this is safe
       enabled: Boolean(mod?.enabled),
+      groups: mod?.groups,
       order: mod?.order,
     })
   }
@@ -89,6 +90,7 @@ async function handleMerge() {
       mods.push({
         name,
         enabled: true,
+        groups: [],
         order: nextOrder++,
       })
     }

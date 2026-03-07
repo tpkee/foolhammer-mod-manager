@@ -99,7 +99,7 @@ impl From<ModRequestDto> for ProfileModInfo {
         Self {
             name: dto.name,
             enabled: dto.enabled,
-            groups: None,
+            groups: dto.groups,
             order: dto.order.unwrap_or(0),
         }
     }
@@ -116,7 +116,7 @@ impl From<ProfileRequestDto> for Profile {
                 .map(|m| ProfileModInfo {
                     name: m.name,
                     enabled: m.enabled,
-                    groups: None,
+                    groups: m.groups,
                     order: m.order.unwrap_or(0),
                 })
                 .collect(),
@@ -213,6 +213,7 @@ impl GameStore {
             .map(|mod_pack| ModRequestDto {
                 order: None,
                 enabled: false,
+                groups: None,
                 name: mod_pack.name.clone(),
             })
             .collect();

@@ -7,6 +7,7 @@ use crate::{mods::pack::ModPack, stores::games::ProfileModInfo};
 pub struct ModResponseDto {
     pub name: String,
     pub path: Option<PathBuf>,
+    pub groups: Option<Vec<uuid::Uuid>>,
     pub enabled: bool,
     pub order: u32,
     pub can_enable: bool,
@@ -35,6 +36,7 @@ impl ModResponseDto {
             order: mod_info.order,
             name: mod_info.name.clone(),
             path,
+            groups: mod_info.groups.clone(),
             enabled: can_enable && mod_info.enabled,
             can_enable,
             last_updated, // this will be updated at runtime based on the mod file's last modified date
@@ -50,5 +52,6 @@ impl ModResponseDto {
 pub struct ModRequestDto {
     pub name: String,
     pub enabled: bool,
+    pub groups: Option<Vec<uuid::Uuid>>,
     pub order: Option<u32>,
 }
