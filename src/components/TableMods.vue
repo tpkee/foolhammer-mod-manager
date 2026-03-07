@@ -35,6 +35,14 @@
                 />
                 {{ allModsEnabled ? 'Disable' : 'Enable' }} all mods
               </button>
+              <button
+                v-if="profile"
+                class="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-left rounded hover:bg-gray-700 transition-colors cursor-pointer"
+                @click="refModalProfileGroups?.open(); close()"
+              >
+                <nuxt-icon name="mi:folder" class="size-4 shrink-0" />
+                Manage profile groups
+              </button>
               <div class="my-1 mx-2 h-px bg-gray-700" />
               <button
                 class="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-left rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
@@ -83,6 +91,13 @@
     </app-table>
   </div>
 
+  <modal-profile-groups
+    v-if="profile"
+    ref="modalProfileGroups"
+    :game-id="gameId"
+    :profile="profile"
+  />
+
   <!-- TODO: when adding new mods ask for confirmation if there are edits, and allow the user to undo/save em before proceedin -->
   <modal-mod
     ref="modalMod"
@@ -127,6 +142,7 @@ const gameStore = useGameStore()
 
 // Template refs
 const refModalMod = useTemplateRef('modalMod')
+const refModalProfileGroups = useTemplateRef('modalProfileGroups')
 const refContainerList = useTemplateRef('containerList')
 
 // Non-reactive state
