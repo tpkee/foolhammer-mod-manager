@@ -89,8 +89,6 @@ impl GameStore {
             .build()
             .or(Err(ErrorCode::InternalError))?;
 
-        // TODO: if the store is new should we start the watcher? not sure, probs better to handle this logic separately
-
         Ok(store)
     }
 
