@@ -13,4 +13,5 @@ export type ModResponseDto = RecursivePartial<{
   lastUpdated: string | null
   fromSteamWorkshop: boolean
   image: string | null
+  dependencies: [boolean, string][] // [loadBefore, modName]
 }>
