@@ -36,7 +36,7 @@ impl GameResponseDto {
         let workshop_path = retrieve_steam_workshop_path(&store.game_id);
 
         let mods = match mods_path {
-            Some(path) => pack::Pack::retrieve_mods(&path, &workshop_path),
+            Some(path) => pack::ModPack::retrieve_mods(&path, &workshop_path),
             None => vec![],
         };
 
@@ -82,7 +82,7 @@ impl GameResponseDto {
         vec![]
     }
 
-    fn mods_to_dto(mods: &[pack::Pack]) -> Vec<PackResponseDto> {
+    fn mods_to_dto(mods: &[pack::ModPack]) -> Vec<PackResponseDto> {
         mods.iter()
             .map(|pack| {
                 let pack = pack.clone();

@@ -101,7 +101,7 @@ impl GameStore {
         let mods_path = resolve_existing_path!(&game_path, default_game.mods_path)?;
 
         let workshop_path: Option<PathBuf> = retrieve_steam_workshop_path(default_game.game_id);
-        let mods: Vec<ModRequestDto> = pack::Pack::retrieve_mods(&mods_path, &workshop_path)
+        let mods: Vec<ModRequestDto> = pack::ModPack::retrieve_mods(&mods_path, &workshop_path)
             .iter()
             .map(|mod_pack| ModRequestDto {
                 order: None,

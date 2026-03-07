@@ -1,6 +1,6 @@
 use std::{fs::File, io::Write, path::PathBuf};
 
-use crate::{dto::mods::ModResponseDto, mods::pack::Pack};
+use crate::{dto::mods::ModResponseDto, mods::pack::ModPack};
 
 #[derive(Debug)]
 pub struct Mod {
@@ -20,7 +20,7 @@ impl ModWriter {
         mods_path: &PathBuf,
         workshop_path: &Option<PathBuf>,
     ) -> Self {
-        let disk_mods = Pack::retrieve_mods(mods_path, workshop_path);
+        let disk_mods = ModPack::retrieve_mods(mods_path, workshop_path);
 
         let mut mods = vec![];
 

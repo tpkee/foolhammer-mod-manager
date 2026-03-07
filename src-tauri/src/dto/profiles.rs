@@ -1,6 +1,6 @@
 use crate::{
     dto::mods::{ModRequestDto, ModResponseDto},
-    mods::{pack::Pack, sort::SortMods},
+    mods::{pack::ModPack, sort::SortMods},
     stores::games,
 };
 
@@ -14,7 +14,7 @@ pub struct ProfileResponseDto {
 }
 
 impl ProfileResponseDto {
-    pub fn new(mut profile: games::Profile, game_mods: &[Pack]) -> Self {
+    pub fn new(mut profile: games::Profile, game_mods: &[ModPack]) -> Self {
         let mods = Self::map_mods_to_dto(&mut profile, game_mods);
 
         Self {
@@ -25,7 +25,7 @@ impl ProfileResponseDto {
         }
     }
 
-    fn map_mods_to_dto(profile: &mut games::Profile, mods: &[Pack]) -> Vec<ModResponseDto> {
+    fn map_mods_to_dto(profile: &mut games::Profile, mods: &[ModPack]) -> Vec<ModResponseDto> {
         if !profile.manual_mode {
             profile.mods.sort_mods(|m| &m.name);
 
@@ -43,7 +43,7 @@ impl ProfileResponseDto {
                 ModResponseDto::new(
                     mod_info,
                     mods.iter()
-                        .find(|pack: &&Pack| pack.name == mod_info.name)
+                        .find(|pack: &&ModPack| pack.name == mod_info.name)
                         .cloned(),
                 )
             })

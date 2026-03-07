@@ -1,20 +1,25 @@
-use std::{collections::HashMap, path::PathBuf};
-
-use rpfm_lib::{games::manifest, utils::files_from_subdir};
-use std::collections::HashSet;
-
 use crate::{join_path, mods::sort};
+use rpfm_lib::{
+    files::pack::Pack,
+    games::{GameInfo, manifest},
+    utils::files_from_subdir,
+};
+use std::{
+    collections::{HashMap, HashSet},
+    path::PathBuf,
+};
 
 #[derive(Debug, Clone)]
-pub struct Pack {
+pub struct ModPack {
     pub name: String,
     pub path: PathBuf,
     pub image: Option<PathBuf>,
     pub last_updated: Option<String>,
     pub from_steam_workshop: bool,
+    pub dependencies: Vec<(bool, String)>,
 }
 
-impl Pack {
+impl ModPack {
     pub fn new(path: &PathBuf, image: Option<&PathBuf>, from_steam_workshop: bool) -> Self {
         let name = path.file_stem().unwrap().to_string_lossy().to_string();
         let metadata: std::fs::Metadata = std::fs::metadata(path).unwrap(); // we are sure it exists since we just got it
@@ -23,18 +28,43 @@ impl Pack {
             .ok()
             .map(|t| (chrono::DateTime::<chrono::Utc>::from(t)).to_rfc3339());
 
+        // read dependencies now (silent failure returns empty vec)
+        let dependencies = Self::get_dependencies(path);
+
         Self {
             name,
             path: path.clone(),
             image: image.cloned(),
             last_updated,
             from_steam_workshop,
+            dependencies,
         }
+    }
+
+    fn get_dependencies(path: &PathBuf) -> Vec<(bool, String)> {
+        let Ok(game_info) = GameInfo::game_by_steam_id(1142710) else {
+            eprintln!(
+                "Failed to find game info for mod pack at path {:?}: game not found",
+                path
+            );
+            return vec![];
+        };
+
+        let Ok(pack_file) =
+            Pack::read_and_merge(&[path.to_path_buf()], &game_info, true, true, false)
+        else {
+            eprintln!(
+                "Failed to read mod pack file at path {:?}: file is not a valid pack",
+                path
+            );
+            return vec![];
+        };
+        pack_file.dependencies().to_vec()
     }
 
     pub fn retrieve_loose_mods(
         game_mods_path: &PathBuf,
-    ) -> Result<Vec<Pack>, rpfm_lib::error::RLibError> {
+    ) -> Result<Vec<ModPack>, rpfm_lib::error::RLibError> {
         let manifest_path = join_path!(game_mods_path, "manifest.txt");
         let manifest: Result<manifest::Manifest, rpfm_lib::error::RLibError> =
             manifest::Manifest::read(&manifest_path);
@@ -70,7 +100,7 @@ impl Pack {
         Ok(mods
             .iter()
             .filter_map(|path| match path.extension().and_then(|ext| ext.to_str()) {
-                Some("pack") => Some(Pack::new(path, None, false)),
+                Some("pack") => Some(ModPack::new(path, None, false)),
                 _ => None,
             })
             .collect())
@@ -79,7 +109,7 @@ impl Pack {
     pub fn retrieve_workshop_mods(
         steam_workshop_folder: &PathBuf,
         _game_id: &str, // TODO: we should be the one to actually build the path... somewhere!
-    ) -> Result<Vec<Pack>, rpfm_lib::error::RLibError> {
+    ) -> Result<Vec<ModPack>, rpfm_lib::error::RLibError> {
         //let workshop_path = join_path!(steam_workshop_folder, game_id);
         let workshop_files: Vec<PathBuf> = match files_from_subdir(steam_workshop_folder, true) {
             Ok(files) => files,
@@ -119,7 +149,7 @@ impl Pack {
             .into_values()
             .filter_map(|(pack_path, image_path)| {
                 if let Some(pack_path) = pack_path {
-                    return Some(Pack::new(pack_path, image_path, true));
+                    return Some(ModPack::new(pack_path, image_path, true));
                 }
 
                 None
@@ -130,7 +160,7 @@ impl Pack {
     pub fn retrieve_mods(
         game_mods_path: &PathBuf,
         steam_workshop_path: &Option<PathBuf>,
-    ) -> Vec<Pack> {
+    ) -> Vec<ModPack> {
         // merge the workshop and loose mods
         let loose_mods = Self::retrieve_loose_mods(game_mods_path).ok();
         let workshop_mods = match steam_workshop_path {
@@ -151,7 +181,7 @@ impl Pack {
         mods
     }
 
-    pub fn sort(mods: &mut [Pack]) {
+    pub fn sort(mods: &mut [ModPack]) {
         // mutates the original vector to avoid cloning and preserve references
         mods.sort_by(|a, b| sort::compare_mod_names(&a.name, &b.name));
     }
