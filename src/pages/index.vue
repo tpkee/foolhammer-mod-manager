@@ -30,7 +30,7 @@
       </div>
     </div>
 
-    <table-mods v-if="gameStore.selectedGame" :list="gameStore.getProfileMods" :profile="gameStore.getProfile" :game-id="gameStore.selectedGame" @refresh="gameStore.fetchGame" />
+    <table-mods v-if="gameStore.selectedGame" :loading="gameStore.fetchStatus === 'pending'" :list="gameStore.getProfileMods" :profile="gameStore.getProfile" :game-id="gameStore.selectedGame" @refresh="gameStore.fetchGame" />
   </div>
 </template>
 

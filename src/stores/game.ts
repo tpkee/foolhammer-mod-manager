@@ -5,6 +5,8 @@ export const useGameStore = defineStore('gameStore', () => {
   const selectedProfile = ref<Nullable<string>>(null)
   const currentGame = ref<Nullable<GameResponseDto>>(null)
 
+  const fetchStatus = ref<'pending' | 'success' | 'error'>('pending')
+
   // Getters
   const getProfiles = computed<ProfileResponseDto[]>(() =>
     transformToNonNullable(currentGame.value?.profiles),
@@ -43,14 +45,27 @@ export const useGameStore = defineStore('gameStore', () => {
   }
 
   async function fetchGame() {
-    useTauriInvoke<Nullable<GameResponseDto>>('get_game', { gameId: selectedGame.value })
-      .then((game) => {
-        setGame(game)
+    if (!selectedGame.value) {
+      setGame(null)
+      return
+    }
+
+    fetchStatus.value = 'pending'
+
+    try {
+      const game = await useTauriInvoke<Nullable<GameResponseDto>>('get_game', {
+        gameId: selectedGame.value,
       })
-      .catch((error) => {
-        console.error('Failed to fetch game data:', error)
-        setGame(null)
-      })
+      setGame(game)
+      fetchStatus.value = 'success'
+      return game
+    }
+    catch (error) {
+      console.error('Failed to fetch game data:', error)
+      fetchStatus.value = 'error'
+      setGame(null)
+      throw error
+    }
   }
 
   function setGameId(gameId: Nullable<string>) {
@@ -70,6 +85,7 @@ export const useGameStore = defineStore('gameStore', () => {
     selectedGame,
     selectedProfile,
     currentGame,
+    fetchStatus,
     getProfiles,
     getProfile,
     getProfileMods,

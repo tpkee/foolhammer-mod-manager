@@ -37,7 +37,7 @@
       </div>
     </div>
 
-    <app-table :columns="columns" :list="getList">
+    <app-table :loading="loading" :columns="columns" :list="getList">
       <template #default="{ items, columns: cols }">
         <div ref="containerList" class="relative overflow-y-auto">
           <div
@@ -95,6 +95,7 @@ import type { ModResponseDto, ProfileResponseDto } from '~/types/dto'
 const props = defineProps<{
   gameId: string
   list: ModResponseDto[]
+  loading?: boolean
   profile: Nullable<ProfileResponseDto>
 }>()
 
@@ -245,7 +246,7 @@ useMultiDrag(refContainerList, {
 
     const movedNames = moves.map(m => orderedNames[m.oldIndex]!)
 
-    for (const { oldIndex } of [...moves].sort((a, b) => b.oldIndex - a.oldIndex))
+    for (const { oldIndex } of moves.toSorted((a, b) => b.oldIndex - a.oldIndex))
       orderedNames.splice(oldIndex, 1)
 
     const insertions = movedNames.map((name, i) => ({ name, newIndex: moves[i]!.newIndex }))
