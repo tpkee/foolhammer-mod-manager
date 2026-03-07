@@ -68,7 +68,11 @@ impl GameResponseDto {
                 .default_profile
                 .or(profiles.first().map(|profile| profile.id)),
             profiles,
-            groups: vec![],
+            groups: store
+                .groups
+                .into_iter()
+                .map(GroupResponseDto::from)
+                .collect(),
         }
     }
 
