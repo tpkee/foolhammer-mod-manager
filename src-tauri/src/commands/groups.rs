@@ -218,3 +218,30 @@ pub async fn remove_group_profile(
     })
     .await
 }
+
+#[tauri::command]
+pub async fn set_groups_profile(
+    app_handle: tauri::AppHandle,
+    game_id: SupportedGames,
+    profile_id: uuid::Uuid,
+    groups: Vec<uuid::Uuid>,
+) -> Result<serde_json::Value, ErrorCode> {
+    let profile =
+        Profile::find_by_id(&app_handle, game_id, profile_id).ok_or(ErrorCode::NotFound)?;
+
+    let old_groups = &profile.groups;
+
+    for group_id in &groups {
+        if !old_groups.contains(group_id) {
+            add_group_profile(app_handle.clone(), game_id, *group_id, profile_id).await?;
+        }
+    }
+
+    for group_id in old_groups {
+        if !groups.contains(group_id) {
+            remove_group_profile(app_handle.clone(), game_id, *group_id, profile_id).await?;
+        }
+    }
+
+    Ok(serde_json::json!(profile))
+}
