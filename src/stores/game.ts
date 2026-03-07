@@ -1,4 +1,4 @@
-import type { GameResponseDto, ModResponseDto, PackResponseDto, ProfileResponseDto, SaveResponseDto } from '~/types/dto'
+import type { GameResponseDto, GroupResponseDto, ModResponseDto, PackResponseDto, ProfileResponseDto, SaveResponseDto } from '~/types/dto'
 
 export const useGameStore = defineStore('gameStore', () => {
   const selectedGame = ref<Nullable<string>>(null)
@@ -26,6 +26,10 @@ export const useGameStore = defineStore('gameStore', () => {
 
   const getSaves = computed<SaveResponseDto[]>(() =>
     transformToNonNullable(currentGame.value?.saves),
+  )
+
+  const getGroups = computed<GroupResponseDto[]>(() =>
+    transformToNonNullable(currentGame.value?.groups),
   )
 
   // Actions
@@ -91,6 +95,7 @@ export const useGameStore = defineStore('gameStore', () => {
     getProfileMods,
     getGameMods,
     getSaves,
+    getGroups,
     setGameId,
     setProfile,
     setGame,
