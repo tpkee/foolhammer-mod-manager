@@ -14,23 +14,38 @@
               </app-button>
             </div>
           </template>
-          <template #default>
-            <div class="p-2.5">
-              <div class="grid gap-1.5">
-                <app-button
-                  v-if="refModalMod"
-                  v-show="getMissingMods.length"
-                  @click="refModalMod.open()"
-                >
-                  Add mods to profile
-                </app-button>
-                <app-button @click="toggleAllMods()">
-                  Toggle All mods
-                </app-button>
-                <app-button :loading="isTogglingManualMode" @click="toggleManualMode()">
-                  {{ profile?.manualMode ? 'Disable' : 'Enable' }} manual mode
-                </app-button>
-              </div>
+          <template #default="{ close }">
+            <div class="py-1.5 min-w-48">
+              <button
+                v-if="refModalMod"
+                v-show="getMissingMods.length"
+                class="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-left rounded hover:bg-gray-700 transition-colors cursor-pointer"
+                @click="refModalMod.open(); close()"
+              >
+                <nuxt-icon name="mi:add" class="size-4 shrink-0" />
+                Add mods to profile
+              </button>
+              <button
+                class="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-left rounded hover:bg-gray-700 transition-colors cursor-pointer"
+                @click="toggleAllMods(); close()"
+              >
+                <nuxt-icon
+                  :name="!allModsEnabled ? 'mi:check' : 'mi:close'"
+                  class="size-4 shrink-0"
+                />
+                {{ allModsEnabled ? 'Disable' : 'Enable' }} all mods
+              </button>
+              <div class="my-1 mx-2 h-px bg-gray-700" />
+              <button
+                class="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-left rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                :class="profile?.manualMode ? 'text-red-400 hover:bg-red-950' : 'hover:bg-gray-700'"
+                :disabled="isTogglingManualMode"
+                @click="toggleManualMode(); close()"
+              >
+                <app-spinner v-if="isTogglingManualMode" class="size-4 shrink-0 animate-spin" />
+                <nuxt-icon v-else name="mi:edit" class="size-4 shrink-0" />
+                {{ profile?.manualMode ? 'Disable' : 'Enable' }} manual mode
+              </button>
             </div>
           </template>
         </app-dropdown>
@@ -136,6 +151,7 @@ const { snapshots, undo, redo, commit, cancel, canUndo, canRedo } = useHistory(l
 
 // Computed
 const hasEdits = computed(() => snapshots.value.length > 1)
+const allModsEnabled = computed(() => localList.value.every(mod => mod.enabled))
 const isDragEnabled = computed(() => !!(props.profile?.manualMode) && filters.value.sortBy === 'order')
 const columns = computed<AppTableColumn[]>(() => [
   { key: 'order', label: 'Order', span: isDragEnabled.value ? 2 : 1, headerClass: isDragEnabled.value ? 'ml-9' : '' },
