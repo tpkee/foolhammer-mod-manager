@@ -20,6 +20,10 @@
       </div>
     </template>
 
+    <template #groups>
+      <span class="text-sm text-gray-400">{{ groupCount }}</span>
+    </template>
+
     <template #activeMods>
       <span class="text-sm text-gray-400">{{ activeMods }}/{{ totalMods }}</span>
     </template>
@@ -76,6 +80,7 @@ const groupsModalRef = useTemplateRef('groupsModal')
 const isDefault = computed(() => gameStore.currentGame?.defaultProfile && gameStore.currentGame?.defaultProfile === props.profile.id)
 const activeMods = computed(() => props.profile.mods?.filter(m => m?.enabled).length ?? 0)
 const totalMods = computed(() => props.profile.mods?.length ?? 0)
+const groupCount = computed(() => props.profile.groups?.length ?? 0)
 const getProfilesMinusCurrent = computed(() => gameStore.getProfiles.filter(p => p.id !== props.profile.id))
 const getOptions = computed(() => {
   const opts = [

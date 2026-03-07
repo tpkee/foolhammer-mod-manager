@@ -41,8 +41,9 @@ const gameStore = useGameStore()
 // Non-reactive state
 const columns: AppTableColumn[] = [
   { key: 'select', label: '', span: 1 },
-  { key: 'name', label: 'Name', span: 6 },
-  { key: 'activeMods', label: 'Active Mods', span: 4 },
+  { key: 'name', label: 'Name', span: 3 },
+  { key: 'activeMods', label: 'Active Mods', span: 3 },
+  { key: 'groups', label: 'Groups', span: 2 },
   { key: 'actions', label: '', span: 1, cellClass: 'justify-self-end' },
 ]
 
