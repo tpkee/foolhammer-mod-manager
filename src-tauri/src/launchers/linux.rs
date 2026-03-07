@@ -7,7 +7,7 @@ use std::{error::Error, io::Read};
 use tauri::Manager;
 
 use crate::defaults::games::DefaultGameInfo;
-use crate::utils::{self};
+use crate::utils;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 
@@ -134,7 +134,7 @@ impl super::GameManager for LinuxLauncher {
         &mut self,
         game_id: &str,
         game_path: &Path,
-        _save_path: Option<&PathBuf>, //TODO:
+        save_path: Option<&PathBuf>, //TODO:
     ) -> Result<(), Box<dyn Error>> {
         let command = self.get_command();
 
@@ -179,6 +179,13 @@ impl super::GameManager for LinuxLauncher {
 
         command.arg(game_preset.executable_name);
         command.arg("used_mods.txt;");
+
+        if let Some(save_path) = save_path {
+            command
+                .arg("game_startup_mode")
+                .arg("campaign_load")
+                .arg(save_path);
+        }
 
         println!("Running command: {:?}", command);
 
