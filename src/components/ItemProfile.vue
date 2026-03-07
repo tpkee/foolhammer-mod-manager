@@ -46,7 +46,6 @@
     ref="groupsModal"
     :game-id="gameId"
     :profile="profile"
-    @save="emit('refresh')"
   />
 </template>
 

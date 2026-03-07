@@ -18,7 +18,6 @@
     :game-id="gameId"
     :group-id="group.id!"
     :current-name="group.name!"
-    @save="emit('refresh')"
   />
 
   <modal-mod
@@ -40,8 +39,6 @@ const props = defineProps<{
   group: GroupResponseDto
   gameId: string
 }>()
-
-const emit = defineEmits<{ refresh: [] }>()
 
 const gameStore = useGameStore()
 
@@ -73,7 +70,6 @@ async function onSaveGroupMods(mods: string[]) {
     })
     await gameStore.fetchGame()
     modsModalRef.value?.close()
-    emit('refresh')
   }
   catch (err) {
     console.error(err)
@@ -90,7 +86,6 @@ async function deleteGroup() {
       groupId: props.group.id!,
     })
     await gameStore.fetchGame()
-    emit('refresh')
   }
   catch (err) {
     console.error(err)
