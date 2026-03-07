@@ -22,7 +22,16 @@ pub struct GameStore {
     pub saves_path: Option<PathBuf>,
     pub mods_path: PathBuf,
     pub profiles: Vec<Profile>,
+    pub groups: Vec<Group>,
     pub default_profile: Option<uuid::Uuid>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Group {
+    pub id: uuid::Uuid,
+    pub name: String,
+    pub mods: Vec<ModInfo>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -69,6 +78,24 @@ impl From<ProfileRequestDto> for Profile {
                 .collect(),
             manual_mode: dto.manual_mode.unwrap_or(false),
             groups: dto.groups,
+        }
+    }
+}
+
+impl From<GroupRequestDto> for Group {
+    fn from(dto: GroupRequestDto) -> Self {
+        Self {
+            id: dto.id.unwrap_or_else(uuid::Uuid::new_v4),
+            name: dto.name,
+            mods: dto
+                .mods
+                .into_iter()
+                .map(|m| ModInfo {
+                    name: m.name,
+                    enabled: m.enabled,
+                    order: m.order.unwrap_or(0),
+                })
+                .collect(),
         }
     }
 }
@@ -131,6 +158,7 @@ impl GameStore {
             mods_path,
             default_profile: Some(default_profile.id),
             profiles: vec![default_profile],
+            groups: vec![],
         })
     }
 
