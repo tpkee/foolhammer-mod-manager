@@ -51,7 +51,10 @@ pub async fn rename_profile(
     new_name: &str,
 ) -> Result<serde_json::Value, ErrorCode> {
     Profile::get_all(&app_handle, game_id, |profiles| {
-        if profiles.iter().any(|p| p.name == new_name) {
+        if profiles
+            .iter()
+            .any(|p| p.name == new_name && p.id != profile_id)
+        {
             return Err(ErrorCode::Conflict);
         }
 
