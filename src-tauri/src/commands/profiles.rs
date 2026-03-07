@@ -33,10 +33,6 @@ pub async fn update_profile(
     let game_id = payload.game_id;
 
     modify_profile(&app_handle, game_id, profile_id, |profile| {
-        if profile.name != payload.name {
-            return Err(ErrorCode::Conflict);
-        }
-
         payload.id = Some(profile_id);
 
         *profile = Profile::from(payload);
