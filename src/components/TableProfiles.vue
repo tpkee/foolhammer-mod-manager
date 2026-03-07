@@ -11,6 +11,7 @@
             class="group"
           >
             <item-profile
+              v-model="gameStore.selectedProfile"
               :profile="data"
               :is-active="data.id === gameStore.selectedProfile"
               :game-id="gameId"

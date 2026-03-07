@@ -43,14 +43,14 @@ export const useGameStore = defineStore('gameStore', () => {
   }
 
   async function fetchGame() {
-    try {
-      const game = await useTauriInvoke<Nullable<GameResponseDto>>('get_game', { gameId: selectedGame.value })
-      setGame(game)
-    }
-    catch (e) {
-      setGame(null)
-      console.error(e)
-    }
+    useTauriInvoke<Nullable<GameResponseDto>>('get_game', { gameId: selectedGame.value })
+      .then((game) => {
+        setGame(game)
+      })
+      .catch((error) => {
+        console.error('Failed to fetch game data:', error)
+        setGame(null)
+      })
   }
 
   function setGameId(gameId: Nullable<string>) {

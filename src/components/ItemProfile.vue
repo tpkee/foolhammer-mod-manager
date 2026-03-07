@@ -4,11 +4,11 @@
     <template #select>
       <div class="flex justify-center">
         <app-radio
-          :model-value="isActive"
-          :name="`profile-select-${gameId}`"
+          :model-value="gameStore.selectedProfile"
+          :value="profile.id"
           label="Select profile"
           sr-only-label
-          @click="switchProfile"
+          @update:model-value="switchProfile"
         />
       </div>
     </template>
@@ -141,9 +141,6 @@ function openMergeModal() {
 }
 
 async function switchProfile() {
-  if (props.profile.id === gameStore.selectedProfile)
-    return
-
   gameStore.setProfile(props.profile.id)
   emit('refresh')
 }
