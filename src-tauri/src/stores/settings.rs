@@ -1,5 +1,5 @@
 use crate::{
-    defaults,
+    defaults::{self, games::SupportedGames},
     utils::{self, ErrorCode},
 };
 use serde::{Deserialize, Serialize};
@@ -14,7 +14,7 @@ pub enum SettingsKey {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SettingsStore {
-    pub default_game: String,
+    pub default_game: SupportedGames,
 }
 
 impl From<SettingsKey> for String {
@@ -28,7 +28,7 @@ impl From<SettingsKey> for String {
 impl Default for SettingsStore {
     fn default() -> Self {
         Self {
-            default_game: String::from(defaults::games::DEFAULT_GAME_ID),
+            default_game: defaults::games::DEFAULT_GAME_ID,
         }
     }
 }

@@ -1,6 +1,6 @@
 use crate::{
     commands::helpers::{get_game_response_from_store, modify_game, modify_profile},
-    defaults::games::{DefaultGameInfo, SUPPORTED_GAMES},
+    defaults::games::{DefaultGameInfo, SUPPORTED_GAMES, SupportedGames},
     dto::games::{GameRequestDto, GameResponseDto},
     join_path,
     launchers::{GameManager, linux::LinuxLauncher},
@@ -18,11 +18,11 @@ pub fn check_path_exists(path: &str) -> bool {
 
 #[tauri::command]
 pub fn get_supported_games() -> serde_json::Value {
-    SUPPORTED_GAMES.map(|game| game.game_id).into()
+    serde_json::json!(SUPPORTED_GAMES.map(|game| game.game_id))
 }
 
 #[tauri::command]
-pub fn get_saves(game_id: &str) -> Result<Vec<String>, ErrorCode> {
+pub fn get_saves(game_id: SupportedGames) -> Result<Vec<String>, ErrorCode> {
     let game_info = DefaultGameInfo::find_by_id(game_id).ok_or(ErrorCode::NotFound)?;
 
     let saves_path = PathBuf::from(&game_info.saves_path);
@@ -62,7 +62,7 @@ pub async fn stop_game<'a>(state: AppState<'a>) -> Result<(), ErrorCode> {
 pub async fn start_game<'a>(
     app_handler: tauri::AppHandle,
     state: AppState<'a>,
-    game_id: &str,
+    game_id: SupportedGames,
     profile_id: uuid::Uuid,
     save_name: Option<&str>,
 ) -> Result<(), ErrorCode> {
@@ -114,7 +114,7 @@ pub async fn start_game<'a>(
         unimplemented!("Game launching is only implemented for Linux at the moment");
     };
 
-    let _ = runner.launch_game(&game_id, &game_path, savegame_path.as_ref());
+    let _ = runner.launch_game(game_id, &game_path, savegame_path.as_ref());
 
     let mut state = state.lock().await;
 
@@ -128,7 +128,7 @@ pub async fn start_game<'a>(
 pub async fn get_game(
     app_handle: tauri::AppHandle,
     app_state: AppState<'_>,
-    game_id: &str,
+    game_id: SupportedGames,
 ) -> Result<serde_json::Value, ErrorCode> {
     let game_response = get_game_response_from_store(&app_handle, game_id)?;
 
@@ -171,7 +171,7 @@ pub async fn get_game(
 pub async fn update_game(
     app_handle: tauri::AppHandle,
     app_state: AppState<'_>,
-    game_id: &str,
+    game_id: SupportedGames,
     payload: GameRequestDto,
 ) -> Result<(), ErrorCode> {
     let g = modify_game(&app_handle, game_id, |game| {
@@ -211,7 +211,7 @@ async fn start_game_watchers(
 #[tauri::command]
 pub fn set_default_profile(
     app_handle: tauri::AppHandle,
-    game_id: &str,
+    game_id: SupportedGames,
     profile_id: uuid::Uuid,
 ) -> Result<(), ErrorCode> {
     modify_game(&app_handle, game_id, |game| {

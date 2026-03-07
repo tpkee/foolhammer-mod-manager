@@ -6,7 +6,7 @@ use std::process::Command;
 use std::{error::Error, io::Read};
 use tauri::Manager;
 
-use crate::defaults::games::DefaultGameInfo;
+use crate::defaults::games::{DefaultGameInfo, SupportedGames};
 use crate::utils;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -132,10 +132,11 @@ impl LinuxLauncher {
 impl super::GameManager for LinuxLauncher {
     fn launch_game(
         &mut self,
-        game_id: &str,
+        game_id: SupportedGames,
         game_path: &Path,
         save_path: Option<&PathBuf>, //TODO:
     ) -> Result<(), Box<dyn Error>> {
+        let game_id_str: String = game_id.into();
         let command = self.get_command();
 
         command.current_dir(game_path); // umu needs to be run in the game directory to find the used_mods.txt file
@@ -159,7 +160,7 @@ impl super::GameManager for LinuxLauncher {
 
             command.env("PROTONPATH", proton_version.trim());
             command.env("WINEPREFIX", pfx_path.join("pfx/"));
-            command.env("SteamGameId", game_id);
+            command.env("SteamGameId", &game_id_str);
 
             // we have to check if there is a steam process running, otherwise umu will fail to launch the game.
             let sys = sysinfo::System::new_all();

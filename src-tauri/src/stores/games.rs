@@ -1,5 +1,5 @@
 use crate::{
-    defaults::games::DefaultGameInfo,
+    defaults::games::{DefaultGameInfo, SupportedGames},
     dto::{mods::ModRequestDto, profiles::ProfileRequestDto},
     mods::pack,
     resolve_existing_path,
@@ -16,7 +16,7 @@ use tauri::Wry;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct GameStore {
-    pub game_id: String,
+    pub game_id: SupportedGames,
 
     pub game_path: PathBuf,
     pub saves_path: Option<PathBuf>,
@@ -74,7 +74,7 @@ impl Profile {
 impl GameStore {
     pub fn get_store(
         app_handle: &tauri::AppHandle,
-        game_id: &str,
+        game_id: SupportedGames,
     ) -> Result<Arc<tauri_plugin_store::Store<Wry>>, ErrorCode> {
         let default_game = Self::new_game(game_id)
             .ok_or(ErrorCode::NotFound)?
@@ -82,7 +82,7 @@ impl GameStore {
             .or(Err(ErrorCode::InternalError))?;
 
         let game_conf_path =
-            utils::path::generate_store_path(app_handle, format!("{}.json", game_id).as_str());
+            utils::path::generate_store_path(app_handle, &format!("{}.json", game_id));
 
         let store = tauri_plugin_store::StoreBuilder::new(app_handle, game_conf_path)
             .defaults(default_game)
@@ -92,7 +92,7 @@ impl GameStore {
         Ok(store)
     }
 
-    fn new_game(game_id: &str) -> Option<Self> {
+    fn new_game(game_id: SupportedGames) -> Option<Self> {
         let default_game = DefaultGameInfo::find_by_id(game_id)?;
 
         let game_path = default_game.get_game_path()?;
@@ -115,7 +115,7 @@ impl GameStore {
         let default_profile = Profile::from_dto(
             None,
             ProfileRequestDto {
-                game_id: default_game.game_id.to_string(),
+                game_id: default_game.game_id,
                 name: default_profile_name.clone(),
                 default: Some(true),
                 manual_mode: Some(false),
@@ -124,7 +124,7 @@ impl GameStore {
         );
 
         Some(Self {
-            game_id: default_game.game_id.to_string(),
+            game_id: default_game.game_id,
             game_path,
             saves_path,
             mods_path,

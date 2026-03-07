@@ -1,12 +1,12 @@
 use crate::{
-    commands::helpers::modify_profile, dto::mods::ModRequestDto, stores::games::ModInfo,
-    utils::ErrorCode,
+    commands::helpers::modify_profile, defaults::games::SupportedGames, dto::mods::ModRequestDto,
+    stores::games::ModInfo, utils::ErrorCode,
 };
 
 #[tauri::command]
 pub fn set_profile_mods(
     app_handle: tauri::AppHandle,
-    game_id: &str,
+    game_id: SupportedGames,
     profile_id: uuid::Uuid,
     mods: Vec<ModRequestDto>,
 ) -> Result<serde_json::Value, ErrorCode> {
@@ -19,7 +19,7 @@ pub fn set_profile_mods(
 #[tauri::command]
 pub fn add_profile_mods(
     app_handle: tauri::AppHandle,
-    game_id: &str,
+    game_id: SupportedGames,
     profile_id: uuid::Uuid,
     mods: Vec<ModRequestDto>,
 ) -> Result<serde_json::Value, ErrorCode> {
@@ -47,7 +47,7 @@ pub fn add_profile_mods(
 #[tauri::command]
 pub fn remove_profile_mods(
     app_handle: tauri::AppHandle,
-    game_id: &str,
+    game_id: SupportedGames,
     profile_id: uuid::Uuid,
     mods: Vec<String>,
 ) -> Result<serde_json::Value, ErrorCode> {
