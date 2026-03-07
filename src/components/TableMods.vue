@@ -167,27 +167,7 @@ const getList = computed(() => {
       }
     })
 })
-const getModErrors = computed(() => {
-  const errors = new Map<string, ModError[]>()
-  const orderGroups = new Map<number, string[]>()
-  for (const mod of localList.value) {
-    if (mod.order != null && mod.name) {
-      const names = orderGroups.get(mod.order) ?? []
-      names.push(mod.name)
-      orderGroups.set(mod.order, names)
-    }
-  }
-  for (const [order, names] of orderGroups) {
-    if (names.length > 1) {
-      for (const name of names) {
-        const modErrors = errors.get(name) ?? []
-        modErrors.push({ type: 'duplicate_order', message: `Duplicate order number: ${order}` })
-        errors.set(name, modErrors)
-      }
-    }
-  }
-  return errors
-})
+const getModErrors = useModErrors(localList)
 
 // Watchers
 watch(() => props.list, (value) => {
