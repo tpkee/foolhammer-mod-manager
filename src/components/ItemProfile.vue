@@ -96,7 +96,7 @@ const getOptions = computed(() => {
       hide: gameStore.getProfiles.length <= 1 || getProfilesMinusCurrent.value.every(p => !p.mods || p.mods.length === 0),
     },
     {
-      icon: 'mi:group',
+      icon: 'mi:folder',
       label: 'Manage Groups',
       callback: openGroupsModal,
       hide: gameStore.getGroups.length === 0,
