@@ -7,10 +7,10 @@
     >
       <div>
         <h2 class="text-lg font-semibold">
-          {{ title }}
+          Add Mods
         </h2>
         <p class="text-sm text-gray-400">
-          {{ description }}
+          Select one or more mods to add
         </p>
       </div>
 
@@ -19,7 +19,7 @@
       <div class="grid md:grid-cols-2 gap-3">
         <div class="border border-gray-700 rounded px-2.5">
           <p class="px-3 py-2 border-b border-gray-800 text-sm text-gray-300">
-            Available mods ({{ filteredMods.length }})
+            Available ({{ filteredMods.length }})
           </p>
 
           <div v-if="filteredMods.length" class="max-h-80 overflow-y-auto">
@@ -80,16 +80,10 @@
 <script lang="ts" setup>
 import type { ModResponseDto } from '~/types/dto'
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   mods: ModResponseDto[]
-  title?: string
-  description?: string
   loading?: boolean
-}>(), {
-  title: 'Add Mods',
-  description: 'Select one or more mods',
-  loading: false,
-})
+}>()
 
 const emit = defineEmits<{
   save: [mods: string[]]
@@ -105,6 +99,9 @@ const filteredMods = computed(() => {
 
   return props.mods.filter((mod) => {
     if (!mod.name)
+      return false
+
+    if (selectedMods.value.has(mod.name))
       return false
 
     if (!query)
