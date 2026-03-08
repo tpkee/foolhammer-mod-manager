@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "foolhamer-mod-manager",
+  "productName": "foolhammer-mod-manager",
   "version": "0.1.0",
-  "identifier": "com.tpkee.foolhamer-mod-manager",
+  "identifier": "com.tpkee.foolhammer-mod-manager",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:3000",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "foolhamer-mod-manager",
+        "title": "foolhammer-mod-manager",
         "width": 1080,
         "height": 864,
         "resizable": true,
