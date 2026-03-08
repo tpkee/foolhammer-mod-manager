@@ -82,7 +82,7 @@ jobs:
                 - install -Dm644 usr/share/applications/foolhammer-mod-manager.desktop /app/share/applications/com.tpkee.foolhammer-mod-manager.desktop
                 - install -Dm644 usr/share/icons/hicolor/32x32/apps/foolhammer-mod-manager.png /app/share/icons/hicolor/32x32/apps/com.tpkee.foolhammer-mod-manager.png
                 - install -Dm644 usr/share/icons/hicolor/128x128/apps/foolhammer-mod-manager.png /app/share/icons/hicolor/128x128/apps/com.tpkee.foolhammer-mod-manager.png
-                - install -Dm644 usr/share/icons/hicolor/128x128@2x/apps/foolhammer-mod-manager.png /app/share/icons/hicolor/256x256/apps/com.tpkee.foolhammer-mod-manager.png
+                - install -Dm644 usr/share/icons/hicolor/256x256@2/apps/foolhammer-mod-manager.png /app/share/icons/hicolor/256x256/apps/com.tpkee.foolhammer-mod-manager.png
           EOF
 
       # ── Build & bundle ────────────────────────────────────────────────────
