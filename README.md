@@ -1,22 +1,31 @@
+<div align="center" style="width:100%;">
+<p style="text-align:center; background-color: white; width:fit-content;border-radius:999px; padding:10px">
+  <img src="src-tauri/icons/Square107x107Logo.png"   />
+  </p>
+</div>
+
 # Foolhammer Mod Manager
 
-Foolhammer Mod Manager is a desktop application designed to simplify mod management for Total War games. This is a straightforward, no-frills mod manager that does one thing well: manages your mods.
+Hopefully, a simple and straightforward mod manager for Total War games.
 
 ## Features
 
-- 🗂️ Organize and manage Total War game mods
-- 🔄 Steam Workshop integration via Steamworks SDK
-- 🌍 Internationalization support (i18n)
-- 🐧 First-party Linux support
-- 🖥️ Cross-platform desktop support (Windows, Linux)
+- Profiles
+- Mod groups
+- First-party Linux support
+
+## Planned
+
+- Profile export (pack files + profile JSON)
+- Windows support
+- Steamworks integration (subscribe/unsubscribe)
 
 ## Supported Games
 
-Currently supported:
 - **Total War: Warhammer III**
 
-> **Note:** PRs for additional Total War titles are welcome!
-
+To add another title: add its defaults in `src-tauri/src/defaults/games.rs`, a game icon under `public/images/games/`, and a translation entry in the locale file(s).
+ 
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
