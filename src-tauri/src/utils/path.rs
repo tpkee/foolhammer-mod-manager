@@ -3,16 +3,15 @@ use std::path::PathBuf;
 use tauri::Manager;
 
 use crate::{
+    defaults::system::STEAMDIR_INSTANCE, join_path, resolve_existing_path,
     supported_games::SupportedGames,
-    defaults::system::STEAMDIR_INSTANCE,
-    join_path, resolve_existing_path,
 };
 
 pub fn generate_store_path(app: &tauri::AppHandle, relative_path: &str) -> std::path::PathBuf {
     app.path()
         .config_dir()
         .expect("Failed to get config directory")
-        .join(format!("foolhamer-mod-manager/{}", relative_path))
+        .join(format!("foolhammer-mod-manager/{}", relative_path))
 }
 
 pub fn retrieve_saves_absolute_path(
