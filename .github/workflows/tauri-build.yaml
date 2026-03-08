@@ -16,8 +16,6 @@ jobs:
         include:
           - platform: ubuntu-22.04
             args: ''
-          - platform: ubuntu-22.04-arm # Only available in public repos.
-            args: ''
 
     runs-on: ${{ matrix.platform }}
     steps:
