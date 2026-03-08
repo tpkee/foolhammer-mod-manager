@@ -54,11 +54,11 @@ jobs:
           flatpak remote-add --user --if-not-exists flathub \
             https://flathub.org/repo/flathub.flatpakrepo
 
-      - name: Install Freedesktop SDK
+      - name: Install GNOME 49 SDK
         run: |
           flatpak install --user -y flathub \
-            org.freedesktop.Platform//25.08 \
-            org.freedesktop.Sdk//25.08
+            org.gnome.Platform//49 \
+            org.gnome.Sdk//49
 
       # ── Build & bundle ────────────────────────────────────────────────────
       - name: Build Flatpak
