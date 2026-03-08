@@ -3,8 +3,8 @@ name: publish
 on:
   workflow_dispatch:
   push:
-    branches:
-      - release
+    tags:
+      - 'app-v*'
 
 jobs:
   publish-tauri:
@@ -31,6 +31,8 @@ jobs:
 
       - name: install pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: setup node
         uses: actions/setup-node@v4
