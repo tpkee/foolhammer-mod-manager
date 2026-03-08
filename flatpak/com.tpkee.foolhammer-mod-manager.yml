@@ -1,8 +1,8 @@
 id: com.tpkee.foolhammer-mod-manager
 
-runtime: org.gnome.Platform
-runtime-version: '47'
-sdk: org.gnome.Sdk
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
 
 command: foolhammer-mod-manager
 finish-args:
@@ -22,11 +22,10 @@ modules:
         path: DEB_FILE_PLACEHOLDER
         sha256: SHA256_PLACEHOLDER
     build-commands:
-      - ar -x *.deb
-      - tar -xf data.tar.gz
-      - install -Dm755 usr/bin/foolhammer-mod-manager /app/bin/foolhammer-mod-manager
-      - install -Dm644 usr/share/applications/foolhammer-mod-manager.desktop /app/share/applications/com.tpkee.foolhammer-mod-manager.desktop
-      - install -Dm644 usr/share/icons/hicolor/32x32/apps/foolhammer-mod-manager.png /app/share/icons/hicolor/32x32/apps/com.tpkee.foolhammer-mod-manager.png
-      - install -Dm644 usr/share/icons/hicolor/64x64/apps/foolhammer-mod-manager.png /app/share/icons/hicolor/64x64/apps/com.tpkee.foolhammer-mod-manager.png
-      - install -Dm644 usr/share/icons/hicolor/128x128/apps/foolhammer-mod-manager.png /app/share/icons/hicolor/128x128/apps/com.tpkee.foolhammer-mod-manager.png
-      - install -Dm644 usr/share/icons/hicolor/256x256@2/apps/foolhammer-mod-manager.png /app/share/icons/hicolor/256x256@2/apps/com.tpkee.foolhammer-mod-manager.png
+      - ar -x ${FLATPAK_BUILDER_BUILDDIR}/*.deb
+      - tar -xf ${FLATPAK_BUILDER_BUILDDIR}/data.tar.gz -C ${FLATPAK_BUILDER_BUILDDIR}
+      - install -Dm755 ${FLATPAK_BUILDER_BUILDDIR}/usr/bin/foolhammer-mod-manager /app/bin/foolhammer-mod-manager
+      - install -Dm644 ${FLATPAK_BUILDER_BUILDDIR}/usr/share/applications/foolhammer-mod-manager.desktop /app/share/applications/com.tpkee.foolhammer-mod-manager.desktop
+      - install -Dm644 ${FLATPAK_BUILDER_BUILDDIR}/usr/share/icons/hicolor/32x32/apps/foolhammer-mod-manager.png /app/share/icons/hicolor/32x32/apps/com.tpkee.foolhammer-mod-manager.png
+      - install -Dm644 ${FLATPAK_BUILDER_BUILDDIR}/usr/share/icons/hicolor/128x128/apps/foolhammer-mod-manager.png /app/share/icons/hicolor/128x128/apps/com.tpkee.foolhammer-mod-manager.png
+      - install -Dm644 ${FLATPAK_BUILDER_BUILDDIR}/usr/share/icons/hicolor/256x256@2/apps/foolhammer-mod-manager.png /app/share/icons/hicolor/256x256@2/apps/com.tpkee.foolhammer-mod-manager.png

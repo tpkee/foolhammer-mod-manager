@@ -85,7 +85,7 @@ jobs:
       - name: install flatpak runtime and SDK
         run: |
           flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          flatpak install --user -y flathub org.gnome.Platform//47 org.gnome.Sdk//47
+          flatpak install --user -y flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
 
       - name: download .deb from release
         env:
@@ -104,9 +104,8 @@ jobs:
           echo "deb_name=$DEB_NAME" >> "$GITHUB_OUTPUT"
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
 
-          # Copy the manifest template and stamp in the dynamic values
           cp flatpak/com.tpkee.foolhammer-mod-manager.yml /tmp/com.tpkee.foolhammer-mod-manager.yml
-          sed -i "s|DEB_FILE_PLACEHOLDER|deb-download/${DEB_NAME}|g" /tmp/com.tpkee.foolhammer-mod-manager.yml
+          sed -i "s|DEB_FILE_PLACEHOLDER|$GITHUB_WORKSPACE/deb-download/${DEB_NAME}|g" /tmp/com.tpkee.foolhammer-mod-manager.yml
           sed -i "s|SHA256_PLACEHOLDER|${SHA256}|g" /tmp/com.tpkee.foolhammer-mod-manager.yml
 
       - name: build flatpak
