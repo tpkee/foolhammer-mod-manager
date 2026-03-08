@@ -6,7 +6,7 @@
           Toggle dropdown
         </span>
 
-        <nuxt-icon name="mi:options-vertical" class="size-6" />
+        <IconMiOptionsVertical class="size-6" />
       </app-button>
     </template>
 
@@ -25,10 +25,12 @@
 </template>
 
 <script lang="ts" setup>
+import type { FunctionalComponent, SVGAttributes } from 'vue'
+
 // Props
 const props = defineProps<{
   options: {
-    icon?: string
+    icon?: FunctionalComponent<SVGAttributes>
     label: string
     callback?: () => void | Promise<void>
     hide?: boolean

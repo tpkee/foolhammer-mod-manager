@@ -1,9 +1,11 @@
 import tailwindcss from '@tailwindcss/vite'
+import IconsResolver from 'unplugin-icons/resolver'
+import ViteComponents from 'unplugin-vue-components/vite'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2026-02-05',
-  modules: ['@nuxt/a11y', '@nuxt/eslint', '@nuxt/hints', '@nuxt/icon', '@nuxtjs/i18n', '@pinia/nuxt', '@vueuse/nuxt'],
+  modules: ['@nuxt/a11y', '@nuxt/eslint', '@nuxt/hints', 'unplugin-icons/nuxt', '@nuxtjs/i18n', '@pinia/nuxt', '@vueuse/nuxt'],
   srcDir: 'src/',
   // Enables the development server to be discoverable by other devices when running on iOS physical devices
   devServer: {
@@ -53,6 +55,16 @@ export default defineNuxtConfig({
     plugins: [
       // @ts-expect-error - Dunno why it doesn't recognize the plugin, but it works fine
       tailwindcss(),
+      // @ts-expect-error - Dunno why it doesn't recognize the plugin, but it works fine
+      ViteComponents({
+        resolvers: [
+          IconsResolver({
+            prefix: 'icon',
+            strict: true,
+          }),
+        ],
+        dts: true,
+      }),
     ],
   },
   typescript: {
@@ -63,11 +75,6 @@ export default defineNuxtConfig({
     locales: [
       { code: 'en', name: 'English', file: 'en.json' },
     ],
-  },
-  icon: {
-    componentName: 'NuxtIcon',
-    mode: 'css',
-    cssLayer: 'base',
   },
   // Avoids error [unhandledRejection] EMFILE: too many open files, watch
   ignore: ['**/src-tauri/**'],

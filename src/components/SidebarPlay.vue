@@ -26,11 +26,11 @@
     </template>
 
     <div v-if="isLoading" class="size-10 flex items-center justify-center">
-      <nuxt-icon name="svg-spinners:ring-resize" class="text-2xl" />
+      <IconSvgSpinnersRingResize class="text-2xl" />
     </div>
-    <nuxt-icon v-else-if="gameStatus === 'success'" name="mi:stop" class="size-10" />
-    <nuxt-icon v-else-if="variant === 'continue'" name="mi:next" class="size-10" />
-    <nuxt-icon v-else name="mi:play" class="size-10" />
+    <IconMiStop v-else-if="gameStatus === 'success'" class="size-10" />
+    <IconMiNext v-else-if="variant === 'continue'" class="size-10" />
+    <IconMiPlay v-else class="size-10" />
   </sidebar-button>
 </template>
 

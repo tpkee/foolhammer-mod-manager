@@ -6,14 +6,16 @@
     @click="handleClick"
   >
     <app-spinner v-if="loading" class="size-4 animate-spin" />
-    <nuxt-icon v-else-if="icon" :name="icon" class="size-4" />
+    <component :is="icon" v-else-if="icon" class="size-4" />
     <slot>{{ label }}</slot>
   </button>
 </template>
 
 <script lang="ts" setup>
+import type { FunctionalComponent, SVGAttributes } from 'vue'
+
 const props = defineProps<{
-  icon?: string
+  icon?: FunctionalComponent<SVGAttributes>
   label?: string
   callback?: () => void | Promise<void>
   disabled?: boolean

@@ -57,6 +57,12 @@
 import type { AppTableColumn } from '~/types/common/AppTable'
 import type { ProfileResponseDto } from '~/types/dto/profiles'
 
+import IconMiDelete from '~icons/mi/delete'
+import IconMiEdit from '~icons/mi/edit'
+import IconMiFolder from '~icons/mi/folder'
+import IconMiHeart from '~icons/mi/heart'
+import IconMiLayers from '~icons/mi/layers'
+
 interface Props {
   columns: AppTableColumn[]
   profile: ProfileResponseDto
@@ -85,24 +91,24 @@ const getProfilesMinusCurrent = computed(() => gameStore.getProfiles.filter(p =>
 const getOptions = computed(() => {
   const opts = [
     {
-      icon: 'mi:edit',
+      icon: IconMiEdit,
       label: 'Rename',
       callback: openEditModal,
     },
     {
-      icon: 'mi:layers',
+      icon: IconMiLayers,
       label: 'Merge from profiles',
       callback: openMergeModal,
       hide: gameStore.getProfiles.length <= 1 || getProfilesMinusCurrent.value.every(p => !p.mods || p.mods.length === 0),
     },
     {
-      icon: 'mi:folder',
+      icon: IconMiFolder,
       label: 'Manage Groups',
       callback: openGroupsModal,
       hide: gameStore.getGroups.length === 0,
     },
     {
-      icon: 'mi:delete',
+      icon: IconMiDelete,
       label: 'Delete',
       callback: deleteProfileItem,
       // hide: isDefault.value,
@@ -111,7 +117,7 @@ const getOptions = computed(() => {
 
   if (!isDefault.value) {
     opts.unshift({
-      icon: 'mi:heart',
+      icon: IconMiHeart,
       label: 'Set as Default',
       callback: handleSetDefault,
     })

@@ -4,11 +4,11 @@
       class="flex items-center justify-center size-7 rounded text-gray-400 hover:text-white hover:bg-gray-700 transition-colors cursor-pointer"
       @click="router.back()"
     >
-      <nuxt-icon name="mi:chevron-left" class="size-5" />
+      <IconMiChevronLeft class="size-5" />
     </button>
 
     <template v-for="(crumb, index) in list" :key="index">
-      <nuxt-icon v-if="index > 0" name="mi:chevron-right" class="size-3.5 text-gray-600 shrink-0" />
+      <IconMiChevronRight v-if="index > 0" class="size-3.5 text-gray-600 shrink-0" />
 
       <nuxt-link-locale
         :to="crumb.path"

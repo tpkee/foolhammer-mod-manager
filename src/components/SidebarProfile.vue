@@ -5,7 +5,7 @@
     :is-active="false"
     @click="navigateToProfiles"
   >
-    <nuxt-icon name="mi:user" class="size-10" />
+    <IconMiUser class="size-10" />
   </sidebar-button>
 </template>
 

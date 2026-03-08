@@ -46,7 +46,7 @@
               <p :title="mod" class="truncate text-left">
                 {{ mod }}
               </p>
-              <nuxt-icon class="size-4 text-gray-400" name="mi:close" />
+              <IconMiClose class="size-4 text-gray-400" />
             </button>
           </div>
           <p v-else class="text-sm text-gray-400 italic p-3">

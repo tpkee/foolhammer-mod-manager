@@ -10,7 +10,7 @@
             <div>
               <app-button variant="secondary" @click="toggle">
                 <span class="sr-only">Menu</span>
-                <nuxt-icon name="mi:menu" class="size-5 align-middle block" />
+                <IconMiMenu class="size-5 align-middle block" />
               </app-button>
             </div>
           </template>
@@ -22,17 +22,15 @@
                 class="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-left rounded hover:bg-gray-700 transition-colors cursor-pointer"
                 @click="refModalMod.open(); close()"
               >
-                <nuxt-icon name="mi:add" class="size-4 shrink-0" />
+                <IconMiAdd class="size-4 shrink-0" />
                 Add mods to profile
               </button>
               <button
                 class="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-left rounded hover:bg-gray-700 transition-colors cursor-pointer"
                 @click="toggleAllMods(); close()"
               >
-                <nuxt-icon
-                  :name="!allModsEnabled ? 'mi:check' : 'mi:close'"
-                  class="size-4 shrink-0"
-                />
+                <IconMiCheck v-if="!allModsEnabled" class="size-4 shrink-0" />
+                <IconMiClose v-else class="size-4 shrink-0" />
                 {{ allModsEnabled ? 'Disable' : 'Enable' }} all mods
               </button>
               <button
@@ -40,7 +38,7 @@
                 class="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-left rounded hover:bg-gray-700 transition-colors cursor-pointer"
                 @click="refModalProfileGroups?.open(); close()"
               >
-                <nuxt-icon name="mi:folder" class="size-4 shrink-0" />
+                <IconMiFolder class="size-4 shrink-0" />
                 Manage profile groups
               </button>
               <div class="my-1 mx-2 h-px bg-gray-700" />
@@ -51,7 +49,7 @@
                 @click="toggleManualMode(); close()"
               >
                 <app-spinner v-if="isTogglingManualMode" class="size-4 shrink-0 animate-spin" />
-                <nuxt-icon v-else name="mi:edit" class="size-4 shrink-0" />
+                <IconMiEdit v-else class="size-4 shrink-0" />
                 {{ profile?.manualMode ? 'Disable' : 'Enable' }} manual mode
               </button>
             </div>

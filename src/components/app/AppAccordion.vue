@@ -19,7 +19,7 @@
         <span class="text-sm font-medium">
           {{ title }}
         </span>
-        <nuxt-icon name="mi:caret-down" class="size-4 transition-transform" :class="{ 'rotate-180': isOpen }" />
+        <IconMiCaretDown class="size-4 transition-transform" :class="{ 'rotate-180': isOpen }" />
       </button>
     </div>
 

@@ -40,6 +40,11 @@
 import type { AppTableColumn } from '~/types/common/AppTable'
 import type { GroupResponseDto } from '~/types/dto'
 
+import IconMiAdd from '~icons/mi/add'
+import IconMiDelete from '~icons/mi/delete'
+import IconMiEdit from '~icons/mi/edit'
+import IconMiLayers from '~icons/mi/layers'
+
 const props = defineProps<{
   columns: AppTableColumn[]
   group: GroupResponseDto
@@ -54,10 +59,10 @@ const addToProfilesModalRef = useTemplateRef('addToProfilesModalRef')
 const isSavingMods = ref(false)
 
 const getOptions = computed(() => [
-  { icon: 'mi:edit', label: 'Rename', callback: openRenameModal },
-  { icon: 'mi:layers', label: 'Manage Mods', callback: openModsModal },
-  { icon: 'mi:add', label: 'Add to profile', callback: () => addToProfilesModalRef.value?.open() },
-  { icon: 'mi:delete', label: 'Delete', callback: deleteGroup },
+  { icon: IconMiEdit, label: 'Rename', callback: openRenameModal },
+  { icon: IconMiLayers, label: 'Manage Mods', callback: openModsModal },
+  { icon: IconMiAdd, label: 'Add to profile', callback: () => addToProfilesModalRef.value?.open() },
+  { icon: IconMiDelete, label: 'Delete', callback: deleteGroup },
 ])
 
 function openRenameModal() {

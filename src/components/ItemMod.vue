@@ -6,7 +6,7 @@
           class="drag-handle cursor-grab active:cursor-move overflow-hidden transition-all duration-300 ease-in-out"
           :class="canDrag ? 'max-w-8 opacity-100 mr-2.5' : 'max-w-0 opacity-0 pointer-events-none'"
         >
-          <nuxt-icon name="mi:reorder" class="size-6" />
+          <IconMiReorder class="size-6" />
           <span class="sr-only">Drag</span>
         </span>
         <app-input
@@ -75,7 +75,7 @@
     <template #actions>
       <div class="flex items-center justify-end gap-1.5">
         <app-tooltip v-if="errors && errors.length > 0">
-          <nuxt-icon name="mi:warning" class="size-5 shrink-0 text-red-400 align-middle block" />
+          <IconMiWarning class="size-5 shrink-0 text-red-400 align-middle block" />
           <template #content>
             <ul class="text-xs space-y-1 max-w-56 list-disc">
               <li
@@ -97,6 +97,8 @@
 <script lang="ts" setup>
 import type { AppTableColumn } from '~/types/common/AppTable'
 import { convertFileSrc } from '@tauri-apps/api/core'
+
+import IconMiDelete from '~icons/mi/delete'
 
 const props = defineProps<{
   columns: AppTableColumn[]
@@ -132,7 +134,7 @@ const getLastUpdate = computed(() => {
 const getImage = computed(() => props.image ? convertFileSrc(props.image) : null)
 
 const getOptions = computed(() => [
-  { icon: 'mi:delete', label: 'Delete from profile', callback: deleteFromProfile },
+  { icon: IconMiDelete, label: 'Delete from profile', callback: deleteFromProfile },
 ])
 
 async function deleteFromProfile() {
