@@ -11,8 +11,14 @@ finish-args:
   - --device=dri
   - --share=ipc
   - --share=network
-  - --filesystem=~/.local/share/foolhammer-mod-manager
-  - --filesystem=~/.steam
+  - --filesystem=~/ # honestly, why can't i just exclude the folders? seems less bothersome ffs
+  # - --filesystem=~/.local/share/foolhammer-mod-manager
+  # - --filesystem=~/.steam
+  # - --filesystem=~/.local
+  # - --filesystem=~/.config
+  # - --filesystem=~/.cache
+  # - --filesystem=~/.steam
+  # - --filesystem=~/Games
 
 modules:
   - name: foolhammer-mod-manager

@@ -33,6 +33,18 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_PAT_RELEASE }}
 
+      # ── Fill in the manifest placeholders ────────────────────────────────
+      - name: Prepare manifest
+        run: |
+          DEB_PATH=$(ls deb-download/*.deb | head -1)
+          DEB_FILENAME=$(basename "$DEB_PATH")
+          SHA256=$(sha256sum "$DEB_PATH" | awk '{print $1}')
+
+          cp flatpak/com.tpkee.foolhammer-mod-manager.yml manifest.yml
+
+          sed -i "s|DEB_FILE_PLACEHOLDER|deb-download/${DEB_FILENAME}|g" manifest.yml
+          sed -i "s|SHA256_PLACEHOLDER|${SHA256}|g" manifest.yml
+
       # ── Flatpak tools ─────────────────────────────────────────────────────
       - name: Install Flatpak tools
         run: sudo apt-get install -y flatpak flatpak-builder
@@ -42,48 +54,11 @@ jobs:
           flatpak remote-add --user --if-not-exists flathub \
             https://flathub.org/repo/flathub.flatpakrepo
 
-      - name: Install GNOME SDK
+      - name: Install Freedesktop SDK
         run: |
           flatpak install --user -y flathub \
-            org.gnome.Platform//47 \
-            org.gnome.Sdk//47
-
-      # ── Generate manifest ─────────────────────────────────────────────────
-      - name: Write Flatpak manifest
-        run: |
-          DEB_PATH=$(ls deb-download/*.deb | head -1)
-
-          cat > com.tpkee.foolhammer-mod-manager.yaml <<EOF
-          id: com.tpkee.foolhammer-mod-manager
-
-          runtime: org.gnome.Platform
-          runtime-version: '47'
-          sdk: org.gnome.Sdk
-
-          command: foolhammer-mod-manager
-          finish-args:
-            - --socket=wayland
-            - --socket=fallback-x11
-            - --device=dri
-            - --share=ipc
-            - --filesystem=home
-
-          modules:
-            - name: foolhammer-mod-manager
-              buildsystem: simple
-              sources:
-                - type: file
-                  path: $DEB_PATH
-                  dest-filename: app.deb
-              build-commands:
-                - ar -x app.deb
-                - tar -xf data.tar.gz
-                - install -Dm755 usr/bin/foolhammer-mod-manager /app/bin/foolhammer-mod-manager
-                - install -Dm644 usr/share/applications/foolhammer-mod-manager.desktop /app/share/applications/com.tpkee.foolhammer-mod-manager.desktop
-                - install -Dm644 usr/share/icons/hicolor/32x32/apps/foolhammer-mod-manager.png /app/share/icons/hicolor/32x32/apps/com.tpkee.foolhammer-mod-manager.png
-                - install -Dm644 usr/share/icons/hicolor/128x128/apps/foolhammer-mod-manager.png /app/share/icons/hicolor/128x128/apps/com.tpkee.foolhammer-mod-manager.png
-                - install -Dm644 usr/share/icons/hicolor/256x256@2/apps/foolhammer-mod-manager.png /app/share/icons/hicolor/256x256/apps/com.tpkee.foolhammer-mod-manager.png
-          EOF
+            org.freedesktop.Platform//25.08 \
+            org.freedesktop.Sdk//25.08
 
       # ── Build & bundle ────────────────────────────────────────────────────
       - name: Build Flatpak
@@ -92,7 +67,7 @@ jobs:
             --user \
             --force-clean \
             --repo=flatpak-repo \
-            build-dir com.tpkee.foolhammer-mod-manager.yaml
+            build-dir manifest.yml
 
       - name: Bundle into .flatpak
         run: |
