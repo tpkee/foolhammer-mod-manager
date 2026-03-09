@@ -17,7 +17,6 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::default().build())
-        // .manage(Mutex::new())
         .setup(move |app| {
             let app_handle = app.handle();
 
