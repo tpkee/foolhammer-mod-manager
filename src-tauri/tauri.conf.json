@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Foolhammer Mod Manager",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "identifier": "com.tpkee.foolhammer-mod-manager",
   "build": {
     "frontendDist": "../dist",
