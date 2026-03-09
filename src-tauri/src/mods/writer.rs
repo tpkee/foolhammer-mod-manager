@@ -1,6 +1,6 @@
 use std::{fs::File, io::Write, path::PathBuf};
 
-use crate::{dto::mods::ModResponseDto, mods::pack::ModPack};
+use crate::{dto::mods::ModResponseDto, mods::pack::ModPack, supported_games::SupportedGames};
 
 #[derive(Debug)]
 pub struct Mod {
@@ -16,11 +16,12 @@ pub(crate) struct ModWriter {
 
 impl ModWriter {
     pub fn new(
+        game_id: SupportedGames,
         profile_mods: &[ModResponseDto],
         mods_path: &PathBuf,
         workshop_path: &Option<PathBuf>,
     ) -> Self {
-        let disk_mods = ModPack::retrieve_mods(mods_path, workshop_path);
+        let disk_mods = ModPack::retrieve_mods(game_id, mods_path, workshop_path);
 
         let mut mods = vec![];
 

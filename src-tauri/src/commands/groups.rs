@@ -124,7 +124,8 @@ pub async fn set_group_mods(
 
         let available_mod_names: HashSet<String> = if !added.is_empty() {
             let workshop_path = retrieve_steam_workshop_path(game_id);
-            let available_mods = pack::ModPack::retrieve_mods(&game.mods_path, &workshop_path);
+            let available_mods =
+                pack::ModPack::retrieve_mods(game.game_id, &game.mods_path, &workshop_path);
             available_mods.into_iter().map(|m| m.name).collect()
         } else {
             HashSet::new()
@@ -179,7 +180,8 @@ pub async fn add_group_mods(
         }
 
         let workshop_path = retrieve_steam_workshop_path(game.game_id);
-        let available_mods = pack::ModPack::retrieve_mods(&game.mods_path, &workshop_path);
+        let available_mods =
+            pack::ModPack::retrieve_mods(game.game_id, &game.mods_path, &workshop_path);
         let available_mod_names: HashSet<String> =
             available_mods.into_iter().map(|m| m.name).collect();
 
@@ -266,7 +268,8 @@ pub async fn add_group_profile(
         profile.groups.push(group_id);
 
         let workshop_path = retrieve_steam_workshop_path(game.game_id);
-        let available_mods = pack::ModPack::retrieve_mods(&game.mods_path, &workshop_path);
+        let available_mods =
+            pack::ModPack::retrieve_mods(game.game_id, &game.mods_path, &workshop_path);
         let available_mod_names: HashSet<String> =
             available_mods.iter().map(|m| m.name.clone()).collect();
 
@@ -329,7 +332,8 @@ pub async fn set_groups_profile(
 
         let workshop_path = retrieve_steam_workshop_path(game.game_id);
         let available_mod_names: HashSet<String> = if !groups_to_add.is_empty() {
-            let available_mods = pack::ModPack::retrieve_mods(&game.mods_path, &workshop_path);
+            let available_mods =
+                pack::ModPack::retrieve_mods(game.game_id, &game.mods_path, &workshop_path);
             available_mods.into_iter().map(|m| m.name).collect()
         } else {
             HashSet::new()

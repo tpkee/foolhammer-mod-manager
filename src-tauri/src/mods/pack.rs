@@ -1,4 +1,4 @@
-use crate::{join_path, mods::sort};
+use crate::{join_path, mods::sort, supported_games::SupportedGames};
 use rpfm_lib::{
     files::pack::Pack,
     games::{GameInfo, manifest},
@@ -20,7 +20,12 @@ pub struct ModPack {
 }
 
 impl ModPack {
-    pub fn new(path: &PathBuf, image: Option<&PathBuf>, from_steam_workshop: bool) -> Self {
+    pub fn new(
+        game_id: SupportedGames,
+        path: &PathBuf,
+        image: Option<&PathBuf>,
+        from_steam_workshop: bool,
+    ) -> Self {
         let name = path.file_stem().unwrap().to_string_lossy().to_string();
         let metadata: std::fs::Metadata = std::fs::metadata(path).unwrap(); // we are sure it exists since we just got it
         let last_updated: Option<String> = metadata
@@ -29,7 +34,7 @@ impl ModPack {
             .map(|t| (chrono::DateTime::<chrono::Utc>::from(t)).to_rfc3339());
 
         // read dependencies now (silent failure returns empty vec)
-        let dependencies = Self::get_dependencies(path);
+        let dependencies = Self::get_dependencies(game_id, path);
 
         Self {
             name,
@@ -41,8 +46,8 @@ impl ModPack {
         }
     }
 
-    fn get_dependencies(path: &PathBuf) -> Vec<(bool, String)> {
-        let Ok(game_info) = GameInfo::game_by_steam_id(1142710) else {
+    fn get_dependencies(game_id: SupportedGames, path: &PathBuf) -> Vec<(bool, String)> {
+        let Ok(game_info) = GameInfo::game_by_steam_id(game_id.into()) else {
             eprintln!(
                 "Failed to find game info for mod pack at path {:?}: game not found",
                 path
@@ -63,6 +68,7 @@ impl ModPack {
     }
 
     pub fn retrieve_loose_mods(
+        game_id: SupportedGames,
         game_mods_path: &PathBuf,
     ) -> Result<Vec<ModPack>, rpfm_lib::error::RLibError> {
         let manifest_path = join_path!(game_mods_path, "manifest.txt");
@@ -100,7 +106,7 @@ impl ModPack {
         Ok(mods
             .iter()
             .filter_map(|path| match path.extension().and_then(|ext| ext.to_str()) {
-                Some("pack") => Some(ModPack::new(path, None, false)),
+                Some("pack") => Some(ModPack::new(game_id, path, None, false)),
                 _ => None,
             })
             .collect())
@@ -108,7 +114,7 @@ impl ModPack {
 
     pub fn retrieve_workshop_mods(
         steam_workshop_folder: &PathBuf,
-        _game_id: &str, // TODO: we should be the one to actually build the path... somewhere!
+        game_id: SupportedGames, // TODO: we should be the one to actually build the path... somewhere!
     ) -> Result<Vec<ModPack>, rpfm_lib::error::RLibError> {
         //let workshop_path = join_path!(steam_workshop_folder, game_id);
         let workshop_files: Vec<PathBuf> = match files_from_subdir(steam_workshop_folder, true) {
@@ -149,7 +155,7 @@ impl ModPack {
             .into_values()
             .filter_map(|(pack_path, image_path)| {
                 if let Some(pack_path) = pack_path {
-                    return Some(ModPack::new(pack_path, image_path, true));
+                    return Some(ModPack::new(game_id, pack_path, image_path, true));
                 }
 
                 None
@@ -158,13 +164,14 @@ impl ModPack {
     }
 
     pub fn retrieve_mods(
+        game_id: SupportedGames,
         game_mods_path: &PathBuf,
         steam_workshop_path: &Option<PathBuf>,
     ) -> Vec<ModPack> {
         // merge the workshop and loose mods
-        let loose_mods = Self::retrieve_loose_mods(game_mods_path).ok();
+        let loose_mods = Self::retrieve_loose_mods(game_id, game_mods_path).ok();
         let workshop_mods = match steam_workshop_path {
-            Some(path) => Self::retrieve_workshop_mods(path, "").ok(), // TODO: we should be the one to actually build the path... somewhere!
+            Some(path) => Self::retrieve_workshop_mods(path, game_id).ok(), // TODO: we should be the one to actually build the path... somewhere!
             None => Some(vec![]),
         };
 

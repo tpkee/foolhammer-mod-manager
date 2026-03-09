@@ -41,7 +41,7 @@ impl GameResponseDto {
         let workshop_path = retrieve_steam_workshop_path(store.game_id);
 
         let mods = match mods_path {
-            Some(path) => pack::ModPack::retrieve_mods(&path, &workshop_path),
+            Some(path) => pack::ModPack::retrieve_mods(store.game_id, &path, &workshop_path),
             None => vec![],
         };
 

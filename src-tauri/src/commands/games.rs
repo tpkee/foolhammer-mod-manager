@@ -104,7 +104,8 @@ pub async fn start_game<'a>(
         return Err(ErrorCode::InternalError);
     }
 
-    let mod_writer = mods::writer::ModWriter::new(&profile.mods, &mods_path, &workshop_path);
+    let mod_writer =
+        mods::writer::ModWriter::new(game_id, &profile.mods, &mods_path, &workshop_path);
 
     mod_writer
         .write(txt_path)

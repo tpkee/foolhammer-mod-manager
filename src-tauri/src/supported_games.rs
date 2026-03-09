@@ -30,6 +30,13 @@ impl From<SupportedGames> for u32 {
     }
 }
 
+impl From<SupportedGames> for u64 {
+    fn from(value: SupportedGames) -> Self {
+        let id: u32 = value.into();
+        u64::from(id)
+    }
+}
+
 impl TryFrom<u32> for SupportedGames {
     type Error = String;
 

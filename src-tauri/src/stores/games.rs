@@ -208,15 +208,16 @@ impl GameStore {
         let mods_path = resolve_existing_path!(&game_path, default_game.mods_path)?;
 
         let workshop_path: Option<PathBuf> = retrieve_steam_workshop_path(default_game.game_id);
-        let mods: Vec<ModRequestDto> = pack::ModPack::retrieve_mods(&mods_path, &workshop_path)
-            .iter()
-            .map(|mod_pack| ModRequestDto {
-                order: None,
-                enabled: false,
-                groups: None,
-                name: mod_pack.name.clone(),
-            })
-            .collect();
+        let mods: Vec<ModRequestDto> =
+            pack::ModPack::retrieve_mods(game_id, &mods_path, &workshop_path)
+                .iter()
+                .map(|mod_pack| ModRequestDto {
+                    order: None,
+                    enabled: false,
+                    groups: None,
+                    name: mod_pack.name.clone(),
+                })
+                .collect();
 
         let default_profile_name = String::from("Default");
 
