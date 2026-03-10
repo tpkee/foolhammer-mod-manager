@@ -1,6 +1,6 @@
 import type { ProfileRequestDto, ProfileResponseDto } from '~/types/dto'
 import { modResponseToRequest } from './mods'
-import { ProfileRequestSchema } from './schemas'
+import { ProfileRequestSchema } from '../../schemas'
 
 export function profileResponseToRequest(
   profile: ProfileResponseDto,

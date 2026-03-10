@@ -5,7 +5,7 @@ import { ProfileResponseSchema } from './profiles'
 import { SaveResponseSchema } from './saves'
 
 export const GameResponseSchema = z.object({
-  mods: z.array(PackResponseSchema).optional().default([]),
+  mods: z.array(PackResponseSchema).default([]),
   profiles: z.array(ProfileResponseSchema).optional().default([]),
   groups: z.array(GroupResponseSchema).optional().default([]),
   saves: z.array(SaveResponseSchema).optional().default([]),

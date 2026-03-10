@@ -1,5 +1,5 @@
 import type { GameResponseDto, GroupResponseDto, ModResponseDto, PackResponseDto, ProfileResponseDto, SaveResponseDto } from '~/types/dto'
-import { GameResponseSchema } from '~/utils/dto/schemas'
+import { GameResponseSchema } from '~/schemas'
 
 export const useGameStore = defineStore('gameStore', () => {
   const selectedGame = ref<Nullable<string>>(null)
