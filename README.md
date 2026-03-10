@@ -2,6 +2,19 @@
 
 A straightforward mod manager for Total War games.
 
+## Table of Contents
+
+- [Features](#features)
+- [Planned Features](#planned-features)
+- [Supported Games](#supported-games)
+- [Installation](#installation)
+  - [Linux](#linux)
+- [Prerequisites](#prerequisites)
+- [Contributing](#getting-started)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+- [Issues](#issues)
+
 ## Features
 
 - Profiles
@@ -54,12 +67,11 @@ To add another title: add its defaults in `src-tauri/src/defaults/games.rs`, a g
   Download the rpm from the release page
 </details>
 
-### Other
 <details>
   <summary>Build from source</summary>
 
 ### Installation
-You *must* have the [prerequisites](#getting-started) first.
+You *must* have the [prerequisites](#prerequisites) first.
 
 ```bash
 git clone https://github.com/tpkee/foolhammer-mod-manager.git
@@ -68,7 +80,7 @@ pnpm install
 pnpm build
 ```
 </details>
- 
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
@@ -107,7 +119,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GPL3 License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
