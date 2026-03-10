@@ -51,13 +51,14 @@ jobs:
       - name: install frontend dependencies
         run: pnpm install
 
-      - uses: tauri-apps/tauri-action@v0
+      - uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT_RELEASE }}
         with:
           tagName: v__VERSION__
-          releaseName: App v__VERSION__
-          releaseBody: See the assets to download this version and install.
+          releaseName: v__VERSION__
+          generateReleaseNotes: true
+          # releaseAssetNamePattern: '[name]-[version]-[arch][ext]'
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
