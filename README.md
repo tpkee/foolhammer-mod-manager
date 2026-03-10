@@ -1,12 +1,6 @@
-<div align="center" style="width:100%;">
-<p style="text-align:center; background-color: white; width:fit-content;border-radius:999px; padding:10px">
-  <img src="src-tauri/icons/Square107x107Logo.png"   />
-  </p>
-</div>
-
 # Foolhammer Mod Manager
 
-Hopefully, a simple and straightforward mod manager for Total War games.
+A straightforward mod manager for Total War games.
 
 ## Features
 
@@ -14,7 +8,7 @@ Hopefully, a simple and straightforward mod manager for Total War games.
 - Mod groups
 - First-party Linux support
 
-## Planned
+## Planned Features
 
 - Profile export (pack files + profile JSON)
 - Windows support
@@ -25,6 +19,55 @@ Hopefully, a simple and straightforward mod manager for Total War games.
 - **Total War: Warhammer III**
 
 To add another title: add its defaults in `src-tauri/src/defaults/games.rs`, a game icon under `public/images/games/`, and a translation entry in the locale file(s).
+
+## Installation
+
+### Linux
+<details>
+  <summary>Arch Linux (AUR)</summary>
+
+  [![AUR version](https://img.shields.io/aur/version/foolhammer-mod-manager-bin?style=flat&label=foolhammer-mod-manager-bin)](https://aur.archlinux.org/packages/foolhammer-mod-manager-bin)
+
+  The package [foolhammer-mod-manager-bin](https://aur.archlinux.org/packages/foolhammer-mod-manager-bin) is available on the AUR.
+
+  You can install it using your preferred AUR helper, for example:
+
+  ```bash
+  # Using yay
+  yay -S foolhammer-mod-manager-bin
+
+  # Using paru
+  paru -S foolhammer-mod-manager-bin
+  ```
+
+  Please see [the Arch Wiki](https://wiki.archlinux.org/title/Arch_User_Repository#Installing_and_upgrading_packages) for more information on installing AUR packages.
+
+</details>
+
+<details>
+  <summary>Debian</summary>
+  Download the deb from the release page
+</details>
+
+<details>
+  <summary>Fedora</summary>
+  Download the rpm from the release page
+</details>
+
+### Other
+<details>
+  <summary>Build from source</summary>
+
+### Installation
+You *must* have the [prerequisites](#getting-started) first.
+
+```bash
+git clone https://github.com/tpkee/foolhammer-mod-manager.git
+cd foolhammer-mod-manager
+pnpm install
+pnpm build
+```
+</details>
  
 ## Prerequisites
 
