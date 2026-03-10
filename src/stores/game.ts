@@ -1,4 +1,5 @@
 import type { GameResponseDto, GroupResponseDto, ModResponseDto, PackResponseDto, ProfileResponseDto, SaveResponseDto } from '~/types/dto'
+import { GameResponseSchema } from '~/utils/dto/schemas'
 
 export const useGameStore = defineStore('gameStore', () => {
   const selectedGame = ref<Nullable<string>>(null)
@@ -57,9 +58,10 @@ export const useGameStore = defineStore('gameStore', () => {
     fetchStatus.value = 'pending'
 
     try {
-      const game = await useTauriInvoke<Nullable<GameResponseDto>>('get_game', {
+      const raw = await useTauriInvoke<Nullable<GameResponseDto>>('get_game', {
         gameId: selectedGame.value,
       })
+      const game = raw ? GameResponseSchema.parse(raw) : null
       setGame(game)
       fetchStatus.value = 'success'
       return game

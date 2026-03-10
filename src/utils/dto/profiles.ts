@@ -1,23 +1,20 @@
 import type { ProfileRequestDto, ProfileResponseDto } from '~/types/dto'
 import { modResponseToRequest } from './mods'
+import { ProfileRequestSchema } from './schemas'
 
 export function profileResponseToRequest(
   profile: ProfileResponseDto,
   gameId: string,
 ): ProfileRequestDto {
-  if (!profile.id || !profile.name) {
-    throw new Error('Profile ID and name are required')
-  }
-
-  const modsRequest = (profile?.mods ?? [])
+  const mods = (profile.mods ?? [])
     .filter(m => m != null)
     .map(modResponseToRequest)
 
-  return {
+  return ProfileRequestSchema.parse({
     gameId,
     name: profile.name,
     default: profile.default,
     manualMode: profile.manualMode,
-    mods: modsRequest,
-  }
+    mods,
+  })
 }

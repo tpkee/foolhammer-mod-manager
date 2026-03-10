@@ -1,12 +1,10 @@
 import type { ModRequestDto, ModResponseDto } from '~/types/dto'
+import { ModRequestSchema } from './schemas'
 
 export function modResponseToRequest(mod: ModResponseDto): ModRequestDto {
-  if (!mod.name) {
-    throw new Error('Mod name is required')
-  }
-  return {
+  return ModRequestSchema.parse({
     name: mod.name,
     enabled: !!mod.enabled,
     order: mod.order,
-  }
+  })
 }

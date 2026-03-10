@@ -1,12 +1,10 @@
 import type { ModRequestDto, PackResponseDto } from '~/types/dto'
+import { ModRequestSchema } from './schemas'
 
 export function packResponseToRequest(pack: PackResponseDto): ModRequestDto {
-  if (!pack.name)
-    throw new Error('Pack name is required to convert to ModRequestDto')
-
-  return {
+  return ModRequestSchema.parse({
     name: pack.name,
     enabled: false,
     order: 0,
-  }
+  })
 }
