@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
 export const GroupResponseSchema = z.object({
-  id: z.string().optional(),
-  name: z.string().optional(),
-  mods: z.array(z.string()).optional(),
+  id: z.string(),
+  name: z.string(),
+  mods: z.array(z.string()),
 })
 
 export const GroupRequestSchema = z.object({

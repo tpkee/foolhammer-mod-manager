@@ -10,27 +10,27 @@ export const useGameStore = defineStore('gameStore', () => {
 
   // Getters
   const getProfiles = computed<ProfileResponseDto[]>(() =>
-    transformToNonNullable(currentGame.value?.profiles),
+    currentGame.value?.profiles ?? [],
   )
 
   const getProfile = computed<Nullable<ProfileResponseDto>>(() =>
-    getProfiles.value.find(profile => profile?.id && profile.id === selectedProfile.value),
+    getProfiles.value.find(profile => profile.id === selectedProfile.value) ?? null,
   )
 
   const getProfileMods = computed<ModResponseDto[]>(() =>
-    transformToNonNullable(getProfile.value?.mods),
+    getProfile.value?.mods ?? [],
   )
 
   const getGameMods = computed<PackResponseDto[]>(() =>
-    transformToNonNullable(currentGame.value?.mods),
+    currentGame.value?.mods ?? [],
   )
 
   const getSaves = computed<SaveResponseDto[]>(() =>
-    transformToNonNullable(currentGame.value?.saves),
+    currentGame.value?.saves ?? [],
   )
 
   const getGroups = computed<GroupResponseDto[]>(() =>
-    transformToNonNullable(currentGame.value?.groups),
+    currentGame.value?.groups ?? [],
   )
 
   // Actions
@@ -61,6 +61,7 @@ export const useGameStore = defineStore('gameStore', () => {
       const raw = await useTauriInvoke<Nullable<GameResponseDto>>('get_game', {
         gameId: selectedGame.value,
       })
+      console.log('Fetched game data:', raw)
       const game = raw ? GameResponseSchema.parse(raw) : null
       setGame(game)
       fetchStatus.value = 'success'
@@ -104,9 +105,3 @@ export const useGameStore = defineStore('gameStore', () => {
     fetchGame,
   }
 })
-
-function transformToNonNullable<T>(array: Nullable<T[]>): NonNullable<T>[] {
-  if (!array)
-    return []
-  return array.filter(item => item != null)
-}

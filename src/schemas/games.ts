@@ -6,13 +6,13 @@ import { SaveResponseSchema } from './saves'
 
 export const GameResponseSchema = z.object({
   mods: z.array(PackResponseSchema).default([]),
-  profiles: z.array(ProfileResponseSchema).optional().default([]),
-  groups: z.array(GroupResponseSchema).optional().default([]),
-  saves: z.array(SaveResponseSchema).optional().default([]),
+  profiles: z.array(ProfileResponseSchema).default([]),
+  groups: z.array(GroupResponseSchema).default([]),
+  saves: z.array(SaveResponseSchema).default([]),
   defaultProfile: z.string().nullish(),
-  gameId: z.string().optional(),
-  gamePath: z.string().optional(),
+  gameId: z.string(),
+  gamePath: z.string().nullish(),
   savesPath: z.string().nullish(),
-  modsPath: z.string().optional(),
+  modsPath: z.string().nullish(),
   workshopPath: z.string().nullish(),
 })

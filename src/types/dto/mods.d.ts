@@ -1,19 +1,5 @@
-export interface ModRequestDto {
-  name: string
-  enabled: boolean
-  groups?: Nullable<string[]>
-  order?: Nullable<number>
-}
+import type { z } from 'zod'
+import type { ModRequestSchema, ModResponseSchema } from '~/schemas'
 
-export type ModResponseDto = RecursivePartial<{
-  name: string
-  path: string | null
-  enabled: boolean
-  groups: Nullable<string[]>
-  order: Nullable<number>
-  canEnable: boolean
-  lastUpdated: string | null
-  fromSteamWorkshop: boolean
-  image: string | null
-  dependencies: [boolean, string][] // [loadBefore, modName]
-}>
+export type ModResponseDto = z.infer<typeof ModResponseSchema>
+export type ModRequestDto = z.infer<typeof ModRequestSchema>

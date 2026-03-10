@@ -1,5 +1,5 @@
 import type { ModRequestDto, PackResponseDto } from '~/types/dto'
-import { ModRequestSchema } from '../../schemas'
+import { ModRequestSchema } from '../index'
 
 export function packResponseToRequest(pack: PackResponseDto): ModRequestDto {
   return ModRequestSchema.parse({

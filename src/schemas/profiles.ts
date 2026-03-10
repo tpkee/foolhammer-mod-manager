@@ -2,12 +2,11 @@ import { z } from 'zod'
 import { ModRequestSchema, ModResponseSchema } from './mods'
 
 export const ProfileResponseSchema = z.object({
-  id: z.string().optional(),
-  name: z.string().optional(),
-  mods: z.array(ModResponseSchema).optional(),
-  default: z.boolean().optional(),
-  manualMode: z.boolean().optional(),
-  groups: z.array(z.string()).optional(),
+  id: z.string(),
+  name: z.string(),
+  mods: z.array(ModResponseSchema),
+  manualMode: z.boolean(),
+  groups: z.array(z.string()),
 })
 
 export const ProfileRequestSchema = z.object({
