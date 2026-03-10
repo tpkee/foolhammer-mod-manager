@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="src-tauri/icons/Square150x150Logo.png"   />
+</p>
+
 # Foolhammer Mod Manager
 
 A straightforward mod manager for Total War games.
