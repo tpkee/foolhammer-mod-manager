@@ -55,7 +55,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT_RELEASE }}
         with:
-          tagName: app-v__VERSION__
+          tagName: v__VERSION__
           releaseName: App v__VERSION__
           releaseBody: See the assets to download this version and install.
           releaseDraft: true
