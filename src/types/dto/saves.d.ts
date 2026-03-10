@@ -1,6 +1,4 @@
-export type SaveResponseDto = RecursivePartial<{
-  name: string
-  path: string
-  lastUpdated: Nullable<string>
-  lastAccessed: Nullable<string>
-}>
+import type { z } from 'zod'
+import type { SaveResponseSchema } from '~/schemas'
+
+export type SaveResponseDto = z.infer<typeof SaveResponseSchema>

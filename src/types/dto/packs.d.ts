@@ -1,7 +1,4 @@
-export type PackResponseDto = RecursivePartial<{
-  name: string
-  path: string
-  image: string | null
-  lastUpdated: string | null
-  fromSteamWorkshop: boolean
-}>
+import type { z } from 'zod'
+import type { PackResponseSchema } from '~/schemas'
+
+export type PackResponseDto = z.infer<typeof PackResponseSchema>

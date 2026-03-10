@@ -1,12 +1,5 @@
-export type GroupResponseDto = RecursivePartial<{
-  id: string
-  name: string
-  mods: string[]
-}>
+import type { z } from 'zod'
+import type { GroupRequestSchema, GroupResponseSchema } from '~/schemas'
 
-export interface GroupRequestDto {
-  id?: string | null
-  gameId: string
-  name: string
-  mods: string[]
-}
+export type GroupResponseDto = z.infer<typeof GroupResponseSchema>
+export type GroupRequestDto = z.infer<typeof GroupRequestSchema>

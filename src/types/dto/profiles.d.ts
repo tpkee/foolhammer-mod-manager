@@ -1,18 +1,5 @@
-import type { ModRequestDto, ModResponseDto } from './mods'
+import type { z } from 'zod'
+import type { ProfileRequestSchema, ProfileResponseSchema } from '~/schemas'
 
-export type ProfileResponseDto = RecursivePartial<{
-  id: string
-  name: string
-  mods: ModResponseDto[]
-  default: boolean
-  manualMode: boolean
-  groups: string[]
-}>
-
-export interface ProfileRequestDto {
-  gameId: string
-  name: string
-  default?: boolean | null
-  manualMode?: boolean | null
-  mods: ModRequestDto[]
-}
+export type ProfileResponseDto = z.infer<typeof ProfileResponseSchema>
+export type ProfileRequestDto = z.infer<typeof ProfileRequestSchema>

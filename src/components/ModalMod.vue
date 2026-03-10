@@ -78,10 +78,10 @@
 </template>
 
 <script lang="ts" setup>
-import type { ModResponseDto } from '~/types/dto'
+import type { PackResponseDto } from '~/types/dto'
 
 const props = defineProps<{
-  mods: ModResponseDto[]
+  mods: PackResponseDto[]
   loading?: boolean
 }>()
 
