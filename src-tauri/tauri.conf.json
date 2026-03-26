@@ -25,7 +25,8 @@
       "assetProtocol": {
         "enable": true,
         "scope": [
-          "**/.local/share/**/"
+          "**/.local/share/**/",
+          "**/Library/Application Support/Steam/**/"
         ]
       }
     }
