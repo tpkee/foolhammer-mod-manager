@@ -7,6 +7,8 @@ use std::{
 
 #[cfg(target_os = "linux")]
 mod linux;
+#[cfg(target_os = "windows")]
+mod windows;
 
 pub trait GameManager: Send {
     fn launch_game(
@@ -21,6 +23,8 @@ pub trait GameManager: Send {
 
 #[cfg(target_os = "linux")]
 pub(crate) type GameLauncher = linux::LinuxLauncher;
+#[cfg(target_os = "windows")]
+pub(crate) type GameLauncher = windows::WindowsLauncher;
 
 impl GameLauncher {
     pub(crate) async fn create(app_handle: &tauri::AppHandle) -> GameLauncher {
