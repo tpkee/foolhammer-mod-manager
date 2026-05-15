@@ -1,15 +1,11 @@
-use serde::{Deserialize, Serialize};
-use std::fs::File;
-use std::io::Write;
+use std::error::Error;
 use std::os::windows::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::{error::Error, io::Read};
-use tauri::Manager;
 
 use crate::defaults::system::STEAMDIR_INSTANCE;
+use crate::resolve_existing_path;
 use crate::{defaults::games::DefaultGameInfo, supported_games::SupportedGames};
-use crate::{resolve_existing_path, utils};
 
 const DETACHED_PROCESS: u32 = 0x00000008;
 const CREATE_NEW_PROCESS_GROUP: u32 = 0x00000200;
@@ -88,7 +84,7 @@ impl super::GameManager for WindowsLauncher {
 
         println!("Running command: {:?}", command);
 
-        let _ = command.spawn().expect("Failed to start the game"); // do not wait
+        let _ = command.spawn(); // do not wait
 
         self.running_exe = Some(game_preset.executable_name);
         Ok(())

@@ -50,7 +50,7 @@ impl ModWriter {
             mods.push(mod_to_load);
         }
 
-        mods.sort_by(|a, b| a.order.cmp(&b.order));
+        mods.sort_by_key(|a| a.order);
 
         Self { mods }
     }
