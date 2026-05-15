@@ -23,6 +23,7 @@ impl DefaultGameInfo {
 
 pub const DEFAULT_GAME_ID: SupportedGames = SupportedGames::Warhammer3;
 
+// TODO: source this from a json file or something instead of hardcoding it. This will make it easier to add support for more games in the future without having to change the code
 pub const SUPPORTED_GAMES: [DefaultGameInfo; 1] = [DefaultGameInfo {
     game_id: SupportedGames::Warhammer3,
     executable_name: "Warhammer3.exe",
