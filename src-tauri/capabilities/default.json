@@ -3,6 +3,6 @@
   "identifier": "default",
   "description": "enables the default permissions",
   "windows": ["main"],
-  "platforms": ["linux", "windows", "macOS"],
+  "platforms": ["linux", "windows"],
   "permissions": ["core:default", "store:default", "dialog:default"]
 }
