@@ -134,7 +134,7 @@ impl super::GameManager for LinuxLauncher {
         &mut self,
         game_id: SupportedGames,
         game_path: &Path,
-        save_path: Option<&PathBuf>, //TODO:
+        save_path: Option<&PathBuf>,
     ) -> Result<(), Box<dyn Error>> {
         let game_id_str: String = game_id.into();
         let command = self.get_command();

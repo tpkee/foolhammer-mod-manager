@@ -5,8 +5,8 @@
   "identifier": "com.tpkee.foolhammer-mod-manager",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:3000",
-    "beforeDevCommand": "nuxt dev",
+    "devUrl": "http://127.0.0.1:3000",
+    "beforeDevCommand": "nuxt dev --host 127.0.0.1",
     "beforeBuildCommand": "nuxt generate"
   },
   "app": {
@@ -25,7 +25,8 @@
       "assetProtocol": {
         "enable": true,
         "scope": [
-          "**/.local/share/**/"
+          "**/.local/share/**/",
+          "**/Steam/**/"
         ]
       }
     }

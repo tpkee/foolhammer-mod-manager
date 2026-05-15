@@ -12,23 +12,23 @@ name = "app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2.6.1", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["protocol-asset"] }
-tauri-plugin-opener = "2"
+tauri = { version = "2.11.1", features = ["protocol-asset"] }
+tauri-plugin-opener = "2.5.4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 notify = "8.2.0"
 tauri-plugin-store = "2.4.2"
 dirs = "6.0"
 lazy_static = "1.5.0"
-steamworks = "0.12.2"
+steamworks = "0.13.1"
 steamlocate = "2.0.1"
 rpfm_lib = "4.7.4"
 chrono = "0.4"
-tauri-plugin-dialog = "2"
+tauri-plugin-dialog = "2.7.1"
 ureq = { version = "3.2.0", features = ["json"] }
 tar = "0.4.44"
-sysinfo = { version = "0.38", features = []   }
+sysinfo = { version = "0.39.1", features = []   }
 uuid = { version = "1", features = ["v4"] }

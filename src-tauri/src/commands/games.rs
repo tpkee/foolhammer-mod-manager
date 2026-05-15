@@ -3,7 +3,7 @@ use crate::{
     defaults::games::{DefaultGameInfo, SUPPORTED_GAMES},
     dto::games::{GameRequestDto, GameResponseDto},
     join_path,
-    launchers::{GameManager, linux::LinuxLauncher},
+    launchers::{self, GameManager},
     mods,
     state::AppState,
     stores::games::{GameStore, Profile, Store},
@@ -111,11 +111,7 @@ pub async fn start_game<'a>(
         .write(txt_path)
         .expect("It wasn't possible to write the mod file");
 
-    let mut runner = if cfg!(target_os = "linux") {
-        LinuxLauncher::new(&app_handler).await
-    } else {
-        unimplemented!("Game launching is only implemented for Linux at the moment");
-    };
+    let mut runner = launchers::GameLauncher::create(&app_handler).await;
 
     let _ = runner.launch_game(game_id, &game_path, savegame_path.as_ref());
 

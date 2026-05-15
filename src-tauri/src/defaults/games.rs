@@ -11,16 +11,9 @@ pub struct DefaultGameInfo {
 }
 impl DefaultGameInfo {
     pub fn get_game_path(&self) -> Option<PathBuf> {
-        match &*STEAMDIR_INSTANCE {
-            Some(steam_dir) => match steam_dir.find_app(self.game_id.into()) {
-                Ok(res) => {
-                    let (app, library) = res.unwrap();
-                    Some(library.resolve_app_dir(&app))
-                }
-                _ => None,
-            },
-            _ => None,
-        }
+        let steam_dir = STEAMDIR_INSTANCE.as_ref()?;
+        let (app, library) = steam_dir.find_app(self.game_id.into()).ok()??;
+        Some(library.resolve_app_dir(&app))
     }
 
     pub fn find_by_id(game_id: SupportedGames) -> Option<&'static DefaultGameInfo> {
@@ -30,6 +23,7 @@ impl DefaultGameInfo {
 
 pub const DEFAULT_GAME_ID: SupportedGames = SupportedGames::Warhammer3;
 
+// TODO: source this from a json file or something instead of hardcoding it. This will make it easier to add support for more games in the future without having to change the code
 pub const SUPPORTED_GAMES: [DefaultGameInfo; 1] = [DefaultGameInfo {
     game_id: SupportedGames::Warhammer3,
     executable_name: "Warhammer3.exe",

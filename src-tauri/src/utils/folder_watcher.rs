@@ -32,7 +32,7 @@ impl FolderWatcher {
 
             if !old_paths.contains(folder) {
                 watcher_paths
-                    .add(folder, RecursiveMode::Recursive)
+                    .add(folder, RecursiveMode::NonRecursive)
                     .expect("Failed to watch folder from State::set_watchers");
             }
 

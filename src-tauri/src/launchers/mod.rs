@@ -1,13 +1,14 @@
+use crate::supported_games::SupportedGames;
 use std::{
     error::Error,
     path::{Path, PathBuf},
     process::Command,
 };
 
-use crate::supported_games::SupportedGames;
-
 #[cfg(target_os = "linux")]
-pub mod linux;
+mod linux;
+#[cfg(target_os = "windows")]
+mod windows;
 
 pub trait GameManager: Send {
     fn launch_game(
@@ -18,4 +19,16 @@ pub trait GameManager: Send {
     ) -> Result<(), Box<dyn Error>>;
     fn kill_game(&mut self) -> Result<(), Box<dyn Error>>;
     fn get_command(&mut self) -> &mut Command;
+}
+
+#[cfg(target_os = "linux")]
+pub(crate) type GameLauncher = linux::LinuxLauncher;
+#[cfg(target_os = "windows")]
+pub(crate) type GameLauncher = windows::WindowsLauncher;
+
+impl GameLauncher {
+    pub(crate) async fn create(app_handle: &tauri::AppHandle) -> GameLauncher {
+        // TODO:  how will we handle the specific wine support? Maybe pass a flag or idk
+        GameLauncher::new(app_handle).await
+    }
 }

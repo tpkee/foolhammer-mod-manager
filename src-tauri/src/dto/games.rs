@@ -26,7 +26,7 @@ pub struct GameResponseDto {
     pub mods: Vec<PackResponseDto>, // populated at runtime
     pub profiles: Vec<ProfileResponseDto>,
     pub groups: Vec<GroupResponseDto>,
-    pub saves: Vec<SaveResponseDto>, // TODO: implement saves
+    pub saves: Vec<SaveResponseDto>,
     pub default_profile: Option<uuid::Uuid>,
     pub game_id: SupportedGames,
     pub game_path: PathBuf,
