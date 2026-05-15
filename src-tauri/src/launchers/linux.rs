@@ -190,7 +190,7 @@ impl super::GameManager for LinuxLauncher {
 
         println!("Running command: {:?}", command);
 
-        let _ = command.spawn().expect("Umu failed").wait();
+        let _ = command.spawn().expect("Umu failed");
 
         self.running_exe = Some(game_preset.executable_name);
         Ok(())
