@@ -51,8 +51,6 @@ impl super::GameManager for WindowsLauncher {
                 )
                 .unwrap();
 
-                println!("Launching Steam from path: {}", steam_exe.to_string_lossy());
-
                 let _ = Command::new(steam_exe)
                     .creation_flags(DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP)
                     .spawn()
@@ -68,10 +66,6 @@ impl super::GameManager for WindowsLauncher {
 
         let command = self.get_command();
         command.current_dir(game_path);
-        println!(
-            "Current dir set to: {}",
-            command.get_current_dir().unwrap().to_string_lossy()
-        );
         command.raw_arg(game_preset.executable_name);
         command.arg("used_mods.txt;");
 
