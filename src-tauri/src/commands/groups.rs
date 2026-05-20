@@ -3,7 +3,7 @@ use crate::{
     mods::pack,
     stores::games::{GameStore, Group, Profile, ProfileModInfo, Store},
     supported_games::SupportedGames,
-    utils::{ErrorCode, path::retrieve_steam_workshop_path},
+    utils::{ErrorCode, steam::SteamConfig},
 };
 use std::collections::HashSet;
 
@@ -103,6 +103,8 @@ pub async fn set_group_mods(
     group_id: uuid::Uuid,
     mods: Vec<String>,
 ) -> Result<serde_json::Value, ErrorCode> {
+    let steam_config = SteamConfig::from_app_handle(&app_handle)?;
+
     GameStore::get(&app_handle, game_id, |game| {
         let group = game
             .groups
@@ -123,7 +125,7 @@ pub async fn set_group_mods(
         }
 
         let available_mod_names: HashSet<String> = if !added.is_empty() {
-            let workshop_path = retrieve_steam_workshop_path(game_id);
+            let workshop_path = steam_config.retrieve_steam_workshop_path(game_id);
             let available_mods =
                 pack::ModPack::retrieve_mods(game.game_id, &game.mods_path, &workshop_path);
             available_mods.into_iter().map(|m| m.name).collect()
@@ -162,6 +164,8 @@ pub async fn add_group_mods(
     group_id: uuid::Uuid,
     mods: Vec<String>,
 ) -> Result<serde_json::Value, ErrorCode> {
+    let steam_config = SteamConfig::from_app_handle(&app_handle)?;
+
     GameStore::get(&app_handle, game_id, |game| {
         let group = game
             .groups
@@ -179,7 +183,7 @@ pub async fn add_group_mods(
             return Ok(serde_json::json!(&group.mods));
         }
 
-        let workshop_path = retrieve_steam_workshop_path(game.game_id);
+        let workshop_path = steam_config.retrieve_steam_workshop_path(game.game_id);
         let available_mods =
             pack::ModPack::retrieve_mods(game.game_id, &game.mods_path, &workshop_path);
         let available_mod_names: HashSet<String> =
@@ -247,6 +251,8 @@ pub async fn add_group_profile(
     group_id: uuid::Uuid,
     profile_id: uuid::Uuid,
 ) -> Result<serde_json::Value, ErrorCode> {
+    let steam_config = SteamConfig::from_app_handle(&app_handle)?;
+
     GameStore::get(&app_handle, game_id, |game| {
         let group = game
             .groups
@@ -267,7 +273,7 @@ pub async fn add_group_profile(
         }
         profile.groups.push(group_id);
 
-        let workshop_path = retrieve_steam_workshop_path(game.game_id);
+        let workshop_path = steam_config.retrieve_steam_workshop_path(game.game_id);
         let available_mods =
             pack::ModPack::retrieve_mods(game.game_id, &game.mods_path, &workshop_path);
         let available_mod_names: HashSet<String> =
@@ -311,6 +317,8 @@ pub async fn set_groups_profile(
     profile_id: uuid::Uuid,
     groups: Vec<uuid::Uuid>,
 ) -> Result<serde_json::Value, ErrorCode> {
+    let steam_config = SteamConfig::from_app_handle(&app_handle)?;
+
     GameStore::get(&app_handle, game_id, |game| {
         let profile = game
             .profiles
@@ -330,7 +338,7 @@ pub async fn set_groups_profile(
             .copied()
             .collect();
 
-        let workshop_path = retrieve_steam_workshop_path(game.game_id);
+        let workshop_path = steam_config.retrieve_steam_workshop_path(game.game_id);
         let available_mod_names: HashSet<String> = if !groups_to_add.is_empty() {
             let available_mods =
                 pack::ModPack::retrieve_mods(game.game_id, &game.mods_path, &workshop_path);

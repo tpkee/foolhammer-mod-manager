@@ -7,6 +7,7 @@ use std::{error::Error, io::Read};
 use tauri::Manager;
 
 use crate::utils;
+use crate::utils::steam::SteamConfig;
 use crate::{defaults::games::DefaultGameInfo, supported_games::SupportedGames};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -20,6 +21,7 @@ struct LauncherRelease {
 pub(crate) struct LinuxLauncher {
     runner_path: PathBuf,
     command: Command,
+    steam_config: SteamConfig,
     running_exe: Option<&'static str>, // use this to kill
 }
 
@@ -30,10 +32,16 @@ impl LinuxLauncher {
             .expect("Failed to update or install umu-launcher");
 
         let command = Command::new("python");
+        let steam_config =
+            SteamConfig::from_app_handle(app_handler).unwrap_or_else(|_| SteamConfig {
+                steam_path: None,
+                steam_library_path: None,
+            });
 
         Self {
             runner_path: launcher_path,
             command,
+            steam_config,
             running_exe: None,
         }
     }
@@ -146,7 +154,9 @@ impl super::GameManager for LinuxLauncher {
             .into_iter()
             .any(|cmp| cmp.as_os_str() == "Steam")
         {
-            let pfx_path = utils::path::retrieve_wine_pfx_path(game_id)
+            let pfx_path = self
+                .steam_config
+                .retrieve_wine_pfx_path(game_id)
                 .ok_or("Failed to find wine prefix path")?;
 
             let proton_version_file = File::open(pfx_path.join("version"));
