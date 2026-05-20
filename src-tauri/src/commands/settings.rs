@@ -1,7 +1,7 @@
-use crate::supported_games::SupportedGames;
 use crate::dto::settings::UserSettingsResponseDto;
 use crate::events::AppEvent;
 use crate::stores::settings::{SettingsKey, SettingsStore};
+use crate::supported_games::SupportedGames;
 use crate::utils::ErrorCode;
 use tauri::Emitter;
 
