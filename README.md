@@ -24,11 +24,11 @@ A straightforward mod manager for Total War games.
 - Profiles
 - Mod groups
 - First-party Linux support
+- Windows support
 
 ## Planned Features
 
 - Profile export (pack files + profile JSON)
-- Windows support
 - Steamworks integration (subscribe/unsubscribe)
 
 ## Supported Games
@@ -39,7 +39,8 @@ To add another title: add its defaults in `src-tauri/src/defaults/games.rs`, a g
 
 ## Installation
 
-### Linux
+<details>
+  <summary>Linux</summary>
 <details>
   <summary>Arch Linux (AUR)</summary>
 
@@ -69,6 +70,12 @@ To add another title: add its defaults in `src-tauri/src/defaults/games.rs`, a g
 <details>
   <summary>Fedora</summary>
   Download the rpm from the release page
+</details>
+</details>
+
+<details>
+  <Summary>Windows</Summary>
+  Download the exe from the latest release
 </details>
 
 <details>
