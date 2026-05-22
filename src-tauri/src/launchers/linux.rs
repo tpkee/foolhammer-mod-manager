@@ -32,11 +32,10 @@ impl LinuxLauncher {
             .expect("Failed to update or install umu-launcher");
 
         let command = Command::new("python");
-        let steam_config =
-            SteamConfig::from_app_handle(app_handler).unwrap_or_else(|_| SteamConfig {
-                steam_path: None,
-                steam_library_path: None,
-            });
+        let steam_config = SteamConfig::from_app_handle(app_handler).unwrap_or(SteamConfig {
+            steam_path: None,
+            steam_library_path: None,
+        });
 
         Self {
             runner_path: launcher_path,
@@ -155,6 +154,8 @@ impl super::GameManager for LinuxLauncher {
             game_path.display(),
             save_path
         );
+        let steam_config = self.steam_config.clone();
+
         let command = self.get_command();
 
         command.current_dir(game_path); // umu needs to be run in the game directory to find the used_mods.txt file
@@ -164,8 +165,7 @@ impl super::GameManager for LinuxLauncher {
             .into_iter()
             .any(|cmp| cmp.as_os_str() == "Steam")
         {
-            let pfx_path = self
-                .steam_config
+            let pfx_path = steam_config
                 .retrieve_wine_pfx_path(game_id)
                 .ok_or("Failed to find wine prefix path")?;
 
