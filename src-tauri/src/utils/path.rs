@@ -3,8 +3,9 @@ use std::path::PathBuf;
 use tauri::Manager;
 
 use crate::{
-    defaults::system::STEAMDIR_INSTANCE, join_path, resolve_existing_path,
+    join_path,
     supported_games::SupportedGames,
+    utils::steam::SteamConfig,
 };
 
 pub fn generate_store_path(app: &tauri::AppHandle, relative_path: &str) -> std::path::PathBuf {
@@ -17,6 +18,7 @@ pub fn generate_store_path(app: &tauri::AppHandle, relative_path: &str) -> std::
 pub fn retrieve_saves_absolute_path(
     game_id: SupportedGames,
     relative_path: &str,
+    steam_config: &SteamConfig,
 ) -> Option<PathBuf> {
     // The default saves path needs to be handled differently because on Linux we have to access the wine pfx
     let data_dir = dirs::data_dir().expect("Failed to get data directory");
@@ -25,9 +27,9 @@ pub fn retrieve_saves_absolute_path(
     match std::env::consts::OS {
         "windows" => Some(data_dir),
         _ => {
-            if let Some(steam_dir) = &*STEAMDIR_INSTANCE {
+            if let Some(steam_path) = steam_config.get_steam_path() {
                 return Some(join_path!(
-                    steam_dir.path(),
+                    &steam_path,
                     "steamapps",
                     "compatdata",
                     &game_id_str,
@@ -44,32 +46,4 @@ pub fn retrieve_saves_absolute_path(
             None
         }
     }
-}
-
-pub fn retrieve_steam_workshop_path(game_id: SupportedGames) -> Option<PathBuf> {
-    let game_id_str: String = game_id.into();
-    match &*STEAMDIR_INSTANCE {
-        Some(steam_dir) => {
-            if let Some(p) = resolve_existing_path!(
-                steam_dir.path(),
-                "steamapps",
-                "workshop",
-                "content",
-                &game_id_str,
-            ) {
-                return Some(p);
-            }
-
-            None
-        }
-        _ => None,
-    }
-}
-
-pub fn retrieve_wine_pfx_path(game_id: SupportedGames) -> Option<PathBuf> {
-    let game_id_str: String = game_id.into();
-    if let Some(steam_dir) = &*STEAMDIR_INSTANCE {
-        return resolve_existing_path!(steam_dir.path(), "steamapps", "compatdata", &game_id_str);
-    }
-    None
 }
