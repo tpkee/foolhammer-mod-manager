@@ -29,9 +29,7 @@ fn watcher_sentry(event: Result<Event, notify::Error>, app_handle: &AppHandle) {
             notify::EventKind::Create(_) | notify::EventKind::Remove(_) => {
                 folders_governor(e, app_handle);
             }
-            other => {
-                log::debug!("Ignoring folder event kind: {:?}", other);
-            }
+            _ => {}
         },
         Err(e) => {
             log::error!("Error watching folder: {:?}", e);
