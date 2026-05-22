@@ -1,4 +1,4 @@
-use tauri::{async_runtime::Mutex, Manager};
+use tauri::{Manager, async_runtime::Mutex};
 use tauri_plugin_log::{Target, TargetKind};
 
 pub mod commands;
@@ -41,10 +41,7 @@ pub fn run() {
         .setup(move |app| {
             let app_handle = app.handle();
 
-            log::info!(
-                "Foolhammer {} starting",
-                app.package_info().version
-            );
+            log::info!("Foolhammer {} starting", app.package_info().version);
             log::info!("OS: {} {}", std::env::consts::OS, std::env::consts::ARCH);
             log::info!(
                 "Steam directory: {:?}",

@@ -40,11 +40,7 @@ impl FolderWatcher {
             if !old_paths.contains(folder) {
                 log::info!("Adding watch: {}", folder.display());
                 if let Err(e) = watcher_paths.add(folder, RecursiveMode::NonRecursive) {
-                    log::error!(
-                        "Failed to watch folder {}: {:?}",
-                        folder.display(),
-                        e
-                    );
+                    log::error!("Failed to watch folder {}: {:?}", folder.display(), e);
                 }
             }
 

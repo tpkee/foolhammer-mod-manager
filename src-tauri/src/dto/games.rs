@@ -50,13 +50,8 @@ impl GameResponseDto {
 
         let mods = match &mods_path {
             Some(path) => {
-                let mods =
-                    pack::ModPack::retrieve_mods(store.game_id, path, &workshop_path);
-                log::info!(
-                    "Loaded {} mod(s) for game {:?}",
-                    mods.len(),
-                    store.game_id
-                );
+                let mods = pack::ModPack::retrieve_mods(store.game_id, path, &workshop_path);
+                log::info!("Loaded {} mod(s) for game {:?}", mods.len(), store.game_id);
                 mods
             }
             None => vec![],
@@ -98,10 +93,7 @@ impl GameResponseDto {
 
     fn get_saves(folder_path: &Path) -> Vec<SaveResponseDto> {
         let Ok(paths) = std::fs::read_dir(folder_path) else {
-            log::warn!(
-                "Failed to read saves directory: {}",
-                folder_path.display()
-            );
+            log::warn!("Failed to read saves directory: {}", folder_path.display());
             return vec![];
         };
 
@@ -109,11 +101,7 @@ impl GameResponseDto {
             .map(|res| res.map(|e| e.path()))
             .collect::<Result<Vec<_>, std::io::Error>>()
         {
-            log::debug!(
-                "Found {} save(s) in {}",
-                saves.len(),
-                folder_path.display()
-            );
+            log::debug!("Found {} save(s) in {}", saves.len(), folder_path.display());
             return saves.into_iter().map(SaveResponseDto::new).collect();
         }
 

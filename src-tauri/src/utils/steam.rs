@@ -51,10 +51,7 @@ impl SteamConfig {
     /// User-configured library path, then installation path, then auto-detected default.
     pub fn get_steam_library_path(&self) -> Option<PathBuf> {
         if let Some(path) = &self.steam_library_path {
-            log::trace!(
-                "Using configured steam_library_path: {}",
-                path.display()
-            );
+            log::trace!("Using configured steam_library_path: {}", path.display());
             return Some(path.clone());
         }
 

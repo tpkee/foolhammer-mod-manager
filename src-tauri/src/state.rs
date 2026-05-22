@@ -1,6 +1,6 @@
 use crate::{events::AppEvent, launchers::GameManager, utils::folder_watcher};
 use notify::Event;
-use tauri::{async_runtime::Mutex, AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, async_runtime::Mutex};
 
 pub struct State {
     pub game_runner: Option<Box<dyn GameManager>>,

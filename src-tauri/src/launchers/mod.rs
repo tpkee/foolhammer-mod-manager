@@ -28,10 +28,7 @@ pub(crate) type GameLauncher = windows::WindowsLauncher;
 
 impl GameLauncher {
     pub(crate) async fn create(app_handle: &tauri::AppHandle) -> GameLauncher {
-        log::info!(
-            "Initializing {} game launcher",
-            std::env::consts::OS
-        );
+        log::info!("Initializing {} game launcher", std::env::consts::OS);
         GameLauncher::new(app_handle).await
     }
 }

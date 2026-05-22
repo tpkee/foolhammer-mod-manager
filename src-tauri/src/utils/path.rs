@@ -10,11 +10,7 @@ pub fn generate_store_path(app: &tauri::AppHandle, relative_path: &str) -> std::
         .config_dir()
         .expect("Failed to get config directory")
         .join(format!("foolhammer-mod-manager/{}", relative_path));
-    log::debug!(
-        "Store path for '{}': {}",
-        relative_path,
-        path.display()
-    );
+    log::debug!("Store path for '{}': {}", relative_path, path.display());
     path
 }
 
