@@ -184,7 +184,15 @@ impl GameStore {
         game_id: SupportedGames,
     ) -> Result<Arc<tauri_plugin_store::Store<Wry>>, ErrorCode> {
         let default_game = Self::new_game(game_id)
-            .ok_or(ErrorCode::NotFound)?
+            .unwrap_or_else(|| Self {
+                game_id,
+                game_path: PathBuf::new(),
+                saves_path: None,
+                mods_path: PathBuf::new(),
+                profiles: vec![],
+                groups: vec![],
+                default_profile: None,
+            })
             .to_hashmap()
             .or(Err(ErrorCode::InternalError))?;
 
