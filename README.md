@@ -12,7 +12,6 @@ A straightforward mod manager for Total War games.
 - [Planned Features](#planned-features)
 - [Supported Games](#supported-games)
 - [Installation](#installation)
-  - [Linux](#linux)
 - [Prerequisites](#prerequisites)
 - [Contributing](#getting-started)
 - [License](#license)
