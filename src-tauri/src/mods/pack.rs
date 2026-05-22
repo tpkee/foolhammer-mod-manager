@@ -48,7 +48,7 @@ impl ModPack {
 
     fn get_dependencies(game_id: SupportedGames, path: &PathBuf) -> Vec<(bool, String)> {
         let Ok(game_info) = GameInfo::game_by_steam_id(game_id.into()) else {
-            eprintln!(
+            log::warn!(
                 "Failed to find game info for mod pack at path {:?}: game not found",
                 path
             );
@@ -58,7 +58,7 @@ impl ModPack {
         let Ok(pack_file) =
             Pack::read_and_merge(&[path.to_path_buf()], &game_info, true, true, false)
         else {
-            eprintln!(
+            log::warn!(
                 "Failed to read mod pack file at path {:?}: file is not a valid pack",
                 path
             );
@@ -76,7 +76,7 @@ impl ModPack {
             manifest::Manifest::read(&manifest_path);
 
         if manifest.is_err() {
-            eprintln!(
+            log::warn!(
                 "Failed to read manifest from game mods path {:?}: {:?}",
                 game_mods_path,
                 manifest.as_ref().err()
@@ -87,9 +87,10 @@ impl ModPack {
         let files = match files_from_subdir(game_mods_path, false) {
             Ok(files) => files,
             Err(e) => {
-                eprintln!(
+                log::warn!(
                     "Failed to read mods from game mods path {:?}: {:?}",
-                    game_mods_path, e
+                    game_mods_path,
+                    e
                 );
                 return Err(e);
             }
@@ -120,9 +121,10 @@ impl ModPack {
         let workshop_files: Vec<PathBuf> = match files_from_subdir(steam_workshop_folder, true) {
             Ok(files) => files,
             Err(e) => {
-                eprintln!(
+                log::warn!(
                     "Failed to read workshop mods from path {:?}: {:?}",
-                    steam_workshop_folder, e
+                    steam_workshop_folder,
+                    e
                 );
                 return Err(e);
             }

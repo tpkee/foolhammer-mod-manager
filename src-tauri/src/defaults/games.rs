@@ -11,9 +11,22 @@ pub struct DefaultGameInfo {
 }
 impl DefaultGameInfo {
     pub fn get_game_path(&self, steam_config: &SteamConfig) -> Option<PathBuf> {
+        let game_id_str: String = self.game_id.into();
         let steam_dir = steam_config.get_steam_dir()?;
-        let (app, library) = steam_dir.find_app(self.game_id.into()).ok()??;
-        Some(library.resolve_app_dir(&app))
+        let (app, library) = match steam_dir.find_app(self.game_id.into()) {
+            Ok(Some(found)) => found,
+            Ok(None) => {
+                log::warn!("Steam app not found for game {}", game_id_str);
+                return None;
+            }
+            Err(e) => {
+                log::warn!("Failed to find Steam app for game {}: {:?}", game_id_str, e);
+                return None;
+            }
+        };
+        let path = library.resolve_app_dir(&app);
+        log::info!("Resolved game path for {}: {}", game_id_str, path.display());
+        Some(path)
     }
 
     pub fn find_by_id(game_id: SupportedGames) -> Option<&'static DefaultGameInfo> {

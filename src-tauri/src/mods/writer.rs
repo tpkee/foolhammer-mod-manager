@@ -33,8 +33,8 @@ impl ModWriter {
             let disk_mod = match disk_mods.iter().find(|dm| dm.name == m.name) {
                 Some(dm) => dm,
                 None => {
-                    eprintln!(
-                        "Warning: Mod '{}' is enabled in the profile but not found on disk. Skipping.",
+                    log::warn!(
+                        "Mod '{}' is enabled in the profile but not found on disk. Skipping.",
                         m.name
                     );
                     continue;

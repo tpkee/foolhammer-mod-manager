@@ -40,6 +40,7 @@ pub async fn download(
             .expect("Failed to emit download event");
     };
 
+    log::info!("Downloading '{}' from {}", name, url);
     emit(DownloadEvent::Start);
 
     let config = ureq::Agent::config_builder()
@@ -51,11 +52,12 @@ pub async fn download(
     let res = agent.get(url).call();
 
     if let Err(e) = res {
-        eprintln!("Download error: {:?}", e);
+        log::error!("Download '{}' failed: {:?}", name, e);
         emit(DownloadEvent::Error);
         return Err(e);
     }
 
+    log::info!("Download '{}' completed", name);
     emit(DownloadEvent::Success);
 
     res

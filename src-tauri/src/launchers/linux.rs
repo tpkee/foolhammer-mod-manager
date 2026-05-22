@@ -73,21 +73,25 @@ impl LinuxLauncher {
                     .with_timezone(&chrono::Utc);
 
             if launcher_release_date <= current_version_date {
-                // up to date
+                log::info!(
+                    "umu-launcher up to date (current={}, remote={})",
+                    current_version,
+                    launcher.release_date
+                );
                 return Ok(launcher_dir.join("umu/umu-run"));
             }
         }
 
-        println!(
-            "Downloading Latest runner (umu-launcher) version: {:?}",
-            launcher
+        log::info!(
+            "Downloading latest umu-launcher (release_date={})",
+            launcher.release_date
         );
 
         let mut res = utils::download(app_handler, &launcher.url, "linux-runner").await?;
 
         let mut tar = tar::Archive::new(res.body_mut().as_reader());
 
-        println!("Extracting linux runner to {:?}", launcher_dir);
+        log::info!("Extracting linux runner to {}", launcher_dir.display());
 
         tar.unpack(&launcher_dir)?;
 
@@ -145,6 +149,12 @@ impl super::GameManager for LinuxLauncher {
         save_path: Option<&PathBuf>,
     ) -> Result<(), Box<dyn Error>> {
         let game_id_str: String = game_id.into();
+        log::info!(
+            "LinuxLauncher::launch_game game={}, path={}, save={:?}",
+            game_id_str,
+            game_path.display(),
+            save_path
+        );
         let command = self.get_command();
 
         command.current_dir(game_path); // umu needs to be run in the game directory to find the used_mods.txt file
@@ -168,6 +178,8 @@ impl super::GameManager for LinuxLauncher {
             )
             .expect("Couldn't parse the proton version file");
 
+            log::info!("Wine prefix: {}", pfx_path.display());
+            log::info!("PROTONPATH={}", proton_version.trim());
             command.env("PROTONPATH", proton_version.trim());
             command.env("WINEPREFIX", pfx_path.join("pfx/"));
             command.env("SteamGameId", &game_id_str);
@@ -175,6 +187,7 @@ impl super::GameManager for LinuxLauncher {
             // we have to check if there is a steam process running, otherwise umu will fail to launch the game.
             let sys = sysinfo::System::new_all();
             if sys.processes_by_name("steam".as_ref()).count() == 0 {
+                log::info!("Steam not running, launching steam and waiting");
                 let _ = Command::new("steam")
                     .spawn()
                     .expect("Failed to launch Steam")
@@ -192,13 +205,15 @@ impl super::GameManager for LinuxLauncher {
         command.arg("used_mods.txt;");
 
         if let Some(save_path) = save_path {
+            log::info!("Loading save: {}", save_path.display());
             command
                 .arg("game_startup_mode")
                 .arg("campaign_load")
                 .arg(save_path);
         }
 
-        println!("Running command: {:?}", command);
+        log::info!("Spawning game process");
+        log::debug!("Running command: {:?}", command);
 
         let _ = command.spawn().expect("Umu failed");
 
@@ -208,12 +223,15 @@ impl super::GameManager for LinuxLauncher {
 
     fn kill_game(&mut self) -> Result<(), Box<dyn Error>> {
         if self.running_exe.is_none() {
+            log::warn!("LinuxLauncher::kill_game: no running game");
             return Err("No running game found".into());
         }
 
         let sys = sysinfo::System::new_all();
 
         let exe_name = self.running_exe.as_ref().unwrap();
+        let count = sys.processes_by_name(exe_name.as_ref()).count();
+        log::info!("Killing {} process(es) matching '{}'", count, exe_name);
 
         for process in sys.processes_by_name(exe_name.as_ref()) {
             process.kill();

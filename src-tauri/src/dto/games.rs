@@ -40,8 +40,25 @@ impl GameResponseDto {
         let mods_path = resolve_existing_path!(&store.mods_path);
         let workshop_path = steam_config.retrieve_steam_workshop_path(store.game_id);
 
-        let mods = match mods_path {
-            Some(path) => pack::ModPack::retrieve_mods(store.game_id, &path, &workshop_path),
+        if mods_path.is_none() {
+            log::warn!(
+                "Mods path not resolved for game {:?}: {}",
+                store.game_id,
+                store.mods_path.display()
+            );
+        }
+
+        let mods = match &mods_path {
+            Some(path) => {
+                let mods =
+                    pack::ModPack::retrieve_mods(store.game_id, path, &workshop_path);
+                log::info!(
+                    "Loaded {} mod(s) for game {:?}",
+                    mods.len(),
+                    store.game_id
+                );
+                mods
+            }
             None => vec![],
         };
 
@@ -53,7 +70,10 @@ impl GameResponseDto {
 
         let saves = match &store.saves_path {
             Some(path) => Self::get_saves(path),
-            None => vec![],
+            None => {
+                log::debug!("No saves_path configured for game {:?}", store.game_id);
+                vec![]
+            }
         };
 
         Self {
@@ -78,7 +98,10 @@ impl GameResponseDto {
 
     fn get_saves(folder_path: &Path) -> Vec<SaveResponseDto> {
         let Ok(paths) = std::fs::read_dir(folder_path) else {
-            eprintln!("Failed to read saves directory: {:?}", folder_path);
+            log::warn!(
+                "Failed to read saves directory: {}",
+                folder_path.display()
+            );
             return vec![];
         };
 
@@ -86,6 +109,11 @@ impl GameResponseDto {
             .map(|res| res.map(|e| e.path()))
             .collect::<Result<Vec<_>, std::io::Error>>()
         {
+            log::debug!(
+                "Found {} save(s) in {}",
+                saves.len(),
+                folder_path.display()
+            );
             return saves.into_iter().map(SaveResponseDto::new).collect();
         }
 

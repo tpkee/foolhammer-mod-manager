@@ -196,6 +196,11 @@ impl GameStore {
 
         let game_conf_path =
             utils::path::generate_store_path(app_handle, &format!("{}.json", game_id));
+        log::debug!(
+            "Game store path for {}: {}",
+            game_id,
+            game_conf_path.display()
+        );
 
         let store = tauri_plugin_store::StoreBuilder::new(app_handle, game_conf_path)
             .defaults(default_game)
@@ -209,13 +214,26 @@ impl GameStore {
         let default_game = DefaultGameInfo::find_by_id(game_id)?;
 
         let game_path = default_game.get_game_path(steam_config).unwrap_or_default();
+        log::info!(
+            "new_game({}): game_path={}",
+            game_id,
+            game_path.display()
+        );
+
         let saves_path = retrieve_saves_absolute_path(
             default_game.game_id,
             default_game.saves_path,
             steam_config,
         );
+        log::info!("new_game({}): saves_path={:?}", game_id, saves_path);
+
         let mods_path =
             resolve_existing_path!(&game_path, default_game.mods_path).unwrap_or_default();
+        log::info!(
+            "new_game({}): mods_path={}",
+            game_id,
+            mods_path.display()
+        );
 
         let default_profile =
             Self::build_default_profile(default_game, &mods_path, game_id, steam_config);
@@ -287,7 +305,7 @@ impl GameStore {
         }
 
         store.save().map_err(|e| {
-            eprintln!("Failed to save game: {:?}", e);
+            log::error!("Failed to save game store for {}: {:?}", game_id, e);
             ErrorCode::InternalError
         })?;
 

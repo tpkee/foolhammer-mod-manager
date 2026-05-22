@@ -28,7 +28,10 @@ pub(crate) type GameLauncher = windows::WindowsLauncher;
 
 impl GameLauncher {
     pub(crate) async fn create(app_handle: &tauri::AppHandle) -> GameLauncher {
-        // TODO:  how will we handle the specific wine support? Maybe pass a flag or idk
+        log::info!(
+            "Initializing {} game launcher",
+            std::env::consts::OS
+        );
         GameLauncher::new(app_handle).await
     }
 }

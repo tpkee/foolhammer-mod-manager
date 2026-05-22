@@ -4,6 +4,7 @@ use crate::stores::settings::{SettingsKey, SettingsStore};
 use crate::supported_games::SupportedGames;
 use crate::utils::ErrorCode;
 use tauri::Emitter;
+use tauri::Manager;
 
 #[tauri::command]
 pub async fn get_user_settings(
@@ -23,7 +24,7 @@ pub async fn set_default_game(
 
     store.set(SettingsKey::DefaultGame, serde_json::json!(game_id));
     store.save().map_err(|e| {
-        eprintln!("Failed to save settings store: {:?}", e);
+        log::error!("Failed to save settings store: {:?}", e);
         ErrorCode::InternalError
     })?;
 
@@ -39,6 +40,12 @@ pub async fn update_settings(
     app_handle: tauri::AppHandle,
     payload: UpdateUserSettingsDto,
 ) -> Result<(), ErrorCode> {
+    log::info!(
+        "update_settings: steam_path={:?}, steam_library_path={:?}",
+        payload.steam_path,
+        payload.steam_library_path
+    );
+
     let store = SettingsStore::get_store(&app_handle)?;
 
     store.set(
@@ -47,11 +54,10 @@ pub async fn update_settings(
     );
     store.set(
         SettingsKey::SteamLibraryPath,
-        serde_json::to_value(payload.steam_library_path)
-            .map_err(|_| ErrorCode::InternalError)?,
+        serde_json::to_value(payload.steam_library_path).map_err(|_| ErrorCode::InternalError)?,
     );
     store.save().map_err(|e| {
-        eprintln!("Failed to save settings store: {:?}", e);
+        log::error!("Failed to save settings store: {:?}", e);
         ErrorCode::InternalError
     })?;
 
@@ -60,4 +66,12 @@ pub async fn update_settings(
         .expect("Failed to emit update_user_settings event");
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn get_log_directory(app: tauri::AppHandle) -> Result<String, String> {
+    app.path()
+        .app_log_dir()
+        .map(|p| p.display().to_string())
+        .map_err(|e| e.to_string())
 }

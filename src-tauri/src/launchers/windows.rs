@@ -40,6 +40,14 @@ impl super::GameManager for WindowsLauncher {
         game_path: &Path,
         save_path: Option<&PathBuf>,
     ) -> Result<(), Box<dyn Error>> {
+        let game_id_str: String = game_id.into();
+        log::info!(
+            "WindowsLauncher::launch_game game={}, path={}, save={:?}",
+            game_id_str,
+            game_path.display(),
+            save_path
+        );
+
         if game_path
             .components()
             .into_iter()
@@ -48,14 +56,16 @@ impl super::GameManager for WindowsLauncher {
             // we have to check if there is a steam process running, otherwise umu will fail to launch the game.
             let sys = sysinfo::System::new_all();
             if sys.processes_by_name("steam".as_ref()).count() == 0 {
+                log::info!("Steam not running, launching Steam");
                 let steam_path = self
                     .steam_config
                     .get_steam_path()
                     .ok_or("Steam isn't installed")?;
 
                 let steam_exe = resolve_existing_path!(&steam_path, "steam.exe").unwrap();
+                log::info!("Steam executable: {}", steam_exe.display());
 
-                let _ = Command::new(steam_exe)
+                let _ = Command::new(&steam_exe)
                     .creation_flags(DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP)
                     .spawn()
                     .expect("Failed to launch Steam")
@@ -74,13 +84,15 @@ impl super::GameManager for WindowsLauncher {
         command.arg("used_mods.txt;");
 
         if let Some(save_path) = save_path {
+            log::info!("Loading save: {}", save_path.display());
             command
                 .arg("game_startup_mode")
                 .arg("campaign_load")
                 .arg(save_path);
         }
 
-        println!("Running command: {:?}", command);
+        log::info!("Spawning game process");
+        log::debug!("Running command: {:?}", command);
 
         let _ = command.spawn(); // do not wait
 
@@ -90,12 +102,15 @@ impl super::GameManager for WindowsLauncher {
 
     fn kill_game(&mut self) -> Result<(), Box<dyn Error>> {
         if self.running_exe.is_none() {
+            log::warn!("WindowsLauncher::kill_game: no running game");
             return Err("No running game found".into());
         }
 
         let sys = sysinfo::System::new_all();
 
         let exe_name = self.running_exe.as_ref().unwrap();
+        let count = sys.processes_by_name(exe_name.as_ref()).count();
+        log::info!("Killing {} process(es) matching '{}'", count, exe_name);
 
         for process in sys.processes_by_name(exe_name.as_ref()) {
             process.kill();

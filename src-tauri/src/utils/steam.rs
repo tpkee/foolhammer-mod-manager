@@ -15,10 +15,19 @@ pub struct SteamConfig {
 
 impl SteamConfig {
     pub fn from_settings(settings: &SettingsStore) -> Self {
-        Self {
+        let config = Self {
             steam_path: settings.steam_path.clone(),
             steam_library_path: settings.steam_library_path.clone(),
-        }
+        };
+        log::debug!(
+            "SteamConfig from settings: steam_path={:?}, steam_library_path={:?}",
+            config.steam_path.as_ref().map(|p| p.display().to_string()),
+            config
+                .steam_library_path
+                .as_ref()
+                .map(|p| p.display().to_string())
+        );
+        config
     }
 
     pub fn from_app_handle(app_handle: &tauri::AppHandle) -> Result<Self, ErrorCode> {
@@ -30,6 +39,7 @@ impl SteamConfig {
     /// User-configured Steam installation path, or the auto-detected default.
     pub fn get_steam_path(&self) -> Option<PathBuf> {
         if let Some(path) = &self.steam_path {
+            log::trace!("Using configured steam_path: {}", path.display());
             return Some(path.clone());
         }
 
@@ -41,6 +51,10 @@ impl SteamConfig {
     /// User-configured library path, then installation path, then auto-detected default.
     pub fn get_steam_library_path(&self) -> Option<PathBuf> {
         if let Some(path) = &self.steam_library_path {
+            log::trace!(
+                "Using configured steam_library_path: {}",
+                path.display()
+            );
             return Some(path.clone());
         }
 
@@ -52,6 +66,7 @@ impl SteamConfig {
         if let Some(path) = &self.steam_path
             && let Ok(steam_dir) = SteamDir::from_dir(path)
         {
+            log::debug!("SteamDir from configured path: {}", path.display());
             return Some(steam_dir);
         }
 
@@ -60,27 +75,54 @@ impl SteamConfig {
 
     pub fn retrieve_steam_workshop_path(&self, game_id: SupportedGames) -> Option<PathBuf> {
         let game_id_str: String = game_id.into();
+        log::info!("Resolving workshop path for game {}", game_id_str);
 
         if let Some(library_path) = self.get_steam_library_path() {
-            return resolve_existing_path!(
+            let path = resolve_existing_path!(
                 &library_path,
                 "steamapps",
                 "workshop",
                 "content",
                 &game_id_str,
             );
+            match &path {
+                Some(p) => log::info!("Workshop path: {}", p.display()),
+                None => log::warn!(
+                    "Workshop path not found under library {}",
+                    library_path.display()
+                ),
+            }
+            return path;
         }
 
+        log::warn!(
+            "Workshop path unavailable for game {}: no Steam library path",
+            game_id_str
+        );
         None
     }
 
     pub fn retrieve_wine_pfx_path(&self, game_id: SupportedGames) -> Option<PathBuf> {
         let game_id_str: String = game_id.into();
+        log::info!("Resolving wine prefix path for game {}", game_id_str);
 
         if let Some(library_path) = self.get_steam_library_path() {
-            return resolve_existing_path!(&library_path, "steamapps", "compatdata", &game_id_str);
+            let path =
+                resolve_existing_path!(&library_path, "steamapps", "compatdata", &game_id_str);
+            match &path {
+                Some(p) => log::info!("Wine prefix path: {}", p.display()),
+                None => log::warn!(
+                    "Wine prefix not found under library {}",
+                    library_path.display()
+                ),
+            }
+            return path;
         }
 
+        log::warn!(
+            "Wine prefix unavailable for game {}: no Steam library path",
+            game_id_str
+        );
         None
     }
 }

@@ -16,6 +16,7 @@
     "@tailwindcss/vite": "^4.3.0",
     "@tauri-apps/api": "^2.11.0",
     "@tauri-apps/plugin-dialog": "2.7.1",
+    "@tauri-apps/plugin-log": "~2.8.0",
     "@types/sortablejs": "^1.15.9",
     "@vueuse/nuxt": "14.3.0",
     "nuxt": "^4.4.5",
