@@ -128,7 +128,7 @@ async function pickPath(field: keyof GameSettings) {
     form.value[field] = selected
 
     if (field === 'gamePath') {
-      form.value.modsPath = `${selected}/data`
+      form.value.modsPath = selected
     }
   }
   catch (error) {
