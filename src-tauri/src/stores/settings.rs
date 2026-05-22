@@ -5,23 +5,29 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, path::PathBuf, sync::Arc};
 use tauri::Wry;
 
 #[derive(Debug)]
 pub enum SettingsKey {
     DefaultGame,
+    SteamPath,
+    SteamLibraryPath,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SettingsStore {
     pub default_game: SupportedGames,
+    pub steam_path: Option<PathBuf>,
+    pub steam_library_path: Option<PathBuf>,
 }
 
 impl From<SettingsKey> for String {
     fn from(val: SettingsKey) -> Self {
         match val {
             SettingsKey::DefaultGame => "default_game".to_string(),
+            SettingsKey::SteamPath => "steam_path".to_string(),
+            SettingsKey::SteamLibraryPath => "steam_library_path".to_string(),
         }
     }
 }
@@ -30,6 +36,8 @@ impl Default for SettingsStore {
     fn default() -> Self {
         Self {
             default_game: defaults::games::DEFAULT_GAME_ID,
+            steam_path: None,
+            steam_library_path: None,
         }
     }
 }

@@ -48,6 +48,7 @@ pub fn run() {
             commands::profiles::remove_profile_mods,
             commands::settings::get_user_settings,
             commands::settings::set_default_game,
+            commands::settings::update_settings,
             commands::groups::create_group,
             commands::groups::update_group,
             commands::groups::rename_group,

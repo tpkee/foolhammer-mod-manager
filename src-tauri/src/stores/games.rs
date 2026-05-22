@@ -4,10 +4,7 @@ use crate::{
     mods::pack,
     resolve_existing_path,
     supported_games::SupportedGames,
-    utils::{
-        self, ErrorCode,
-        path::{retrieve_saves_absolute_path, retrieve_steam_workshop_path},
-    },
+    utils::{self, ErrorCode, path::retrieve_saves_absolute_path, steam::SteamConfig},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -183,7 +180,8 @@ impl GameStore {
         app_handle: &tauri::AppHandle,
         game_id: SupportedGames,
     ) -> Result<Arc<tauri_plugin_store::Store<Wry>>, ErrorCode> {
-        let default_game = Self::new_game(game_id)
+        let steam_config = SteamConfig::from_app_handle(app_handle)?;
+        let default_game = Self::new_game(game_id, &steam_config)
             .unwrap_or_else(|| Self {
                 game_id,
                 game_path: PathBuf::new(),
@@ -207,16 +205,20 @@ impl GameStore {
         Ok(store)
     }
 
-    fn new_game(game_id: SupportedGames) -> Option<Self> {
+    fn new_game(game_id: SupportedGames, steam_config: &SteamConfig) -> Option<Self> {
         let default_game = DefaultGameInfo::find_by_id(game_id)?;
 
-        let game_path = default_game.get_game_path().unwrap_or_default();
-        let saves_path =
-            retrieve_saves_absolute_path(default_game.game_id, default_game.saves_path);
+        let game_path = default_game.get_game_path(steam_config).unwrap_or_default();
+        let saves_path = retrieve_saves_absolute_path(
+            default_game.game_id,
+            default_game.saves_path,
+            steam_config,
+        );
         let mods_path =
             resolve_existing_path!(&game_path, default_game.mods_path).unwrap_or_default();
 
-        let default_profile = Self::build_default_profile(default_game, &mods_path, game_id);
+        let default_profile =
+            Self::build_default_profile(default_game, &mods_path, game_id, steam_config);
 
         Some(Self {
             game_id: default_game.game_id,
@@ -233,8 +235,9 @@ impl GameStore {
         default_game: &DefaultGameInfo,
         mods_path: &PathBuf,
         game_id: SupportedGames,
+        steam_config: &SteamConfig,
     ) -> Profile {
-        let workshop_path = retrieve_steam_workshop_path(default_game.game_id);
+        let workshop_path = steam_config.retrieve_steam_workshop_path(default_game.game_id);
         let mods: Vec<ModRequestDto> =
             pack::ModPack::retrieve_mods(game_id, mods_path, &workshop_path)
                 .iter()

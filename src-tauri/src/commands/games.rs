@@ -175,12 +175,14 @@ pub async fn update_game(
     game_id: SupportedGames,
     payload: GameRequestDto,
 ) -> Result<(), ErrorCode> {
+    let steam_config = crate::utils::steam::SteamConfig::from_app_handle(&app_handle)?;
+
     let g = GameStore::get(&app_handle, game_id, |game| {
         game.saves_path = payload.saves_path;
         game.mods_path = payload.mods_path;
         game.game_path = payload.game_path;
 
-        Ok(GameResponseDto::from_store(game.clone()))
+        Ok(GameResponseDto::from_store(game.clone(), &steam_config))
     })
     .await?;
 

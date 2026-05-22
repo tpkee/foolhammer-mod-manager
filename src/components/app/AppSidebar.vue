@@ -17,12 +17,12 @@
         :saves="gameStore.getSaves"
       />
     </div>
-
-    <!--
     <div class="grid gap-2.5">
-      TODO: add settings and shit
+      <sidebar-button label="Preferences" @click="refPreferencesModal?.open()">
+        <icon-mi-menu class="size-10" />
+      </sidebar-button>
+      <modal-preferences ref="preferencesModal" />
     </div>
-    -->
   </div>
 </template>
 
@@ -32,4 +32,5 @@ defineProps<{
 }>()
 
 const gameStore = useGameStore()
+const refPreferencesModal = useTemplateRef('preferencesModal')
 </script>

@@ -1,5 +1,5 @@
-use crate::defaults::system::STEAMDIR_INSTANCE;
 use crate::supported_games::SupportedGames;
+use crate::utils::steam::SteamConfig;
 use std::path::PathBuf;
 
 #[derive(Debug)]
@@ -10,8 +10,8 @@ pub struct DefaultGameInfo {
     pub saves_path: &'static str, // the default root should be the roaming folder (on Linux it is relative to proton's prefix, es: /home/<username>/.local/share/Steam/steamapps/compatdata/<gameid>/pfx/drive_c/users/steamuser/AppData/Roaming)
 }
 impl DefaultGameInfo {
-    pub fn get_game_path(&self) -> Option<PathBuf> {
-        let steam_dir = STEAMDIR_INSTANCE.as_ref()?;
+    pub fn get_game_path(&self, steam_config: &SteamConfig) -> Option<PathBuf> {
+        let steam_dir = steam_config.get_steam_dir()?;
         let (app, library) = steam_dir.find_app(self.game_id.into()).ok()??;
         Some(library.resolve_app_dir(&app))
     }

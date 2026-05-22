@@ -4,6 +4,7 @@ use ureq::Body;
 pub mod custom_macro;
 pub mod folder_watcher;
 pub mod path;
+pub mod steam;
 
 #[derive(Debug, serde::Serialize)]
 pub enum ErrorCode {
