@@ -60,10 +60,10 @@ pub fn retrieve_saves_absolute_path(
         }
     };
 
-    if let Some(ref p) = path {
-        if !p.exists() {
-            log::warn!("Saves path does not exist: {}", p.display());
-        }
+    if let Some(ref p) = path
+        && !p.exists()
+    {
+        log::warn!("Saves path does not exist: {}", p.display());
     }
 
     path
