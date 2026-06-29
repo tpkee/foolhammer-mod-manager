@@ -6,6 +6,7 @@ use crate::{mods::pack::ModPack, stores::games::ProfileModInfo};
 #[serde(rename_all = "camelCase")]
 pub struct ModResponseDto {
     pub name: String,
+    pub custom_name: Option<String>,
     pub path: Option<PathBuf>,
     pub groups: Option<Vec<uuid::Uuid>>,
     pub enabled: bool,
@@ -18,7 +19,11 @@ pub struct ModResponseDto {
 }
 
 impl ModResponseDto {
-    pub fn new(mod_info: &ProfileModInfo, mod_pack: Option<ModPack>) -> Self {
+    pub fn new(
+        mod_info: &ProfileModInfo,
+        mod_pack: Option<ModPack>,
+        custom_name: Option<String>,
+    ) -> Self {
         let (path, last_updated, from_steam_workshop, image, dependencies) = match mod_pack {
             Some(pack) => (
                 Some(pack.path),
@@ -35,6 +40,7 @@ impl ModResponseDto {
         Self {
             order: mod_info.order,
             name: mod_info.name.clone(),
+            custom_name,
             path,
             groups: mod_info.groups.clone(),
             enabled: can_enable && mod_info.enabled,

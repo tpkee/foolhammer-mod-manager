@@ -73,6 +73,7 @@ pub fn run() {
             commands::profiles::create_profile,
             commands::profiles::update_profile,
             commands::profiles::rename_profile,
+            commands::profiles::rename_mod,
             commands::profiles::delete_profile,
             commands::profiles::toggle_manual_mode,
             commands::profiles::set_profile_mods,

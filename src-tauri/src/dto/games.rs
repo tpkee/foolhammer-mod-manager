@@ -57,10 +57,11 @@ impl GameResponseDto {
             None => vec![],
         };
 
+        let custom_names = store.mod_custom_names.clone();
         let profiles: Vec<ProfileResponseDto> = store
             .profiles
             .into_iter()
-            .map(|profile| ProfileResponseDto::new(profile, &mods))
+            .map(|profile| ProfileResponseDto::new(profile, &mods, &custom_names))
             .collect();
 
         let saves = match &store.saves_path {

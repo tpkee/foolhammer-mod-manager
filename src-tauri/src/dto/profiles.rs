@@ -28,8 +28,12 @@ pub struct ProfileResponseDto {
 }
 
 impl ProfileResponseDto {
-    pub fn new(mut profile: games::Profile, game_mods: &[ModPack]) -> Self {
-        let mods = Self::map_mods_to_dto(&mut profile, game_mods);
+    pub fn new(
+        mut profile: games::Profile,
+        game_mods: &[ModPack],
+        custom_names: &std::collections::HashMap<String, String>,
+    ) -> Self {
+        let mods = Self::map_mods_to_dto(&mut profile, game_mods, custom_names);
 
         Self {
             id: profile.id,
@@ -40,7 +44,11 @@ impl ProfileResponseDto {
         }
     }
 
-    fn map_mods_to_dto(profile: &mut games::Profile, mods: &[ModPack]) -> Vec<ModResponseDto> {
+    fn map_mods_to_dto(
+        profile: &mut games::Profile,
+        mods: &[ModPack],
+        custom_names: &std::collections::HashMap<String, String>,
+    ) -> Vec<ModResponseDto> {
         if !profile.manual_mode {
             profile.mods.sort_mods(|m| &m.name);
 
@@ -60,6 +68,7 @@ impl ProfileResponseDto {
                     mods.iter()
                         .find(|pack: &&ModPack| pack.name == mod_info.name)
                         .cloned(),
+                    custom_names.get(&mod_info.name).cloned(),
                 )
             })
             .collect()

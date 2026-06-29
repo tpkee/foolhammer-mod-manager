@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 export const ModResponseSchema = z.object({
   name: z.string(),
+  customName: z.string().nullish(),
   path: z.string().nullish(),
   enabled: z.boolean(),
   groups: z.array(z.string()).nullish(),

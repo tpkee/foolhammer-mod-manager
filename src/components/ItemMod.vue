@@ -44,7 +44,15 @@
           <img v-if="getImage" :src="getImage" alt="" class="size-10 rounded-[inherit] object-contain">
           <div v-else class="size-[inherit] rounded-[inherit] bg-gray-700" />
         </div>
-        <p class="truncate" :title="name">
+        <app-tooltip v-if="customName" disable-underline class="flex-1 min-w-0">
+          <p class="truncate">
+            {{ customName }}
+          </p>
+          <template #content>
+            {{ name }}
+          </template>
+        </app-tooltip>
+        <p v-else class="truncate" :title="name">
           {{ name }}
         </p>
       </div>
@@ -98,11 +106,14 @@
 import type { AppTableColumn } from '~/types/common/AppTable'
 import { convertFileSrc } from '@tauri-apps/api/core'
 
+import IconMiClose from '~icons/mi/close'
 import IconMiDelete from '~icons/mi/delete'
+import IconMiEdit from '~icons/mi/edit'
 
 const props = defineProps<{
   columns: AppTableColumn[]
   name: string
+  customName?: Nullable<string>
   enabled: boolean
   order: Nullable<number>
   image?: Nullable<string>
@@ -117,6 +128,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   status: [value: boolean]
   order: [value: number]
+  rename: []
   refresh: []
 }>()
 
@@ -134,8 +146,25 @@ const getLastUpdate = computed(() => {
 const getImage = computed(() => props.image ? convertFileSrc(props.image) : null)
 
 const getOptions = computed(() => [
+  { icon: IconMiEdit, label: 'Rename', callback: () => emit('rename') },
+  ...(props.customName ? [{ icon: IconMiClose, label: 'Clear name', callback: clearCustomName }] : []),
   { icon: IconMiDelete, label: 'Delete from profile', callback: deleteFromProfile },
 ])
+
+async function clearCustomName() {
+  try {
+    await useTauriInvoke('rename_mod', {
+      gameId: gameStore.selectedGame,
+      name: props.name,
+      customName: null,
+    })
+    await gameStore.fetchGame()
+    emit('refresh')
+  }
+  catch (err) {
+    console.error('Failed to clear mod custom name:', err)
+  }
+}
 
 async function deleteFromProfile() {
   try {
