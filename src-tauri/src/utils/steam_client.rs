@@ -29,32 +29,61 @@ fn get_or_init_client(game_id: SupportedGames) -> Option<Client> {
     }
 
     let app_id: u32 = game_id.into();
-    match Client::init_app(app_id) {
-        Ok(client) => {
-            log::info!("Steam client initialised for app {}", app_id);
 
-            // Pump callbacks for the lifetime of the process. The client is
-            // Clone + Send + Sync, so the thread keeps its own handle.
-            let pump = client.clone();
-            std::thread::spawn(move || {
-                loop {
-                    pump.run_callbacks();
-                    std::thread::sleep(Duration::from_millis(100));
-                }
-            });
+    // Steam may have only just been launched (see `SteamConfig::run_steam`) and not
+    // yet be ready to accept API connections, in which case `init_app` fails. Retry
+    // for a bounded window instead of giving up on the first attempt — otherwise a
+    // cold-started Steam silently yields no titles until the user refreshes. Each
+    // failed attempt is cheap; once Steam is up, init succeeds immediately. This runs
+    // inside `spawn_blocking`, so the waiting never touches the async runtime.
+    const MAX_ATTEMPTS: u32 = 30;
+    const RETRY_DELAY: Duration = Duration::from_secs(1);
 
-            *guard = Some(client.clone());
-            Some(client)
-        }
-        Err(e) => {
-            log::warn!(
-                "Failed to initialise Steam client for app {}: {:?}",
-                app_id,
-                e
-            );
-            None
+    for attempt in 1..=MAX_ATTEMPTS {
+        match Client::init_app(app_id) {
+            Ok(client) => {
+                log::info!(
+                    "Steam client initialised for app {} (attempt {})",
+                    app_id,
+                    attempt
+                );
+
+                // Pump callbacks for the lifetime of the process. The client is
+                // Clone + Send + Sync, so the thread keeps its own handle.
+                let pump = client.clone();
+                std::thread::spawn(move || {
+                    loop {
+                        pump.run_callbacks();
+                        std::thread::sleep(Duration::from_millis(100));
+                    }
+                });
+
+                *guard = Some(client.clone());
+                return Some(client);
+            }
+            Err(e) if attempt == MAX_ATTEMPTS => {
+                log::warn!(
+                    "Failed to initialise Steam client for app {} after {} attempts: {:?}",
+                    app_id,
+                    MAX_ATTEMPTS,
+                    e
+                );
+                return None;
+            }
+            Err(e) => {
+                log::debug!(
+                    "Steam client not ready for app {} (attempt {}/{}): {:?}; retrying",
+                    app_id,
+                    attempt,
+                    MAX_ATTEMPTS,
+                    e
+                );
+                std::thread::sleep(RETRY_DELAY);
+            }
         }
     }
+
+    None
 }
 
 /// Fetch Steam Workshop titles for the given published file ids, returned as a

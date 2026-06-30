@@ -209,9 +209,14 @@ pub async fn get_game(
 ) -> Result<serde_json::Value, ErrorCode> {
     log::debug!("get_game: {:?}", game_id);
 
-    // Best-effort: fill in real Workshop titles for unnamed workshop mods before
-    // building the response, so they show up in this same load.
-    crate::utils::steam::enrich_missing_workshop_names(&app_handle, game_id).await;
+    // Best-effort: fill in real Workshop titles for unnamed workshop mods in the
+    // background. We don't await it because it may need to cold-start Steam and wait
+    // for its API to come up; blocking here would freeze the mod list. When names are
+    // fetched it persists them and emits `refresh_game`, prompting the UI to reload.
+    let enrich_handle = app_handle.clone();
+    tauri::async_runtime::spawn(async move {
+        crate::utils::steam::enrich_missing_workshop_names(&enrich_handle, game_id).await;
+    });
 
     let game_response = get_game_response_from_store(&app_handle, game_id)?;
 

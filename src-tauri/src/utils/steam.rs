@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use steamlocate::SteamDir;
+use tauri::Emitter;
 
 use crate::{
     defaults::system::STEAMDIR_INSTANCE, mods::pack::ModPack, resolve_existing_path,
@@ -259,7 +260,15 @@ pub async fn enrich_missing_workshop_names(app_handle: &tauri::AppHandle, game_i
     })
     .await;
 
-    if let Err(e) = persisted {
-        log::warn!("Failed to persist fetched workshop names: {:?}", e);
+    match persisted {
+        // Names changed; ask the frontend to reload so they appear without the user
+        // having to refresh manually. A re-fetch finds nothing pending, so this
+        // settles after a single extra cycle.
+        Ok(()) => {
+            if let Err(e) = app_handle.emit(crate::events::AppEvent::RefreshGame.into(), ()) {
+                log::warn!("Failed to emit refresh_game after enrichment: {:?}", e);
+            }
+        }
+        Err(e) => log::warn!("Failed to persist fetched workshop names: {:?}", e),
     }
 }
