@@ -52,6 +52,13 @@
                 <IconMiEdit v-else class="size-4 shrink-0" />
                 {{ profile?.manualMode ? 'Disable' : 'Enable' }} manual mode
               </button>
+              <div class="my-1 mx-2 h-px bg-gray-700" />
+              <div class="px-3 py-2 ">
+                <app-checkbox
+                  v-model="invertNames"
+                  label="Show pack name instead of custom name"
+                />
+              </div>
             </div>
           </template>
         </app-dropdown>
@@ -132,6 +139,7 @@
 import type Sortable from 'sortablejs'
 import type { AppTableColumn } from '~/types/common/AppTable'
 import type { ModResponseDto, ProfileResponseDto } from '~/types/dto'
+import { compareModNames } from '~/utils/sort'
 
 // Props
 const props = defineProps<{
@@ -148,6 +156,22 @@ const SPACE_PATTERN = / /g
 
 // Store
 const gameStore = useGameStore()
+const settingsStore = useSettingsStore()
+
+const invertNames = computed({
+  get: () => settingsStore.settings?.invertModNames ?? false,
+  set: value => updateInvertModNames(value),
+})
+
+async function updateInvertModNames(value: boolean) {
+  settingsStore.setSettings({ ...settingsStore.settings, invertModNames: value })
+  try {
+    await useTauriInvoke('set_invert_mod_names', { invert: value })
+  }
+  catch (error) {
+    console.error('Failed to update invert mod names setting:', error)
+  }
+}
 
 // Template refs
 const refModalMod = useTemplateRef('modalMod')
@@ -184,7 +208,7 @@ const isDragEnabled = computed(() => !!(props.profile?.manualMode) && filters.va
 const columns = computed<AppTableColumn[]>(() => [
   { key: 'order', label: 'Order', span: isDragEnabled.value ? 2 : 1, headerClass: isDragEnabled.value ? 'ml-9' : '' },
   { key: 'enabled', label: 'Enabled?', span: 1 },
-  { key: 'pack', label: 'Pack', span: 5 },
+  { key: 'pack', label: invertNames.value ? 'Pack' : 'Name', span: 5 },
   { key: 'lastUpdate', label: 'Last update', span: 3 },
   { key: 'groups', label: 'Groups', span: 1 },
   { key: 'actions', label: '' },
@@ -211,7 +235,7 @@ const getList = computed(() => {
       switch (sortBy) {
         case 'order': return ((a.order ?? 0) - (b.order ?? 0)) * dir
         case 'name': return (a.customName ?? a.name!).localeCompare(b.customName ?? b.name!) * dir
-        case 'pack': return a.name!.localeCompare(b.name!) * dir
+        case 'pack': return compareModNames(a.name!, b.name!) * dir
         case 'lastUpdate': {
           if (!a.lastUpdated || !b.lastUpdated)
             return 0

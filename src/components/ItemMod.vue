@@ -44,16 +44,16 @@
           <img v-if="getImage" :src="getImage" alt="" class="size-10 rounded-[inherit] object-contain">
           <div v-else class="size-[inherit] rounded-[inherit] bg-gray-700" />
         </div>
-        <app-tooltip v-if="customName" disable-underline class="flex-1 min-w-0">
+        <app-tooltip v-if="tooltipName" disable-underline class="flex-1 min-w-0">
           <p class="truncate">
-            {{ customName }}
+            {{ displayName }}
           </p>
           <template #content>
-            {{ name }}
+            {{ tooltipName }}
           </template>
         </app-tooltip>
-        <p v-else class="truncate" :title="name">
-          {{ name }}
+        <p v-else class="truncate" :title="displayName">
+          {{ displayName }}
         </p>
       </div>
     </template>
@@ -136,6 +136,21 @@ const order = defineModel<Nullable<number>>('order', { required: true })
 const enabled = defineModel<Nullable<boolean>>('enabled', { default: false })
 
 const gameStore = useGameStore()
+const settingsStore = useSettingsStore()
+
+const invertNames = computed(() => settingsStore.settings?.invertModNames ?? false)
+
+const displayName = computed(() => {
+  if (!props.customName)
+    return props.name
+  return invertNames.value ? props.name : props.customName
+})
+
+const tooltipName = computed(() => {
+  if (!props.customName)
+    return null
+  return invertNames.value ? props.customName : props.name
+})
 
 const getLastUpdate = computed(() => {
   if (!props.lastUpdated)
