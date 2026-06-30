@@ -164,12 +164,14 @@ const invertNames = computed({
 })
 
 async function updateInvertModNames(value: boolean) {
+  const previous = settingsStore.settings?.invertModNames ?? false
   settingsStore.setSettings({ ...settingsStore.settings, invertModNames: value })
   try {
     await useTauriInvoke('set_invert_mod_names', { invert: value })
   }
   catch (error) {
     console.error('Failed to update invert mod names setting:', error)
+    settingsStore.setSettings({ ...settingsStore.settings, invertModNames: previous })
   }
 }
 
