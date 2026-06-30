@@ -13,6 +13,7 @@ pub enum SettingsKey {
     DefaultGame,
     SteamPath,
     SteamLibraryPath,
+    InvertModNames,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -20,6 +21,7 @@ pub struct SettingsStore {
     pub default_game: SupportedGames,
     pub steam_path: Option<PathBuf>,
     pub steam_library_path: Option<PathBuf>,
+    pub invert_mod_names: bool,
 }
 
 impl From<SettingsKey> for String {
@@ -28,6 +30,7 @@ impl From<SettingsKey> for String {
             SettingsKey::DefaultGame => "default_game".to_string(),
             SettingsKey::SteamPath => "steam_path".to_string(),
             SettingsKey::SteamLibraryPath => "steam_library_path".to_string(),
+            SettingsKey::InvertModNames => "invert_mod_names".to_string(),
         }
     }
 }
@@ -38,6 +41,7 @@ impl Default for SettingsStore {
             default_game: defaults::games::DEFAULT_GAME_ID,
             steam_path: None,
             steam_library_path: None,
+            invert_mod_names: false,
         }
     }
 }

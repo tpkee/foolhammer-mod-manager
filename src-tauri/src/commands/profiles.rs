@@ -71,6 +71,33 @@ pub async fn rename_profile(
 }
 
 #[tauri::command]
+pub async fn rename_mod(
+    app_handle: tauri::AppHandle,
+    game_id: SupportedGames,
+    name: String,
+    custom_name: Option<String>,
+) -> Result<serde_json::Value, ErrorCode> {
+    GameStore::get(&app_handle, game_id, |game| {
+        // a blank custom name clears it back to the pack name
+        let normalized = custom_name
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
+
+        match normalized {
+            Some(custom_name) => {
+                game.mod_custom_names.insert(name.clone(), custom_name);
+            }
+            None => {
+                game.mod_custom_names.remove(&name);
+            }
+        }
+
+        Ok(serde_json::json!(game.mod_custom_names.get(&name)))
+    })
+    .await
+}
+
+#[tauri::command]
 pub async fn delete_profile(
     app_handle: tauri::AppHandle,
     game_id: SupportedGames,

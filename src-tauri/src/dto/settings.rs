@@ -8,6 +8,7 @@ pub struct UserSettingsResponseDto {
     pub default_game: Option<SupportedGames>,
     pub steam_path: Option<PathBuf>,
     pub steam_library_path: Option<PathBuf>,
+    pub invert_mod_names: bool,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -23,6 +24,7 @@ impl From<&SettingsStore> for UserSettingsResponseDto {
             default_game: Some(settings.default_game),
             steam_path: settings.steam_path.clone(),
             steam_library_path: settings.steam_library_path.clone(),
+            invert_mod_names: settings.invert_mod_names,
         }
     }
 }

@@ -5,6 +5,7 @@ pub mod custom_macro;
 pub mod folder_watcher;
 pub mod path;
 pub mod steam;
+pub mod steam_client;
 
 #[derive(Debug, serde::Serialize)]
 pub enum ErrorCode {

@@ -52,6 +52,13 @@
                 <IconMiEdit v-else class="size-4 shrink-0" />
                 {{ profile?.manualMode ? 'Disable' : 'Enable' }} manual mode
               </button>
+              <div class="my-1 mx-2 h-px bg-gray-700" />
+              <div class="px-3 py-2 ">
+                <app-checkbox
+                  v-model="invertNames"
+                  label="Show pack name instead of custom name"
+                />
+              </div>
             </div>
           </template>
         </app-dropdown>
@@ -71,6 +78,7 @@
               v-model:enabled="data.enabled!"
               :columns="cols"
               :name="data.name!"
+              :custom-name="data.customName"
               :last-updated="data.lastUpdated"
               :image="data.image"
               :can-enable="data.canEnable"
@@ -80,6 +88,7 @@
               :groups="getModGroups.get(data.name!) ?? []"
               @status="changeStatus(data.name!, $event)"
               @order="changeOrder(data.name!, $event)"
+              @rename="openRenameMod(data)"
               @refresh="emit('refresh')"
             />
             <div class="h-px mx-2.5 bg-gray-800 group-last:bg-transparent select-none" :aria-hidden="true" />
@@ -94,6 +103,15 @@
     ref="modalProfileGroups"
     :game-id="gameId"
     :profile="profile"
+  />
+
+  <modal-rename-mod
+    v-if="renameTarget"
+    ref="modalRenameMod"
+    :game-id="gameId"
+    :name="renameTarget.name!"
+    :current-custom-name="renameTarget.customName"
+    @save="emit('refresh')"
   />
 
   <!-- TODO: when adding new mods ask for confirmation if there are edits, and allow the user to undo/save em before proceedin -->
@@ -121,6 +139,7 @@
 import type Sortable from 'sortablejs'
 import type { AppTableColumn } from '~/types/common/AppTable'
 import type { ModResponseDto, ProfileResponseDto } from '~/types/dto'
+import { compareModNames } from '~/utils/sort'
 
 // Props
 const props = defineProps<{
@@ -137,10 +156,29 @@ const SPACE_PATTERN = / /g
 
 // Store
 const gameStore = useGameStore()
+const settingsStore = useSettingsStore()
+
+const invertNames = computed({
+  get: () => settingsStore.settings?.invertModNames ?? false,
+  set: value => updateInvertModNames(value),
+})
+
+async function updateInvertModNames(value: boolean) {
+  const previous = settingsStore.settings?.invertModNames ?? false
+  settingsStore.setSettings({ ...settingsStore.settings, invertModNames: value })
+  try {
+    await useTauriInvoke('set_invert_mod_names', { invert: value })
+  }
+  catch (error) {
+    console.error('Failed to update invert mod names setting:', error)
+    settingsStore.setSettings({ ...settingsStore.settings, invertModNames: previous })
+  }
+}
 
 // Template refs
 const refModalMod = useTemplateRef('modalMod')
 const refModalProfileGroups = useTemplateRef('modalProfileGroups')
+const refModalRenameMod = useTemplateRef('modalRenameMod')
 const refContainerList = useTemplateRef('containerList')
 
 // Non-reactive state
@@ -148,6 +186,7 @@ const sortOptions = [
   { value: '', label: 'Sort by', disabled: true, selected: true },
   { value: 'order', label: 'Order' },
   { value: 'name', label: 'Name' },
+  { value: 'pack', label: 'Pack' },
   { value: 'lastUpdate', label: 'Last update' },
 ]
 const orderOptions = [
@@ -158,6 +197,7 @@ const orderOptions = [
 // Reactive state
 const filters = ref({ search: '', sortBy: 'order', sortOrder: 'desc' })
 const localList = ref<ModResponseDto[]>([])
+const renameTarget = ref<Nullable<ModResponseDto>>(null)
 const isSaving = ref(false)
 const isTogglingManualMode = ref(false)
 const isAddingMods = ref(false)
@@ -170,7 +210,7 @@ const isDragEnabled = computed(() => !!(props.profile?.manualMode) && filters.va
 const columns = computed<AppTableColumn[]>(() => [
   { key: 'order', label: 'Order', span: isDragEnabled.value ? 2 : 1, headerClass: isDragEnabled.value ? 'ml-9' : '' },
   { key: 'enabled', label: 'Enabled?', span: 1 },
-  { key: 'pack', label: 'Pack', span: 5 },
+  { key: 'pack', label: invertNames.value ? 'Pack' : 'Name', span: 5 },
   { key: 'lastUpdate', label: 'Last update', span: 3 },
   { key: 'groups', label: 'Groups', span: 1 },
   { key: 'actions', label: '' },
@@ -188,13 +228,16 @@ const getList = computed(() => {
     .filter((item) => {
       if (!item.name)
         return false
-      const name = item.name.toLowerCase()
-      return name.includes(search.replace(SPACE_PATTERN, '_')) || name.includes(search)
+      const haystacks = [item.name.toLowerCase()]
+      if (item.customName)
+        haystacks.push(item.customName.toLowerCase())
+      return haystacks.some(h => h.includes(search.replace(SPACE_PATTERN, '_')) || h.includes(search))
     })
     .sort((a, b) => {
       switch (sortBy) {
         case 'order': return ((a.order ?? 0) - (b.order ?? 0)) * dir
-        case 'name': return a.name!.localeCompare(b.name!) * dir
+        case 'name': return (a.customName ?? a.name!).localeCompare(b.customName ?? b.name!) * dir
+        case 'pack': return compareModNames(a.name!, b.name!) * dir
         case 'lastUpdate': {
           if (!a.lastUpdated || !b.lastUpdated)
             return 0
@@ -240,6 +283,11 @@ async function toggleManualMode() {
   finally {
     isTogglingManualMode.value = false
   }
+}
+
+function openRenameMod(mod: ModResponseDto) {
+  renameTarget.value = mod
+  nextTick(() => refModalRenameMod.value?.open())
 }
 
 function toggleAllMods() {

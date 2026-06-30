@@ -62,6 +62,7 @@ pub struct GameStore {
     pub profiles: Vec<Profile>,
     pub groups: Vec<Group>,
     pub default_profile: Option<uuid::Uuid>,
+    pub mod_custom_names: HashMap<String, String>, // pack name -> custom name, shared across all profiles of this game
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -190,6 +191,7 @@ impl GameStore {
                 profiles: vec![],
                 groups: vec![],
                 default_profile: None,
+                mod_custom_names: HashMap::new(),
             })
             .to_hashmap()
             .or(Err(ErrorCode::InternalError))?;
@@ -238,6 +240,7 @@ impl GameStore {
             default_profile: Some(default_profile.id),
             profiles: vec![default_profile],
             groups: vec![],
+            mod_custom_names: HashMap::new(),
         })
     }
 
