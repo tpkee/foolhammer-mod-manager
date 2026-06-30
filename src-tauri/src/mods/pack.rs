@@ -165,6 +165,38 @@ impl ModPack {
             .collect())
     }
 
+    /// Lightweight scan of the workshop folder: returns `(pack_name, workshop_id)`
+    /// for every `.pack` file, where `workshop_id` is the numeric parent directory
+    /// (the published file id). Unlike [`retrieve_workshop_mods`], this does not
+    /// parse pack contents, so it is cheap to run on every load.
+    pub fn scan_workshop_ids(steam_workshop_folder: &PathBuf) -> Vec<(String, u64)> {
+        let files = match files_from_subdir(steam_workshop_folder, true) {
+            Ok(files) => files,
+            Err(e) => {
+                log::warn!(
+                    "Failed to scan workshop folder {:?}: {:?}",
+                    steam_workshop_folder,
+                    e
+                );
+                return vec![];
+            }
+        };
+
+        files
+            .iter()
+            .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("pack"))
+            .filter_map(|path| {
+                let name = path.file_stem()?.to_string_lossy().to_string();
+                let workshop_id = path
+                    .parent()
+                    .and_then(|dir| dir.file_name())
+                    .and_then(|dir| dir.to_str())
+                    .and_then(|dir| dir.parse::<u64>().ok())?;
+                Some((name, workshop_id))
+            })
+            .collect()
+    }
+
     pub fn retrieve_mods(
         game_id: SupportedGames,
         game_mods_path: &PathBuf,

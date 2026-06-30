@@ -184,18 +184,10 @@ impl super::GameManager for LinuxLauncher {
             command.env("WINEPREFIX", pfx_path.join("pfx/"));
             command.env("SteamGameId", &game_id_str);
 
-            // we have to check if there is a steam process running, otherwise umu will fail to launch the game.
-            let sys = sysinfo::System::new_all();
-            if sys.processes_by_name("steam".as_ref()).count() == 0 {
-                log::info!("Steam not running, launching steam and waiting");
-                let _ = Command::new("steam")
-                    .spawn()
-                    .expect("Failed to launch Steam")
-                    .wait()
-                    .expect("Failed to wait for Steam");
-
-                std::thread::sleep(std::time::Duration::from_secs(10)); // steam is eepy, let's wait
-            }
+            // we have to make sure steam is running, otherwise umu will fail to launch the game.
+            steam_config
+                .run_steam()
+                .map_err(|e| format!("Failed to start Steam: {:?}", e))?;
         }
 
         let game_preset =

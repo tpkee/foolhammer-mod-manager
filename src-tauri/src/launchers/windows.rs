@@ -3,12 +3,8 @@ use std::os::windows::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use crate::resolve_existing_path;
 use crate::utils::steam::SteamConfig;
 use crate::{defaults::games::DefaultGameInfo, supported_games::SupportedGames};
-
-const DETACHED_PROCESS: u32 = 0x00000008;
-const CREATE_NEW_PROCESS_GROUP: u32 = 0x00000200;
 
 #[derive(Debug)]
 pub(crate) struct WindowsLauncher {
@@ -53,26 +49,10 @@ impl super::GameManager for WindowsLauncher {
             .into_iter()
             .any(|cmp| cmp.as_os_str() == "Steam")
         {
-            // we have to check if there is a steam process running, otherwise umu will fail to launch the game.
-            let sys = sysinfo::System::new_all();
-            if sys.processes_by_name("steam".as_ref()).count() == 0 {
-                log::info!("Steam not running, launching Steam");
-                let steam_path = self
-                    .steam_config
-                    .get_steam_path()
-                    .ok_or("Steam isn't installed")?;
-
-                let steam_exe = resolve_existing_path!(&steam_path, "steam.exe").unwrap();
-                log::info!("Steam executable: {}", steam_exe.display());
-
-                let _ = Command::new(&steam_exe)
-                    .creation_flags(DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP)
-                    .spawn()
-                    .expect("Failed to launch Steam")
-                    .wait();
-
-                // std::thread::sleep(std::time::Duration::from_secs(10)); // steam is eepy, let's wait
-            }
+            // we have to make sure steam is running, otherwise the game will fail to launch.
+            self.steam_config
+                .run_steam()
+                .map_err(|e| format!("Failed to start Steam: {:?}", e))?;
         }
 
         let game_preset =
