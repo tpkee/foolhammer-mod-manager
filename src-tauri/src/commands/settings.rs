@@ -36,6 +36,26 @@ pub async fn set_default_game(
 }
 
 #[tauri::command]
+pub async fn set_invert_mod_names(
+    app_handle: tauri::AppHandle,
+    invert: bool,
+) -> Result<(), ErrorCode> {
+    let store = SettingsStore::get_store(&app_handle)?;
+
+    store.set(SettingsKey::InvertModNames, serde_json::json!(invert));
+    store.save().map_err(|e| {
+        log::error!("Failed to save settings store: {:?}", e);
+        ErrorCode::InternalError
+    })?;
+
+    app_handle
+        .emit(AppEvent::UpdateUserSettings.into(), ())
+        .expect("Failed to emit update_user_settings event");
+
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn update_settings(
     app_handle: tauri::AppHandle,
     payload: UpdateUserSettingsDto,
